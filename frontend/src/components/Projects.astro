@@ -1,0 +1,89 @@
+---
+// Projects.astro
+import ProjectCard from './ProjectCard.astro';
+import FadeIn from '../components/FadeIn';
+
+const projects = [
+  {
+    id: "atria",
+    title: "Atria",
+    description: "A comprehensive virtual event management platform built with React, Flask, and PostgreSQL. Features complex data relationships, secure authentication, and scalable organization-event hierarchies.",
+    tech: ["React", "Flask", "PostgreSQL", "JWT", "Flask-SQLAlchemy", "Flask-Smorest"],
+    liveLink: "https://atria.sbtl.dev",
+    githubLink: "https://github.com/thesubtleties/atria",
+    image: "/public/images/atria-screenshot.jpg" 
+  },
+  {
+    id: "spookyspot",
+    title: "SpookySpot",
+    description: "A Halloween-themed property rental platform inspired by Airbnb. Implements secure file storage using MinIO and robust user authentication system.",
+    tech: ["Express", "React", "PostgreSQL", "Sequelize", "MinIO"],
+    liveLink: "https://spookyspot.sbtl.dev",
+    githubLink: "https://github.com/thesubtleties/spookyspot",
+    image: "/public/images/spookyspot-screenshot.jpg" 
+  },
+  {
+    id: "taskflow",
+    title: "TaskFlow",
+    description: "Project management tool featuring sprint timeline visualization and intuitive task management interface built with React and Flask-SQLAlchemy.",
+    tech: ["React", "Flask", "SQLAlchemy", "PostgreSQL"],
+    liveLink: "https://taskflow.sbtl.dev",
+    githubLink: "https://github.com/JustCodeIt760/Mod7",
+    image: "/public/images/taskflow-screenshot.jpg" 
+  }
+];
+---
+
+<section id="projects" class="min-h-screen flex items-center justify-center px-4 py-16">
+  <div class="projects-container">
+    <FadeIn client:visible>
+      <h2 class="section-title">Projects</h2>
+    </FadeIn>
+    
+    <div class="projects-grid">
+      {projects.map((project, index) => (
+        <FadeIn client:visible delay={0.2 * (index + 1)}>
+          <ProjectCard project={project} />
+        </FadeIn>
+      ))}
+    </div>
+  </div>
+</section>
+  
+  <style>
+    .projects-container {
+      max-width: 1200px;
+      width: 100%;
+      margin: 0 auto;
+    }
+  
+    .section-title {
+      font-family: var(--font-space-grotesk);
+      font-size: 3rem;
+      color: var(--color-primary);
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+  
+    .projects-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr); 
+      gap: 2rem;
+      padding: 1rem;
+    }
+    .projects-grid :global(.project-card) {
+    transform-origin: top;
+  }
+  
+    @media (max-width: 1098px) {
+      .projects-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+  
+    @media (max-width: 768px) {
+      .projects-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>

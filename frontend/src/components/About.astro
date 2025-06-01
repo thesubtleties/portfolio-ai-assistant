@@ -1,0 +1,434 @@
+---
+import EmailIcon from './icons/EmailIcon.astro';
+import LinkedInIcon from './icons/LinkedInIcon.astro';
+import GitHubIcon from './icons/GitHubIcon.astro';
+import FadeIn from '../components/FadeIn';
+---
+
+<section id="about" class="min-h-screen flex items-center justify-center px-4 py-16">
+  <div class="about-container">
+    <div class="about-header">
+      <FadeIn client:visible>
+        <h2 class="name">Steven Glab</h2>
+      </FadeIn>
+      
+      <FadeIn client:visible delay={0.2}>
+        <div class="contact-links">
+          <a href="mailto:steven@sbtl.dev" class="icon-link" aria-label="Email" target="_blank">
+            <EmailIcon />
+          </a>
+          <a href="https://linkedin.com/in/stevenglab" class="icon-link" aria-label="LinkedIn" target="_blank">
+            <LinkedInIcon />
+          </a>
+          <a href="https://github.com/thesubtleties" class="icon-link" aria-label="GitHub" target="_blank">
+            <GitHubIcon />
+          </a>
+          <span class="separator">|</span>
+          <a 
+            href="/steven-glab-resume-2025.pdf" 
+            class="resume-link" 
+            target="_blank" 
+            rel="noopener noreferrer"
+          >
+            résumé
+          </a>
+        </div>
+      </FadeIn>
+    </div>
+
+    <div class="content-section">
+      <FadeIn client:visible delay={0.4}>
+        <div class="tab-navigation">
+          <button class="tab-button active" data-tab="overview">Overview</button>
+          <button class="tab-button" data-tab="journey">My Journey</button>
+        </div>
+
+        <div class="tab-content">
+          <!-- Overview Tab -->
+          <div class="tab-panel active" id="overview">
+            <div class="transition-story">
+              <p class="highlight-text">
+                Forward-thinking technology professional transitioning to software development, combining full-stack expertise with 12+ years of business leadership experience.
+              </p>
+            </div>
+
+            <div class="skills-container">
+              <div class="skills-group">
+                <h3>Frontend Development</h3>
+                <div class="skills-list">
+                  <span class="skill-tag">React</span>
+                  <span class="skill-tag">Next.js</span>
+                  <span class="skill-tag">TypeScript</span>
+                  <span class="skill-tag">Redux Toolkit</span>
+                  <span class="skill-tag">Tailwind CSS</span>
+                  <span class="skill-tag">CSS Modules</span>
+                  <span class="skill-tag">Framer Motion</span>
+                  <span class="skill-tag">React Router</span>
+                  <span class="skill-tag">Zod</span>
+                </div>
+              </div>
+
+              <div class="skills-group">
+                <h3>Backend & API</h3>
+                <div class="skills-list">
+                  <span class="skill-tag">Node.js</span>
+                  <span class="skill-tag">Express</span>
+                  <span class="skill-tag">Python</span>
+                  <span class="skill-tag">Flask</span>
+                  <span class="skill-tag">Flask-Smorest</span>
+                  <span class="skill-tag">RESTful APIs</span>
+                  <span class="skill-tag">OpenAPI</span>
+                </div>
+              </div>
+
+              <div class="skills-group">
+                <h3>Database & ORM</h3>
+                <div class="skills-list">
+                  <span class="skill-tag">PostgreSQL</span>
+                  <span class="skill-tag">SQLAlchemy</span>
+                  <span class="skill-tag">Sequelize</span>
+                </div>
+              </div>
+
+              <div class="skills-group">
+                <h3>DevOps & Tools</h3>
+                <div class="skills-list">
+                  <span class="skill-tag">Docker</span>
+                  <span class="skill-tag">Docker Compose</span>
+                  <span class="skill-tag">Storybook</span>
+                  <span class="skill-tag">Git</span>
+                  <span class="skill-tag">MinIO</span>
+                  <span class="skill-tag">JWT</span>
+                  <span class="skill-tag">Mocha</span>
+                  <span class="skill-tag">Payload CMS</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="background-highlight">
+              <p>Scaled operations from $1.5M to $5M+ in revenue while leading technical implementations for Fortune 500 executives and government leaders.</p>
+            </div>
+          </div>
+
+          <!-- Journey Tab -->
+          <div class="tab-panel" id="journey">
+            <div class="journey-content">
+              <p class="journey-text">
+                My path to software development began in the world of technical production, where I discovered that the difference between good and exceptional often lives in the subtleties.
+              </p>
+            
+              <p class="journey-text">
+                When traditional events transformed in 2020, I led our company's evolution into virtual productions. While guiding our team through technical platform customizations, I found myself drawn deeper into development. Through The Odin Project, I discovered that the same attention to detail that made our events successful translated perfectly to coding.
+              </p>
+            
+              <p class="journey-text">
+                Creating my first React application crystallized this connection. What began as a task list, inspired by the quiet elegance of Japanese alleyways, became a revelation: here was a craft where technical precision and creative vision were inseparable – the same balance I had always sought in production.
+              </p>
+            
+              <p class="journey-text">
+                Just as in technical production, where the best events seamlessly combine functionality and aesthetics, I approach software development with the same principle: create solutions that work flawlessly while maintaining an elegant user experience. It's about building systems where every detail serves a purpose, whether it's immediately visible or working quietly in the background.
+              </p>
+            </div>
+          </div>
+        </div>
+      </FadeIn>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* Keep your existing styles and add: */
+  .about-container {
+    max-width: 1000px;
+    width: 100%;
+    margin: 0 auto;
+  }
+
+  .about-header {
+    margin-bottom: 3rem;
+    text-align: center;
+  }
+
+  .name {
+    font-family: 'Mr Dafoe', sans-serif; 
+    font-size: 3.5rem; 
+    font-weight: 400; 
+    color: var(--color-primary);
+    margin-bottom: 1.2rem;
+    letter-spacing: -0.02em; 
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.03);
+  }
+
+
+  .contact-links {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    align-items: center;
+  }
+
+  .icon-link {
+    color: var(--color-accent);
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+  }
+
+  .icon-link svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .icon-link:hover {
+    color: var(--color-primary);
+    transform: translateY(-2px);
+  }
+
+  .content-section {
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+  }
+
+  .transition-story {
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .highlight-text {
+    font-size: 1.2rem;
+    line-height: 1.6;
+    color: var(--color-primary);
+  }
+
+  .skills-container {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+    margin: 2rem 0;
+  }
+
+  .skills-group h3 {
+    color: var(--color-primary);
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    position: relative;
+    padding-bottom: 0.5rem;
+  }
+
+  .skills-group h3::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 40px;
+    height: 2px;
+    background-color: var(--color-accent);
+  }
+
+  .skills-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .skill-tag {
+    background-color: var(--color-subtle);
+    color: var(--color-primary);
+    padding: 0.4rem 0.8rem;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+
+    border: 1px solid rgba(0, 0, 0, .03);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  }
+
+  .skill-tag:hover {
+    background-color: var(--color-accent);
+    color: white;
+    transform: translateY(-2px);
+  }
+
+  .background-highlight {
+    text-align: center;
+    color: var(--color-accent);
+    font-size: 1.1rem;
+    line-height: 1.6;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem;
+    border-top: 1px solid var(--color-subtle);
+  }
+  .separator {
+    color: var(--color-accent);
+    opacity: 0.5;
+    margin: 0 0.5rem;
+  }
+
+  .resume-link {
+    color: var(--color-accent);
+    text-decoration: none;
+    font-size: 0.95rem;
+    letter-spacing: 0.02em;
+    transition: all 0.3s ease;
+    padding: 0.3rem 0.6rem;
+    border: 1px solid transparent;
+    border-radius: 4px;
+  
+  }
+
+  .resume-link:hover {
+    color: var(--color-primary);
+    border-color: var(--color-subtle);
+    background-color: var(--color-subtle);
+    transform: translateY(-2px);
+  }
+
+  @media (max-width: 768px) {
+    .about-container {
+      padding: 1rem;
+    }
+
+    .name {
+      font-size: 3rem;
+    }
+
+    .skills-container {
+      grid-template-columns: 1fr;
+    }
+    
+  }
+  @media (max-width: 768px) {
+    .contact-links {
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .separator {
+      display: none;
+    }
+
+    .resume-link {
+      padding: 0.4rem 1rem;
+      background-color: var(--color-subtle);
+      height: auto;
+    }
+  }
+  .tab-navigation {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .tab-button {
+    background-color: var(--color-subtle);
+    color: var(--color-primary);
+    padding: 0.5rem 1.2rem;
+    border-radius: 4px;
+    font-size: 0.95rem;
+    border: 1px solid rgba(0, 0, 0, .03);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    cursor: pointer;
+  }
+
+  .tab-button:hover {
+    transform: translateY(-2px);
+    background-color: var(--color-accent);
+    color: white;
+  }
+
+  .tab-button.active {
+    background-color: var(--color-accent);
+    color: white;
+  }
+
+  .tab-content {
+    position: relative;
+  }
+
+  .tab-panel {
+    opacity: 0;
+    visibility: hidden;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    transition: opacity 0.3s ease;
+    min-height: 600px;
+  }
+
+  .tab-panel.active {
+    opacity: 1;
+    visibility: visible;
+    position: relative;
+    min-height: 600px;
+  }
+
+  .journey-content {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .journey-intro {
+    font-size: 1.2rem;
+    line-height: 1.6;
+    color: var(--color-primary);
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+  .journey-text {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    color: var(--color-primary);
+    text-align: center;
+    text-align-last: center;
+    margin-bottom: 2rem;
+    opacity: 0.9;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  @media (max-width: 768px) {
+    .tab-navigation {
+      gap: 0.5rem;
+    }
+
+    .tab-button {
+      padding: 0.4rem 1rem;
+      font-size: 0.9rem;
+    }
+
+    .journey-text {
+      font-size: 1.1rem;
+      line-height: 1.6;
+      margin-bottom: 1.5rem;
+    }
+  }
+</style>
+
+<script>
+  const tabButtons = document.querySelectorAll('.tab-button');
+  const tabPanels = document.querySelectorAll('.tab-panel');
+
+  tabButtons.forEach(button => {
+    button.addEventListener('click', () => {
+      // Remove active class from all buttons and panels
+      tabButtons.forEach(btn => btn.classList.remove('active'));
+      tabPanels.forEach(panel => panel.classList.remove('active'));
+
+      // Add active class to clicked button and corresponding panel
+      button.classList.add('active');
+      const tabId = button.dataset.tab;
+      document.getElementById(tabId)?.classList.add('active');
+    });
+  });
+</script>
+

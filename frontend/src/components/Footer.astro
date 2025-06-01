@@ -1,0 +1,159 @@
+<footer class="py-4">
+  <div class="container mx-auto px-4">
+    <div class="footer-container" id="footer-hover">
+      <div class="footer-content">
+        <span class="year">est. 2025</span>
+        <span class="expanded">
+          <span class="separator"> | </span>
+          <span class="tagline" id="tagline"></span>
+        </span>
+      </div>
+    </div>
+  </div>
+</footer>
+<style>
+  footer {
+    padding: 1rem 0;
+    color: var(--color-accent);
+    font-size: 0.875rem;
+  }
+
+  .footer-container {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    min-height: 1.5rem;
+    opacity: 0.3;
+    transition: opacity 0.5s ease;
+  }
+
+  .footer-container:hover {
+    opacity: 1;
+  }
+
+  .footer-content {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .year {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    transition: all 0.5s ease;
+    white-space: nowrap;
+  }
+
+  .expanded {
+    display: inline-flex;
+    align-items: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.5s ease;
+    white-space: nowrap;
+  }
+
+  .separator {
+    margin: 0 0.5rem;
+  }
+
+  .footer-container:hover .year {
+    position: relative;
+    left: 0;
+    transform: none;
+  }
+
+  .footer-container:hover .expanded {
+    opacity: 1;
+    visibility: visible;
+  }
+</style>
+
+<script>
+const phrases = [
+    "carefully considered",
+    "just beneath the surface",
+    "beyond first glance",
+    "noticed by few",
+    "present in absence",
+    "values leave traces",
+    "quietly principled",
+    "more than meets the eye",
+    "the devil is in the details",
+    "simplicity is sophisticated",
+    "subtle differences matter",
+    "small details, big impact",
+    "attention perfects nature",
+    "details make the difference",
+    "subtlety speaks volumes",
+    "refinement in the details",
+    "precision in simplicity",
+    "elegance in the unseen",
+    "nuance makes perfect",
+    "details tell the story",
+    "subtle by design",
+    "intentionally understated",
+    "if you were looking for a sign...",
+    "made for you",
+    "crafted with intention",
+    "whispers speak volumes",
+    "excellence in the unseen",
+    "thoughtfully considered",
+    "quietly confident",
+    "purposefully refined",
+    "artfully understated",
+    "carefully curated",
+    "mindfully made",
+    "deliberately different",
+    "sophistication simplified",
+    "refined by design",
+    "quietly revolutionary",
+    "perfectly placed",
+    "thoughtfully thorough",
+    "measured in moments",
+    "precisely imperfect",
+    "designed to disappear",
+    "meaningfully minimal",
+    "perfectly present",
+    "designed to delight",
+    "purposefully present",
+    "meaning lingers here",
+    "truth rests quietly",
+    "grace in silence",
+    "drawn to depth",
+    "worth the search",
+    "quietly compelling",
+    "softly significant",
+    "echoes of intention",
+    "authenticity without noise",
+    "unspoken, yet undeniable",
+    "unspoken, but never unheard",
+    "quietly transformative",
+    "felt, not announced",
+    "unseen, but unforgettable",
+    ];
+
+  let lastPhrase = '';
+  const tagline = document.getElementById('tagline');
+  const footer = document.getElementById('footer-hover');
+
+  function getRandomPhrase() {
+    let newPhrase;
+    do {
+      newPhrase = phrases[Math.floor(Math.random() * phrases.length)];
+    } while (newPhrase === lastPhrase && phrases.length > 1);
+    lastPhrase = newPhrase;
+    return newPhrase;
+  }
+
+  footer?.addEventListener('mouseenter', () => {
+    tagline.textContent = getRandomPhrase();
+  });
+
+
+  if (tagline) {
+    tagline.textContent = getRandomPhrase();
+  }
+</script>

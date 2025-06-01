@@ -1,0 +1,142 @@
+---
+import SmoothScroll from "./react/SmoothScroll"
+import AnimatedDefinition from "./react/AnimatedDefinition"
+
+---
+
+<section id="home" class="min-h-screen flex items-center justify-center px-4">
+  <AnimatedDefinition client:load />
+  <SmoothScroll 
+    client:load
+    scrollSensitivity={15}    
+    debounceTime={30}         
+    scrollThreshold={40}      
+    animationDuration={800}  
+  />
+</section>
+<style is:global>
+  .dictionary-entry {
+    font-family: 'Crimson Text', Georgia, serif;
+    color: var(--color-primary);
+    padding: 2rem;
+    max-width: 800px;
+    width: 100%;
+    margin: 0 auto;
+  }
+
+  .word-section {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .word {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--color-primary);
+    letter-spacing: -0.5px;
+  }
+
+  .pronunciation {
+    font-size: 1.1rem;
+    color: var(--color-accent);
+    font-family: 'Inter', sans-serif;
+  }
+
+  .part-of-speech {
+    font-style: italic;
+    color: var(--color-accent);
+    margin-bottom: 1rem;
+  }
+
+  .definitions {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .definition-item {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .number {
+    color: var(--color-accent);
+    flex-shrink: 0;
+  }
+
+  .definition {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    margin-bottom: 0.5rem;
+    word-wrap: break-word;
+  }
+
+  .examples {
+    margin-left: 1.5rem;
+    margin-top: 1rem;
+    color: var(--color-accent);
+    font-size: 0.95rem;
+    font-style: italic;
+  }
+
+  .italic {
+    font-style: italic;
+  }
+
+  @media (max-width: 768px) {
+    .dictionary-entry {
+      padding: 1.5rem;
+    }
+
+    .word {
+      font-size: 2rem;
+    }
+
+    .definition {
+      font-size: 1rem;
+    }
+    
+    .examples {
+      margin-left: 1rem;
+    }
+  }
+
+  .scroll-indicator {
+    position: absolute;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    color: var(--color-accent);
+    opacity: 0.6;
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 0;
+  }
+
+  .scroll-indicator:hover {
+    opacity: 1;
+  }
+
+  @keyframes pulse {
+    0% {
+      opacity: 0.6;
+      transform: translateX(-50%) translateY(0);
+    }
+    50% {
+      opacity: 0.3;
+      transform: translateX(-50%) translateY(5px);
+    }
+    100% {
+      opacity: 0.6;
+      transform: translateX(-50%) translateY(0);
+    }
+  }
+
+  .scroll-indicator svg {
+    animation: pulse 2s infinite;
+  }
+</style>

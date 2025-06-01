@@ -1,0 +1,99 @@
+
+<nav class="nav-container">
+  <div class="nav-content">
+    <div class="logo">sbtl</div>
+    <div class="nav-links">
+      <a href="#home">Home</a>
+      <a href="#about">About</a>
+      <a href="#projects">Projects</a>
+      <a href="#contact">Contact</a>
+    </div>
+  </div>
+</nav>
+
+<style>
+  .nav-container {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    background-color: rgba(248, 249, 250, 0.95);
+    backdrop-filter: blur(8px);
+    z-index: 1000;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  }
+
+  .nav-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1rem var(--spacing-lg);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .logo {
+    font-size: 1.5rem;
+    font-weight: 600;
+    letter-spacing: -0.5px;
+    color: var(--color-primary);
+  }
+
+  .nav-links {
+    display: flex;
+    gap: var(--spacing-lg);
+  }
+
+  .nav-links a {
+    text-decoration: none;
+    color: var(--color-text);
+    font-size: 0.9rem;
+    font-weight: 500;
+    position: relative;
+    padding: var(--spacing-xs) 0;
+  }
+
+  .nav-links a::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 1px;
+    background-color: var(--color-primary);
+    transition: width 0.3s ease;
+  }
+
+  .nav-links a:hover::after {
+    width: 100%;
+  }
+
+  @media (max-width: 768px) {
+    .nav-content {
+      padding: var(--spacing-sm) var(--spacing-md);
+    }
+    
+    .nav-links {
+      gap: 0.75rem; 
+    }
+
+    .nav-links a {
+      font-size: 0.85rem; 
+      padding: var(--spacing-xs) 0.15rem; 
+    }
+
+    .logo {
+      font-size: 1.25rem; 
+    }
+  }
+
+
+  @media (max-width: 360px) {
+    .nav-links {
+      gap: 0.5rem;
+    }
+
+    .nav-links a {
+      font-size: 0.8rem;
+    }
+  }
+</style>

@@ -1,0 +1,489 @@
+---
+
+interface Theme {
+  font: string;
+  primaryColor: string;
+  secondaryColor: string;
+  background: string;
+  cardBorder: string;
+  cardGlow: string;
+}
+
+interface ProjectProps {
+  id: string;
+  title: string;
+  description: string;
+  tech: string[];
+  liveLink: string;
+  githubLink: string;
+  image?: string;
+}
+
+const { project } = Astro.props;
+
+const themes: Record<string, Theme> = {
+  spookyspot: {
+    font: "'Cormorant Garamond', serif",
+    primaryColor: "rgb(212, 175, 55)",
+    secondaryColor: "rgb(169, 169, 169)",
+    background: "#1a1a1a",
+    cardBorder: "1px solid rgb(212, 175, 55, 0.3)",
+    cardGlow: "0 0px 24px 2px rgba(255, 130, 0, .7)"
+  },
+  atria: {
+    font: "'M PLUS 2', sans-serif",
+    primaryColor: "#e4e4e4",
+    secondaryColor: "#d6d6d6",
+    background: "linear-gradient(-45deg, #d698db, #563ab1, #8831c7, #d6d6d6)",
+    cardBorder: "none",
+    cardGlow: "0 8px 24px rgba(215, 131, 255, .7)"
+  },
+  taskflow: {
+    font: "'Times New Roman', serif",  
+    primaryColor: "#3a6491",
+    secondaryColor: "#405165",
+    background: "linear-gradient(135deg, #ffffff 0%, #f0f4f9 100%)",
+    cardBorder: "1px solid #dde5f0",
+    cardGlow: "0 8px 24px rgba(58, 100, 145, 0.15)",
+    accentGradient: "linear-gradient(135deg, #3a6491, #4a7bb7)"
+  }
+};
+
+const theme = themes[project.id] || {
+  font: "inherit",
+  primaryColor: "var(--color-primary)",
+  secondaryColor: "var(--color-text)",
+  background: "white",
+  cardBorder: "1px solid var(--color-subtle)",
+  cardGlow: "none"
+};
+---
+
+<article class={`project-card ${project.id}-theme`}>
+  <div class="project-content">
+    <h3 class="project-title">{project.title}</h3>
+    <p class="project-description">{project.description}</p>
+    
+    <div class="tech-stack">
+      {project.tech.map((tech) => (
+        <span class="tech-tag">{tech}</span>
+      ))}
+    </div>
+    
+    <div class="project-links">
+      <a href={project.liveLink} class="project-link live" target="_blank" rel="noopener noreferrer">
+        View Live
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+          <polyline points="15 3 21 3 21 9"></polyline>
+          <line x1="10" y1="14" x2="21" y2="3"></line>
+        </svg>
+      </a>
+      <a href={project.githubLink} class="project-link github" target="_blank" rel="noopener noreferrer">
+        View Code
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
+        </svg>
+      </a>
+    </div>
+  </div>
+</article>
+
+<style define:vars={theme}>
+  .project-card {
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    border: 1px solid var(--color-subtle);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    height: clamp(400px, 25vh, 600px);
+  }
+
+  .project-card:hover {
+    /* transform: translateY(-4px); */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  }
+
+  .project-content {
+    padding: 1.5rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    justify-content: space-between;
+  }
+
+  .project-title {
+    font-size: 1.5rem;
+    color: var(--color-primary);
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .project-description {
+    color: var(--color-text);
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+    flex: 1;
+    transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .tech-stack {
+    display: flex;
+    flex-wrap: wrap-reverse;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .tech-tag {
+    background-color: var(--color-subtle);
+    color: var(--color-primary);
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    border: 1px solid var(--color-subtle);
+    font-size: 0.8rem;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    margin: 0;
+  }
+  .tech-tag:hover {
+    margin: -1px 1px 1px -1px; 
+
+  }
+
+  .project-links {
+    display: flex;
+    gap: 1rem;
+    margin-top: auto;
+  }
+
+  .project-link {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    text-decoration: none;
+  }
+
+  .project-link.live {
+    background-color: var(--color-primary);
+    border: 1px solid var(--color-subtle);
+    color: white;
+  }
+
+  .project-link.github {
+    background-color: var(--color-subtle);
+    border: 1px solid var(--color-subtle);
+    color: var(--color-primary);
+  }
+
+  .project-link:hover {
+    transform: translateY(-2px);
+    border: 1px solid var(--color-subtle);
+  }
+
+  /* SpookySpot Theme */
+  .spookyspot-theme {
+    transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    background: linear-gradient(to right, white, rgba(26, 26, 26, 0.02));
+  }
+
+  .spookyspot-theme:hover {
+    background: var(--background);
+    border: var(--cardBorder);
+    box-shadow: var(--cardGlow);
+  }
+
+  .spookyspot-theme:hover .project-title {
+    color: var(--primaryColor);
+    font-family: var(--font);
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    font-size: 1.7rem;
+  }
+
+  .spookyspot-theme:hover .project-description {
+    color: var(--secondaryColor);
+    font-family: var(--font);
+    font-size: 1.1rem;
+  }
+
+  .spookyspot-theme:hover .tech-tag {
+    background: transparent;
+    border: 1px solid var(--primaryColor);
+    color: var(--primaryColor);
+    opacity: 0.8;
+  }
+
+  .spookyspot-theme:hover .tech-tag:hover {
+    opacity: 1;
+  }
+
+  .spookyspot-theme:hover .project-link {
+    background: transparent;
+    border: 1px solid var(--primaryColor);
+    color: var(--primaryColor);
+  }
+
+  .spookyspot-theme:hover .project-link:hover {
+    background: var(--primaryColor);
+    color: var(--background);
+  }
+
+  /* Atria Theme */
+  .atria-theme {
+    transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    background: linear-gradient(to right, white, rgba(214, 152, 219, 0.02));
+  }
+
+  .atria-theme:hover {
+    background: var(--background);
+    background-size: 400% 400%;
+    animation: gradientFlow 15s ease infinite;
+    border: var(--cardBorder);
+    box-shadow: var(--cardGlow);
+  }
+
+  .atria-theme:hover .project-title {
+    color: var(--primaryColor);
+    font-family: var(--font);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.3));
+  }
+
+  .atria-theme:hover .project-description {
+    color: var(--secondaryColor);
+    font-family: var(--font);
+  }
+
+  .atria-theme:hover .tech-tag {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: var(--primaryColor);
+  }
+
+  .atria-theme:hover .tech-tag:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+
+  .atria-theme:hover .project-link {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: var(--primaryColor);
+  }
+
+  .atria-theme:hover .project-link:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+
+  /* TaskFlow Theme */
+  .taskflow-theme {
+  transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  background: linear-gradient(to right, rgba(255, 255, 255, 0.1), rgba(79, 71, 247, 0.02));
+}
+  .taskflow-theme:hover {
+    background: var(--background);
+    border: var(--cardBorder);
+    box-shadow: var(--cardGlow);
+  }
+
+  .taskflow-theme:hover .project-title {
+    background: var(--accentGradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-family: var(--font);
+    font-weight: 800;
+    line-height: 1.1;
+    font-size: 1.9rem;
+  }
+
+  .taskflow-theme:hover .project-description {
+    color: var(--secondaryColor);
+    font-family: var(--font);
+    font-size: 1.1rem;
+  }
+
+  .taskflow-theme:hover .tech-tag {
+    background: #f8f9fa;
+    color: var(--primaryColor);
+    border: 1px solid #e5e7eb;
+  }
+
+  .taskflow-theme:hover .project-link.live {
+    background: var(--accentGradient);
+    border: 1px solid var(--primaryColor);
+    color: white;
+    border: none;
+  }
+
+  .taskflow-theme:hover .project-link.github {
+    background: white;
+    color: var(--primaryColor);
+    border: 1px solid var(--primaryColor);
+  }
+
+  .taskflow-theme:hover .project-link.github:hover {
+    background: var(--primaryColor);
+    color: white;
+    border: 1px solid var(--primaryColor);
+  }
+
+  @keyframes gradientFlow {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  @media (max-width: 768px) {
+    .project-title {
+      font-size: 1.5rem;
+    }
+
+    .project-description {
+      font-size: 1rem;
+    }
+    .project-card {
+
+    height: clamp(450px, 25vh, 600px);
+  }
+  }
+
+
+@media (pointer: coarse) {
+  /* SpookySpot Theme */
+  .spookyspot-theme {
+    background: var(--background);
+    border: var(--cardBorder);
+    box-shadow: var(--cardGlow);
+  }
+
+  .spookyspot-theme .project-title {
+    color: var(--primaryColor);
+    font-family: var(--font);
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    font-size: 1.7rem;
+  }
+
+  .spookyspot-theme .project-description {
+    color: var(--secondaryColor);
+    font-family: var(--font);
+    font-size: 1.1rem;
+  }
+
+  .spookyspot-theme .tech-tag {
+    background: transparent;
+    border: 1px solid var(--primaryColor);
+    color: var(--primaryColor);
+    opacity: 0.8;
+  }
+
+  /* Atria Theme */
+  .atria-theme {
+    background: var(--background);
+    background-size: 400% 400%;
+    animation: gradientFlow 15s ease infinite;
+    border: var(--cardBorder);
+    box-shadow: var(--cardGlow);
+  }
+
+  .atria-theme .project-title {
+    color: var(--primaryColor);
+    font-family: var(--font);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.3));
+  }
+
+  .atria-theme .project-description {
+    color: var(--secondaryColor);
+    font-family: var(--font);
+  }
+
+  .atria-theme .tech-tag {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: var(--primaryColor);
+  }
+
+  /* TaskFlow Theme */
+  .taskflow-theme {
+    background: var(--background);
+    border: var(--cardBorder);
+    box-shadow: var(--cardGlow);
+  }
+
+  .taskflow-theme .project-title {
+    background: var(--accentGradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-family: var(--font);
+    font-weight: 800;
+    line-height: 1.1;
+    font-size: 1.9rem;
+  }
+
+  .taskflow-theme .project-description {
+    color: var(--secondaryColor);
+    font-family: var(--font);
+    font-size: 1.1rem;
+  }
+
+  .taskflow-theme .tech-tag {
+    background: #f8f9fa;
+    color: var(--primaryColor);
+    border: 1px solid #e5e7eb;
+  }
+
+  .taskflow-theme .project-link.live {
+    background: var(--accentGradient);
+    border: none;
+    color: white;
+  }
+
+  .taskflow-theme .project-link.github {
+    background: white;
+    color: var(--primaryColor);
+    border: 1px solid var(--primaryColor);
+  }
+
+    /* SpookySpot Theme Buttons */
+    .spookyspot-theme .project-link {
+    background: transparent;
+    border: 1px solid var(--primaryColor);
+    color: var(--primaryColor);
+  }
+
+  /* Atria Theme Buttons */
+  .atria-theme .project-link {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: var(--primaryColor);
+  }
+
+  /* TaskFlow Theme Buttons */
+  .taskflow-theme .project-link.live {
+    background: var(--accentGradient);
+    border: none;
+    color: white;
+  }
+
+  .taskflow-theme .project-link.github {
+    background: white;
+    color: var(--primaryColor);
+    border: 1px solid var(--primaryColor);
+  }
+}
+</style>

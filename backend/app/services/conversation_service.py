@@ -80,3 +80,67 @@ class ConversationService:
         db.commit()
         db.refresh(conversation)
         return conversation
+
+    @staticmethod
+    def update_connection_on_disconnect(
+        db: Session,
+        connection_id: str,
+    ) -> bool:
+        """Update connection status on disconnect but don't end conversation
+        Args:
+            db (Session): Database session for executing queries
+            connection_id (str): Unique connection ID to update
+        Returns:
+            bool: True if updated successfully, False otherwise
+        """
+        conversation = (
+            db.query(Conversation)
+            .filter(
+                Conversation.conversation_metadata.op("->>")(
+                    "current_connection_id"
+                )
+                == connection_id,
+                Conversation.status.in_(
+                    ["active_ai", "active_human", "escalation_pending"]
+                ),
+            )
+            .first()
+        )
+
+        if conversation:
+            # Just mark as disconnected, don't end conversation
+            if not conversation.conversation_metadata:
+                conversation.conversation_metadata = {}
+            conversation.conversation_metadata["connection_status"] = (
+                "disconnected"
+            )
+            conversation.conversation_metadata["last_disconnect"] = (
+                datetime.now(timezone.utc).isoformat()
+            )
+            db.commit()
+            return True
+        return False
+
+    @staticmethod
+    def cleanup_old_conversations(db: Session, hours_old: int = 24) -> int:
+        """Background task to cleanup old conversations"""
+        cutoff_time = datetime.now(timezone.utc) - timedelta(hours=hours_old)
+
+        old_conversations = (
+            db.query(Conversation)
+            .filter(
+                Conversation.status.in_(
+                    ["active_ai", "active_human", "escalation_pending"]
+                ),
+                Conversation.last_message_at < cutoff_time,
+            )
+            .all()
+        )
+
+        for conv in old_conversations:
+            conv.status = "ended"
+            conv.ended_at = datetime.now(timezone.utc)
+            conv.conversation_metadata = conv.conversation_metadata or {}
+            conv.conversation_metadata["end_reason"] = "timeout_cleanup"
+        db.commit()
+        return len(old_conversations)

@@ -1,0 +1,78 @@
+# Secrets - IMPORTANT
+.env
+*.pem
+*.key
+credentials.json
+secrets.yaml
+secrets.yml
+*.log # General log files, can be made more specific if needed
+
+# Operating System Files
+.DS_Store
+Thumbs.db
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*~
+*.sublime-project
+*.sublime-workspace
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+# Virtual environments - if you create one at the root or in subdirs not covered below
+.venv/
+venv/
+env/
+ENV/
+pip-wheel-metadata/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+celerybeat-schedule
+# Database files (if using local sqlite for quick tests)
+*.sqlite3
+*.db
+
+# Node.js
+# A general node_modules ignore. This will catch any node_modules
+# directory in any subdirectory, including frontend/node_modules and admin/node_modules.
+node_modules/
+
+# If you have specific log files from npm/yarn/pnpm at the root
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Astro (if not already fully covered by frontend/.gitignore, but good to have here too for safety)
+# You might prefer to keep these specific ones in frontend/.gitignore
+# frontend/dist/
+# frontend/.astro/
+
+# Next.js (for the admin panel later)
+# admin/.next/
+# admin/out/
+
+# Docker
+# If you ever use docker-compose.override.yml for local-only settings
+docker-compose.override.yml
+# If you have local data volumes for Docker you want to ignore from source control
+# (typically Docker manages named volumes outside the project dir, but just in case)
+# some_local_docker_volume_data/
+
+# Build artifacts (generic)
+build/
+dist/ # If 'dist' is a common output name in multiple subprojects - an alternative to specifying frontend/dist etc.
+
+# Coverage reports
+coverage/
+.coverage

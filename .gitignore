@@ -83,9 +83,12 @@ gameplan.md
 gameplan-revised.md
 testing-strategy.md
 claude.md
+CLAUDE.md
 
 # Teaching/Learning context files
 *_context.md
 backend/**/*_context.md
 frontend/**/*_context.md
 learning_toc.md
+*_bible.md
+beginner_bible_*.md

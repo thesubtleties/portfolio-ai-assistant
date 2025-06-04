@@ -4,8 +4,27 @@ from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
+from dotenv import load_dotenv
 
 from alembic import context
+
+# Load environment variables from .env file in project root
+load_dotenv(os.path.join(os.path.dirname(__file__), "..", "..", ".env"))
+
+# Build database URL from individual components
+def get_database_url():
+    """Construct database URL from environment variables."""
+    db_user = os.getenv("POSTGRES_USER")
+    db_password = os.getenv("POSTGRES_PASSWORD")
+    db_name = os.getenv("POSTGRES_DB")
+    db_host = os.getenv("POSTGRES_HOST", "localhost")
+    db_port = os.getenv("POSTGRES_PORT", "5432")
+    
+    if all([db_user, db_password, db_name]):
+        return f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
+    
+    # Fallback to DATABASE_URL if individual components aren't available
+    return os.getenv("DATABASE_URL")
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -48,7 +67,7 @@ def run_migrations_offline() -> None:
     script output.
 
     """
-    url = config.get_main_option("sqlalchemy.url")
+    url = config.get_main_option("sqlalchemy.url") or get_database_url()
     context.configure(
         url=url,
         target_metadata=target_metadata,
@@ -67,8 +86,14 @@ def run_migrations_online() -> None:
     and associate a connection with the context.
 
     """
+    configuration = config.get_section(config.config_ini_section, {})
+    
+    # Override with environment variable if no URL in config
+    if "sqlalchemy.url" not in configuration:
+        configuration["sqlalchemy.url"] = get_database_url()
+    
     connectable = engine_from_config(
-        config.get_section(config.config_ini_section, {}),
+        configuration,
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
     )

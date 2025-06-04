@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import uuid
 from datetime import datetime
 from sqlalchemy import (
@@ -102,7 +104,7 @@ class Conversation(Base):
     visitor: Mapped["Visitor"] = relationship(
         "Visitor", back_populates="conversations"
     )
-    assigned_human_agent: Mapped["HumanAgent" | None] = relationship(
+    assigned_human_agent: Mapped[HumanAgent | None] = relationship(
         "HumanAgent",
         back_populates="assigned_conversations",
         foreign_keys="Conversation.assigned_human_agent_id",
@@ -149,7 +151,7 @@ class Message(Base):
     conversation: Mapped["Conversation"] = relationship(
         "Conversation", back_populates="messages"
     )
-    sender_human_agent: Mapped["HumanAgent" | None] = relationship(
+    sender_human_agent: Mapped[HumanAgent | None] = relationship(
         "HumanAgent",
         back_populates="sent_messages",
         foreign_keys=[human_agent_id],

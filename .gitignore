@@ -82,8 +82,10 @@ coverage/
 gameplan.md
 gameplan-revised.md
 testing-strategy.md
+claude.md
 
 # Teaching/Learning context files
 *_context.md
 backend/**/*_context.md
 frontend/**/*_context.md
+learning_toc.md

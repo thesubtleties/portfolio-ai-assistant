@@ -1,14 +1,24 @@
 from sqlalchemy.exc import IntegrityError
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from typing import Optional, List
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, update, delete
 from app.models.database import Conversation, Visitor
+import redis.asyncio as redis
+import json
+import asyncio
+import logging
+import uuid
+
+
+logger = logging.getLogger(__name__)
 
 
 class ConversationService:
     @staticmethod
-    def get_or_create_current_conversation(
-        db: Session,
+    async def get_or_create_current_conversation(
+        db: AsyncSession,
+        redis_client: redis.Redis,
         visitor_id: str,
         connection_id: str,
         session_id: str,
@@ -22,11 +32,46 @@ class ConversationService:
             session_id (str): Unique session ID for the current session
             ai_model_used (Optional[str], optional): AI model used in the conversation. Defaults to None.
         """
+        try:
+            cached_conv = await redis_client.hgetall(
+                f"active_conv:{session_id}"
+            )
+            if cached_conv and cached_conv.get("conversation_id"):
 
-        active_conversation = (
-            db.query(Conversation)
+                # update connection in Redis cache
+                await redis_client.hset(
+                    f"active_conv:{session_id}",
+                    mapping={
+                        "connection_id": connection_id,
+                        "last_activity": datetime.now(
+                            timezone.utc
+                        ).isoformat(),
+                    },
+                )
+
+                # build conversation object from cache
+                conversation = (
+                    ConversationService._build_conversation_from_cache(
+                        cached_conv, connection_id
+                    )
+                )
+                # sync to DB but in background
+                asyncio.create_task(
+                    ConversationService._sync_connection_to_db(
+                        db, cached_conv["conversation_id"], connection_id
+                    )
+                )
+
+                logger.info(f"Cache HIT for session {session_id}")
+                return conversation
+        except Exception as e:
+            logger.error(f"Cache FAIL for session {session_id}: {e}")
+
+        logger.info(f"Falling back to DB for session {session_id}")
+
+        stmt = (
+            select(Conversation)
             .filter(
-                Conversation.visitor_id == visitor_id,
                 Conversation.status.in_(
                     ["active_ai", "active_human", "escalation_pending"]
                 ),
@@ -34,20 +79,27 @@ class ConversationService:
                 == session_id,
             )
             .order_by(Conversation.last_message_at.desc())
-            .first()
         )
 
+        result = await db.execute(stmt)
+        active_conversation = result.scalar_one_or_none()
+
         if active_conversation:
-            # Update connection_id for this Websocket connection
+            # Update connection_id for this websocket connection
             active_conversation.conversation_metadata[
                 "current_connection_id"
             ] = connection_id
             active_conversation.last_message_at = datetime.now(timezone.utc)
-            db.commit()
+            await db.commit()  # async commit
+
+            await ConversationService._cache_conversation(
+                redis_client, active_conversation, session_id
+            )
             return active_conversation
 
-        return ConversationService.create_conversation(
+        return await ConversationService.create_conversation(
             db=db,
+            redis_client=redis_client,
             visitor_id=visitor_id,
             connection_id=connection_id,
             session_id=session_id,
@@ -57,6 +109,7 @@ class ConversationService:
     @staticmethod
     def create_conversation(
         db: Session,
+        redis_client: redis.Redis,
         visitor_id: str,
         connection_id: str,
         session_id: str,

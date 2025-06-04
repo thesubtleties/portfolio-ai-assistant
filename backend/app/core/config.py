@@ -23,7 +23,7 @@ class Settings(BaseSettings):
     redis_host: str = "localhost"
     redis_port: int = 6379
     redis_db: int = 0
-    redis_decode_responses: bool = False  # Keep as bytes for compatibility
+    redis_decode_responses: bool = True  # Decode to strings for easier handling
     redis_max_connections: int = 50
 
     # Application settings

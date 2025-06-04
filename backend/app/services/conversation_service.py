@@ -210,9 +210,9 @@ class ConversationService:
     @staticmethod
     def _build_conversation_from_cache(
         cached_conv: dict,
-        session_id: str,
+        new_connection_id: str,
     ) -> Conversation:
-        """Build a Conversation object from cached data"""
+        """Build a Conversation object from cached data with updated connection ID"""
         return Conversation(
             id=uuid.UUID(cached_conv["conversation_id"]),
             visitor_id=uuid.UUID(cached_conv["visitor_id"]),
@@ -222,8 +222,8 @@ class ConversationService:
             ),
             status=cached_conv["status"],
             conversation_metadata={
-                "current_connection_id": cached_conv.get("connection_id"),
-                "session_id": session_id,
+                "current_connection_id": new_connection_id,  # Update with new connection
+                "session_id": cached_conv.get("session_id"),  # Keep from cache
             },
         )
 
@@ -252,3 +252,37 @@ class ConversationService:
 
         await db.commit()
         return len(old_conversations)
+
+    @staticmethod
+    async def _sync_connection_to_db(
+        db: AsyncSession, conversation_id: str, connection_id: str
+    ) -> None:
+        """Update database with new connection ID in background"""
+        try:
+            stmt = select(Conversation).where(
+                Conversation.id == conversation_id
+            )
+            result = await db.execute(stmt)
+            conversation = result.scalar_one_or_none()
+
+            if conversation:
+                # Update connection_id in metadata
+                if not conversation.conversation_metadata:
+                    conversation.conversation_metadata = {}
+                conversation.conversation_metadata["current_connection_id"] = (
+                    connection_id
+                )
+                conversation.last_message_at = datetime.now(timezone.utc)
+                await db.commit()
+                logger.info(
+                    f"Synced connection {connection_id} to DB for conversation {conversation_id}"
+                )
+            else:
+                logger.warning(
+                    f"Conversation {conversation_id} not found for connection sync"
+                )
+        except Exception as e:
+            logger.error(
+                f"Failed to sync connection {connection_id} to DB: {e}"
+            )
+            # Don't re-raise - this is background task, shouldn't break main flow

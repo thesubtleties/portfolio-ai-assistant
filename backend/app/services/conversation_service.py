@@ -26,7 +26,7 @@ class ConversationService:
     ) -> Conversation:
         """Get active conversation for this browser session only, or create a new one if none exists.
         Args:
-            db (Session): Database session for executing queries
+            db (AsyncSession): Database session for executing queries
             visitor_id (str): Unique visitor ID
             connection_id (str): Unique connection ID for the current session
             session_id (str): Unique session ID for the current session
@@ -71,7 +71,7 @@ class ConversationService:
 
         stmt = (
             select(Conversation)
-            .filter(
+            .where(
                 Conversation.status.in_(
                     ["active_ai", "active_human", "escalation_pending"]
                 ),
@@ -107,8 +107,8 @@ class ConversationService:
         )
 
     @staticmethod
-    def create_conversation(
-        db: Session,
+    async def create_conversation(
+        db: AsyncSession,
         redis_client: redis.Redis,
         visitor_id: str,
         connection_id: str,
@@ -130,35 +130,37 @@ class ConversationService:
             },
         )
         db.add(conversation)
-        db.commit()
-        db.refresh(conversation)
+        await db.commit()
+        await db.refresh(conversation)
+        await ConversationService._cache_conversation(
+            redis_client, conversation, session_id
+        )
         return conversation
 
     @staticmethod
-    def update_connection_on_disconnect(
-        db: Session,
+    async def update_connection_on_disconnect(
+        db: AsyncSession,
         connection_id: str,
     ) -> bool:
         """Update connection status on disconnect but don't end conversation
         Args:
-            db (Session): Database session for executing queries
+            db (AsyncSession): Database session for executing queries
             connection_id (str): Unique connection ID to update
         Returns:
             bool: True if updated successfully, False otherwise
         """
-        conversation = (
-            db.query(Conversation)
-            .filter(
-                Conversation.conversation_metadata.op("->>")(
-                    "current_connection_id"
-                )
-                == connection_id,
-                Conversation.status.in_(
-                    ["active_ai", "active_human", "escalation_pending"]
-                ),
+        stmt = select(Conversation).where(
+            Conversation.conversation_metadata.op("->>")(
+                "current_connection_id"
             )
-            .first()
+            == connection_id,
+            Conversation.status.in_(
+                ["active_ai", "active_human", "escalation_pending"]
+            ),
         )
+
+        result = await db.execute(stmt)
+        conversation = result.scalar_one_or_none()
 
         if conversation:
             # Just mark as disconnected, don't end conversation
@@ -170,30 +172,83 @@ class ConversationService:
             conversation.conversation_metadata["last_disconnect"] = (
                 datetime.now(timezone.utc).isoformat()
             )
-            db.commit()
+            await db.commit()
             return True
         return False
 
     @staticmethod
-    def cleanup_old_conversations(db: Session, hours_old: int = 24) -> int:
+    async def _cache_conversation(
+        redis_client: redis.Redis,
+        conversation: Conversation,
+        session_id: str,
+    ) -> None:
+        """Cache conversation in Redis for quick access"""
+
+        await redis_client.hset(
+            f"active_conv:{session_id}",
+            mapping={
+                "conversation_id": str(conversation.id),
+                "visitor_id": str(conversation.visitor_id),
+                "connection_id": conversation.conversation_metadata.get(
+                    "current_connection_id"
+                ),
+                "status": conversation.status,
+                "started_at": conversation.started_at.isoformat(),
+                "last_activity": datetime.now(timezone.utc).isoformat(),
+                "last_message_at": conversation.last_message_at.isoformat(),
+                "ai_model_used": conversation.ai_model_used or "",
+                "session_id": session_id,
+                "conversation_metadata": json.dumps(
+                    conversation.conversation_metadata or {}
+                ),
+            },
+        )
+        await redis_client.expire(
+            f"active_conv:{session_id}", 3600  # Cache for 1 hour
+        )
+
+    @staticmethod
+    def _build_conversation_from_cache(
+        cached_conv: dict,
+        session_id: str,
+    ) -> Conversation:
+        """Build a Conversation object from cached data"""
+        return Conversation(
+            id=uuid.UUID(cached_conv["conversation_id"]),
+            visitor_id=uuid.UUID(cached_conv["visitor_id"]),
+            started_at=datetime.fromisoformat(cached_conv["started_at"]),
+            last_message_at=datetime.fromisoformat(
+                cached_conv["last_message_at"]
+            ),
+            status=cached_conv["status"],
+            conversation_metadata={
+                "current_connection_id": cached_conv.get("connection_id"),
+                "session_id": session_id,
+            },
+        )
+
+    @staticmethod
+    async def cleanup_old_conversations(
+        db: AsyncSession, hours_old: int = 24
+    ) -> int:
         """Background task to cleanup old conversations"""
         cutoff_time = datetime.now(timezone.utc) - timedelta(hours=hours_old)
 
-        old_conversations = (
-            db.query(Conversation)
-            .filter(
-                Conversation.status.in_(
-                    ["active_ai", "active_human", "escalation_pending"]
-                ),
-                Conversation.last_message_at < cutoff_time,
-            )
-            .all()
+        stmt = select(Conversation).where(
+            Conversation.status.in_(
+                ["active_ai", "active_human", "escalation_pending"]
+            ),
+            Conversation.last_message_at < cutoff_time,
         )
+
+        result = await db.execute(stmt)
+        old_conversations = result.scalars().all()
 
         for conv in old_conversations:
             conv.status = "ended"
             conv.ended_at = datetime.now(timezone.utc)
             conv.conversation_metadata = conv.conversation_metadata or {}
             conv.conversation_metadata["end_reason"] = "timeout_cleanup"
-        db.commit()
+
+        await db.commit()
         return len(old_conversations)

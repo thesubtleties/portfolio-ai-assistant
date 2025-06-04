@@ -76,3 +76,5 @@ dist/ # If 'dist' is a common output name in multiple subprojects - an alternati
 # Coverage reports
 coverage/
 .coverage
+
+gameplan.md

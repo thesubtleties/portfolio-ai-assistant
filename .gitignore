@@ -77,4 +77,13 @@ dist/ # If 'dist' is a common output name in multiple subprojects - an alternati
 coverage/
 .coverage
 
+
+# Planning files
 gameplan.md
+gameplan-revised.md
+testing-strategy.md
+
+# Teaching/Learning context files
+*_context.md
+backend/**/*_context.md
+frontend/**/*_context.md

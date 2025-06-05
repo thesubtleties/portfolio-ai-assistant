@@ -14,10 +14,12 @@ logger = logging.getLogger(__name__)
 
 
 class VisitorService:
-    @staticmethod
-    async def get_or_create_visitor(
-        db: AsyncSession,
-        redis_client: redis.Redis,
+    def __init__(self, db: AsyncSession, redis_client: redis.Redis):
+        self.db = db
+        self.redis = redis_client
+
+    async def get_or_create(
+        self,
         fingerprint_id: str,
         user_agent_raw: Optional[str] = None,
         ip_address_hash: Optional[str] = None,
@@ -37,15 +39,15 @@ class VisitorService:
         # Try to get visitor from Redis cache first
         cache_key = f"visitor:{fingerprint_id}"
         try:
-            cached_visitor = await redis_client.hgetall(cache_key)
+            cached_visitor = await self.redis.hgetall(cache_key)
             if cached_visitor and cached_visitor.get("visitor_id"):
                 # Update last seen in cache
-                await redis_client.hset(
+                await self.redis.hset(
                     cache_key,
                     "last_seen_at",
                     datetime.now(timezone.utc).isoformat(),
                 )
-                await redis_client.expire(
+                await self.redis.expire(
                     cache_key, 7 * 24 * 3600
                 )  # Reset 7-day TTL
 
@@ -53,12 +55,12 @@ class VisitorService:
                 stmt = select(Visitor).where(
                     Visitor.id == uuid.UUID(cached_visitor["visitor_id"])
                 )
-                result = await db.execute(stmt)
+                result = await self.db.execute(stmt)
                 visitor = result.scalar_one_or_none()
 
                 if visitor:
                     visitor.last_seen_at = datetime.now(timezone.utc)
-                    await db.commit()
+                    await self.db.commit()
                     logger.info(f"Cache HIT for fingerprint {fingerprint_id}")
                     return visitor, False
         except Exception as e:
@@ -68,16 +70,16 @@ class VisitorService:
         logger.info(f"Falling back to DB for fingerprint {fingerprint_id}")
 
         stmt = select(Visitor).where(Visitor.fingerprint_id == fingerprint_id)
-        result = await db.execute(stmt)
+        result = await self.db.execute(stmt)
         visitor = result.scalar_one_or_none()
 
         if visitor:
             # Update last seen
             visitor.last_seen_at = datetime.now(timezone.utc)
-            await db.commit()
+            await self.db.commit()
 
             # Cache the visitor
-            await VisitorService._cache_visitor(redis_client, visitor)
+            await self._cache_visitor(visitor)
             return visitor, False
 
         now = datetime.now(timezone.utc)
@@ -89,15 +91,15 @@ class VisitorService:
             ip_address_hash=ip_address_hash,
         )
         try:
-            db.add(visitor)
-            await db.commit()
-            await db.refresh(visitor)
+            self.db.add(visitor)
+            await self.db.commit()
+            await self.db.refresh(visitor)
 
             # Cache the new visitor
-            await VisitorService._cache_visitor(redis_client, visitor)
+            await self._cache_visitor(visitor)
             return visitor, True
         except IntegrityError:
-            await db.rollback()
+            await self.db.rollback()
             stmt = select(Visitor).where(
                 Visitor.fingerprint_id == fingerprint_id
             )
@@ -105,18 +107,14 @@ class VisitorService:
             visitor = result.scalar_one_or_none()
             if visitor:
                 # Cache the existing visitor found after race condition
-                await VisitorService._cache_visitor(redis_client, visitor)
+                await self._cache_visitor(visitor)
                 return visitor, False
             else:
                 raise RuntimeError(
                     "Failed to create visitor and could not find existing one."
                 )
 
-    @staticmethod
-    async def _cache_visitor(
-        redis_client: redis.Redis,
-        visitor: Visitor,
-    ) -> None:
+    async def _cache_visitor(self, visitor: Visitor) -> None:
         """Cache visitor data in Redis with 7-day TTL"""
         cache_key = f"visitor:{visitor.fingerprint_id}"
 
@@ -135,17 +133,15 @@ class VisitorService:
             "notes_by_agent": visitor.notes_by_agent or "",
         }
 
-        await redis_client.hset(cache_key, mapping=visitor_data)
-        await redis_client.expire(
+        await self.redis.hset(cache_key, mapping=visitor_data)
+        await self.redis.expire(
             cache_key, 7 * 24 * 3600
         )  # 7 days in seconds
 
-    @staticmethod
     async def update_visitor_data(
+        self,
         visitor: Visitor,
         profile_data: dict,
-        db: AsyncSession,
-        redis_client: redis.Redis,
     ) -> None:
         """Update visitor profile data extracted from chat messages.
         Args:
@@ -163,12 +159,10 @@ class VisitorService:
         # Update cache
         await VisitorService._cache_visitor(redis_client, visitor)
 
-    @staticmethod
     async def update_agent_notes(
+        self,
         visitor: Visitor,
         notes: str,
-        db: AsyncSession,
-        redis_client: redis.Redis,
     ) -> None:
         """Update notes by agent for a visitor.
 

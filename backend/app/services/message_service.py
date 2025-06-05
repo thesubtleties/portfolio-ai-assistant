@@ -13,10 +13,12 @@ logger = logging.getLogger(__name__)
 
 
 class MessageService:
-    @staticmethod
+    def __init__(self, db: AsyncSession, redis_client: redis.Redis):
+        self.db = db
+        self.redis = redis_client
+
     async def save_message(
-        db: AsyncSession,
-        redis_client: redis.Redis,
+        self,
         conversation_id: str,
         sender_type: str,
         content: str,
@@ -25,8 +27,6 @@ class MessageService:
     ) -> Message:
         """Save a message to the conversation.
         Args:
-            db (AsyncSession): Database session for executing queries
-            redis_client (redis.Redis): Redis client for caching
             conversation_id (str): ID of the conversation to which the message belongs
             sender_type (str): Type of the sender ('visitor', 'ai', 'human_agent')
             content (str): Content of the message
@@ -43,44 +43,38 @@ class MessageService:
             timestamp=datetime.now(timezone.utc),
         )
 
-        db.add(message)
+        self.db.add(message)
 
         # Update conversation's last_message_at timestamp using SQLAlchemy 2.0+ style
         stmt = select(Conversation).where(Conversation.id == conversation_id)
-        result = await db.execute(stmt)
+        result = await self.db.execute(stmt)
         conversation = result.scalar_one_or_none()
 
         if conversation:
             conversation.last_message_at = datetime.now(timezone.utc)
 
-        await db.commit()
-        await db.refresh(message)
+        await self.db.commit()
+        await self.db.refresh(message)
 
         # Cache the message
-        await MessageService._cache_message(
-            redis_client, message, conversation_id
-        )
+        await self._cache_message(message, conversation_id)
 
         return message
 
-    @staticmethod
     async def get_conversation_messages(
-        db: AsyncSession,
-        redis_client: redis.Redis,
+        self,
         conversation_id: str,
         limit: int = 50,
     ) -> List[Message]:
         """Get messages for a specific conversation.
         Args:
-            db (AsyncSession): Database session for executing queries
-            redis_client (redis.Redis): Redis client for caching
             conversation_id (str): ID of the conversation to fetch messages for
             limit (int, optional): Maximum number of messages to return. Defaults to 50.
         """
 
         # Try to get recent messages from cache first
-        cached_messages = await MessageService._get_cached_messages(
-            redis_client, conversation_id, limit
+        cached_messages = await self._get_cached_messages(
+            conversation_id, limit
         )
 
         if cached_messages:
@@ -101,20 +95,17 @@ class MessageService:
             .limit(limit)
         )
 
-        result = await db.execute(stmt)
+        result = await self.db.execute(stmt)
         messages = result.scalars().all()
 
         # Cache the messages for future requests
         if messages:
-            await MessageService._cache_messages(
-                redis_client, messages, conversation_id
-            )
+            await self._cache_messages(messages, conversation_id)
 
         return messages
 
-    @staticmethod
     async def _cache_message(
-        redis_client: redis.Redis,
+        self,
         message: Message,
         conversation_id: str,
     ) -> None:
@@ -132,23 +123,22 @@ class MessageService:
             "timestamp": message.timestamp.isoformat(),
         }
 
-        await redis_client.hset(message_key, mapping=message_data)
-        await redis_client.expire(
+        await self.redis.hset(message_key, mapping=message_data)
+        await self.redis.expire(
             message_key, 3600
         )  # 1 hour TTL for individual messages
 
         # Add to conversation's message list (sorted set by timestamp)
         conv_messages_key = f"conv_messages:{conversation_id}"
         score = message.timestamp.timestamp()
-        await redis_client.zadd(conv_messages_key, {str(message.id): score})
+        await self.redis.zadd(conv_messages_key, {str(message.id): score})
 
         # Keep only recent messages in the sorted set (last 100)
-        await redis_client.zremrangebyrank(conv_messages_key, 0, -101)
-        await redis_client.expire(conv_messages_key, 3600)  # 1 hour TTL
+        await self.redis.zremrangebyrank(conv_messages_key, 0, -101)
+        await self.redis.expire(conv_messages_key, 3600)  # 1 hour TTL
 
-    @staticmethod
     async def _cache_messages(
-        redis_client: redis.Redis,
+        self,
         messages: List[Message],
         conversation_id: str,
     ) -> None:
@@ -157,17 +147,14 @@ class MessageService:
         conv_messages_key = f"conv_messages:{conversation_id}"
 
         # Clear existing cached messages for this conversation
-        await redis_client.delete(conv_messages_key)
+        await self.redis.delete(conv_messages_key)
 
         # Cache each message
         for message in messages:
-            await MessageService._cache_message(
-                redis_client, message, conversation_id
-            )
+            await self._cache_message(message, conversation_id)
 
-    @staticmethod
     async def _get_cached_messages(
-        redis_client: redis.Redis,
+        self,
         conversation_id: str,
         limit: int = 50,
     ) -> Optional[List[Message]]:
@@ -177,7 +164,7 @@ class MessageService:
             conv_messages_key = f"conv_messages:{conversation_id}"
 
             # Get message IDs from sorted set (ordered by timestamp)
-            message_ids = await redis_client.zrange(
+            message_ids = await self.redis.zrange(
                 conv_messages_key, 0, limit - 1
             )
 
@@ -188,7 +175,7 @@ class MessageService:
             messages = []
             for message_id in message_ids:
                 message_key = f"message:{message_id}"
-                message_data = await redis_client.hgetall(message_key)
+                message_data = await self.redis.hgetall(message_key)
 
                 if message_data:
                     # Reconstruct Message object from cached data
@@ -217,9 +204,8 @@ class MessageService:
             )
             return None
 
-    @staticmethod
     async def get_recent_messages(
-        db: AsyncSession,
+        self,
         hours: int = 24,
         limit: int = 100,
     ) -> List[Message]:
@@ -234,5 +220,5 @@ class MessageService:
             .limit(limit)
         )
 
-        result = await db.execute(stmt)
+        result = await self.db.execute(stmt)
         return result.scalars().all()

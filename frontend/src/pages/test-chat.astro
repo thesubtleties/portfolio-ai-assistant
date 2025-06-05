@@ -1,0 +1,317 @@
+---
+// Test page for WebSocket chat functionality
+---
+
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="generator" content={Astro.generator} />
+    <title>WebSocket Chat Test</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        .container {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .status.disconnected { background: #ffebee; color: #c62828; }
+        .status.connecting { background: #fff3e0; color: #ef6c00; }
+        .status.connected { background: #e8f5e8; color: #2e7d32; }
+        .chat-area {
+            border: 1px solid #ddd;
+            height: 400px;
+            overflow-y: auto;
+            padding: 10px;
+            margin: 10px 0;
+            background: #fafafa;
+            font-size: 14px;
+        }
+        .message {
+            margin: 5px 0;
+            padding: 8px;
+            border-radius: 4px;
+        }
+        .message.user { background: #e3f2fd; border-left: 4px solid #2196f3; }
+        .message.ai { background: #f3e5f5; border-left: 4px solid #9c27b0; }
+        .message.system { background: #fff3e0; border-left: 4px solid #ff9800; font-style: italic; }
+        .message.error { background: #ffebee; border-left: 4px solid #f44336; }
+        .input-area {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0;
+        }
+        input[type="text"] {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            padding: 10px 20px;
+            background: #2196f3;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover { background: #1976d2; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        .info-panel {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-size: 12px;
+        }
+        .info-panel strong { color: #333; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 WebSocket Chat Test</h1>
+        <p>Simple test page for WebSocket functionality with the Portfolio AI Assistant backend.</p>
+        
+        <div id="status" class="status disconnected">Disconnected</div>
+        
+        <div class="info-panel">
+            <strong>Connection Info:</strong><br>
+            <span id="connection-info">Not connected</span>
+        </div>
+        
+        <div class="input-area">
+            <input type="text" id="visitor-id" placeholder="Visitor ID (auto-generated)" readonly>
+            <input type="text" id="conversation-id" placeholder="Conversation ID (optional)">
+            <button id="connect-btn">Connect</button>
+            <button id="disconnect-btn" disabled>Disconnect</button>
+        </div>
+        
+        <div id="chat-area" class="chat-area">
+            <div class="message system">Click "Connect" to start testing WebSocket functionality...</div>
+        </div>
+        
+        <div class="input-area">
+            <input type="text" id="message-input" placeholder="Type a message..." disabled>
+            <button id="send-btn" disabled>Send</button>
+            <button id="heartbeat-btn" disabled>Heartbeat</button>
+        </div>
+        
+        <div class="info-panel">
+            <strong>Backend URL:</strong> <span id="backend-url">ws://localhost:8000/ws/chat</span><br>
+            <strong>Test Commands:</strong><br>
+            • Type any message to test user input<br>
+            • Click "Heartbeat" to test keepalive<br>
+            • Invalid JSON will trigger error handling<br>
+        </div>
+    </div>
+
+    <script>
+        let ws = null;
+        let visitorId = null;
+        let conversationId = null;
+
+        // DOM elements
+        const statusEl = document.getElementById('status');
+        const connectionInfoEl = document.getElementById('connection-info');
+        const visitorIdInput = document.getElementById('visitor-id');
+        const conversationIdInput = document.getElementById('conversation-id');
+        const connectBtn = document.getElementById('connect-btn');
+        const disconnectBtn = document.getElementById('disconnect-btn');
+        const chatArea = document.getElementById('chat-area');
+        const messageInput = document.getElementById('message-input');
+        const sendBtn = document.getElementById('send-btn');
+        const heartbeatBtn = document.getElementById('heartbeat-btn');
+        const backendUrlEl = document.getElementById('backend-url');
+
+        // Generate visitor ID
+        function generateVisitorId() {
+            return 'visitor_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+        }
+
+        // Add message to chat area
+        function addMessage(content, type = 'system', timestamp = null) {
+            const messageEl = document.createElement('div');
+            messageEl.className = `message ${type}`;
+            
+            const time = timestamp ? new Date(timestamp).toLocaleTimeString() : new Date().toLocaleTimeString();
+            messageEl.innerHTML = `<strong>[${time}]</strong> ${content}`;
+            
+            chatArea.appendChild(messageEl);
+            chatArea.scrollTop = chatArea.scrollHeight;
+        }
+
+        // Update connection status
+        function updateStatus(status, info = '') {
+            statusEl.className = `status ${status}`;
+            switch(status) {
+                case 'connecting':
+                    statusEl.textContent = 'Connecting...';
+                    break;
+                case 'connected':
+                    statusEl.textContent = 'Connected';
+                    break;
+                case 'disconnected':
+                    statusEl.textContent = 'Disconnected';
+                    break;
+            }
+            connectionInfoEl.textContent = info;
+        }
+
+        // Connect to WebSocket
+        function connect() {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                addMessage('Already connected!', 'system');
+                return;
+            }
+
+            // Generate visitor ID if not set
+            if (!visitorId) {
+                visitorId = generateVisitorId();
+                visitorIdInput.value = visitorId;
+            }
+
+            // Get conversation ID if provided
+            conversationId = conversationIdInput.value.trim() || null;
+
+            // Build WebSocket URL
+            let wsUrl = 'ws://localhost:8000/ws/chat?visitor_id=' + encodeURIComponent(visitorId);
+            if (conversationId) {
+                wsUrl += '&conversation_id=' + encodeURIComponent(conversationId);
+            }
+
+            updateStatus('connecting', `Connecting to ${wsUrl}`);
+            addMessage(`Attempting to connect with visitor_id: ${visitorId}`, 'system');
+            if (conversationId) {
+                addMessage(`Using conversation_id: ${conversationId}`, 'system');
+            }
+
+            ws = new WebSocket(wsUrl);
+
+            ws.onopen = function(event) {
+                updateStatus('connected', `Connected to ${wsUrl}`);
+                addMessage('WebSocket connection established!', 'system');
+                
+                // Enable UI
+                connectBtn.disabled = true;
+                disconnectBtn.disabled = false;
+                messageInput.disabled = false;
+                sendBtn.disabled = false;
+                heartbeatBtn.disabled = false;
+                
+                // Focus message input
+                messageInput.focus();
+            };
+
+            ws.onmessage = function(event) {
+                try {
+                    const data = JSON.parse(event.data);
+                    console.log('Received:', data);
+
+                    switch(data.type) {
+                        case 'message_received':
+                            addMessage(`Message received: "${data.message.content}"`, 'system', data.message.timestamp);
+                            break;
+                        case 'ai_response':
+                            addMessage(`AI: ${data.message.content}`, 'ai', data.message.timestamp);
+                            break;
+                        case 'heartbeat_ack':
+                            addMessage('Heartbeat acknowledged', 'system', data.timestamp);
+                            break;
+                        case 'error':
+                            addMessage(`Error: ${data.error}`, 'error');
+                            break;
+                        default:
+                            addMessage(`Unknown message type: ${data.type}`, 'system');
+                    }
+                } catch (e) {
+                    addMessage(`Received invalid JSON: ${event.data}`, 'error');
+                }
+            };
+
+            ws.onclose = function(event) {
+                updateStatus('disconnected', `Connection closed (code: ${event.code})`);
+                addMessage(`Connection closed (code: ${event.code}, reason: ${event.reason || 'No reason'})`, 'system');
+                
+                // Disable UI
+                connectBtn.disabled = false;
+                disconnectBtn.disabled = true;
+                messageInput.disabled = true;
+                sendBtn.disabled = true;
+                heartbeatBtn.disabled = true;
+            };
+
+            ws.onerror = function(event) {
+                addMessage('WebSocket error occurred', 'error');
+                console.error('WebSocket error:', event);
+            };
+        }
+
+        // Disconnect from WebSocket
+        function disconnect() {
+            if (ws) {
+                ws.close();
+                ws = null;
+            }
+        }
+
+        // Send message
+        function sendMessage() {
+            const content = messageInput.value.trim();
+            if (!content || !ws || ws.readyState !== WebSocket.OPEN) return;
+
+            const message = {
+                type: 'user_message',
+                content: content
+            };
+
+            ws.send(JSON.stringify(message));
+            addMessage(`You: ${content}`, 'user');
+            messageInput.value = '';
+        }
+
+        // Send heartbeat
+        function sendHeartbeat() {
+            if (!ws || ws.readyState !== WebSocket.OPEN) return;
+
+            const heartbeat = { type: 'heartbeat' };
+            ws.send(JSON.stringify(heartbeat));
+            addMessage('Sending heartbeat...', 'system');
+        }
+
+        // Event listeners
+        connectBtn.addEventListener('click', connect);
+        disconnectBtn.addEventListener('click', disconnect);
+        sendBtn.addEventListener('click', sendMessage);
+        heartbeatBtn.addEventListener('click', sendHeartbeat);
+
+        messageInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // Initialize
+        visitorId = generateVisitorId();
+        visitorIdInput.value = visitorId;
+
+        // Update backend URL display
+        backendUrlEl.textContent = 'ws://localhost:8000/ws/chat';
+
+        addMessage('WebSocket Chat Test initialized. Ready to connect!', 'system');
+    </script>
+</body>
+</html>

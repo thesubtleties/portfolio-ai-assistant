@@ -21,12 +21,12 @@ class CreateConversationRequest(BaseModel):
     visitor_id: str = Field(
         ...,
         description="Unique visitor identifier",
-        examples=["550e8400-e29b-41d4-a716-446655440000"]
+        examples=["550e8400-e29b-41d4-a716-446655440000"],
     )
     conversation_id: Optional[str] = Field(
         None,
         description="Existing conversation ID to continue (null for new conversation)",
-        examples=["123e4567-e89b-12d3-a456-426614174000"]
+        examples=["123e4567-e89b-12d3-a456-426614174000"],
     )
 
 
@@ -36,32 +36,28 @@ class ConversationResponse(BaseModel):
     id: str = Field(
         ...,
         description="Unique conversation identifier",
-        examples=["123e4567-e89b-12d3-a456-426614174000"]
+        examples=["123e4567-e89b-12d3-a456-426614174000"],
     )
     visitor_id: str = Field(
         ...,
         description="Visitor who owns this conversation",
-        examples=["550e8400-e29b-41d4-a716-446655440000"]
+        examples=["550e8400-e29b-41d4-a716-446655440000"],
     )
     started_at: datetime = Field(
         ...,
         description="When the conversation was started",
-        examples=["2024-01-15T10:30:00Z"]
+        examples=["2024-01-15T10:30:00Z"],
     )
     last_message_at: datetime = Field(
         ...,
         description="When the last message was sent",
-        examples=["2024-01-15T10:35:00Z"]
+        examples=["2024-01-15T10:35:00Z"],
     )
     status: str = Field(
-        ...,
-        description="Current conversation status",
-        examples=["active_ai"]
+        ..., description="Current conversation status", examples=["active_ai"]
     )
     message_count: int = Field(
-        0,
-        description="Number of messages in this conversation",
-        examples=[5]
+        0, description="Number of messages in this conversation", examples=[5]
     )
 
 
@@ -71,30 +67,28 @@ class MessageResponse(BaseModel):
     id: str = Field(
         ...,
         description="Unique message identifier",
-        examples=["789e0123-e45f-67g8-h901-234567890abc"]
+        examples=["789e0123-e45f-67g8-h901-234567890abc"],
     )
     content: str = Field(
         ...,
         description="Message content",
-        examples=["Hello! How can I help you today?"]
+        examples=["Hello! How can I help you today?"],
     )
     sender_type: str = Field(
-        ...,
-        description="Who sent the message",
-        examples=["ai"]
+        ..., description="Who sent the message", examples=["ai"]
     )
     timestamp: datetime = Field(
         ...,
         description="When the message was sent",
-        examples=["2024-01-15T10:35:00Z"]
+        examples=["2024-01-15T10:35:00Z"],
     )
 
 
 @router.post("/start", response_model=ConversationResponse)
 async def start_conversation(
-    request: CreateConversationRequest, 
+    request: CreateConversationRequest,
     db: AsyncSession = Depends(get_db),
-    redis_client: redis.Redis = Depends(get_redis)
+    redis_client: redis.Redis = Depends(get_redis),
 ) -> ConversationResponse:
     """
     Start a new conversation or continue existing one.
@@ -108,12 +102,14 @@ async def start_conversation(
         conversation = await conversation_service.get_or_create_conversation(
             visitor_id=request.visitor_id,
             conversation_id=request.conversation_id,
-            ai_model_used="gpt-4"  # Default model
+            ai_model_used="gpt-4",  # Default model
         )
 
         # Get message count (simplified for now)
         message_count = (
-            len(conversation.messages) if hasattr(conversation, 'messages') and conversation.messages else 0
+            len(conversation.messages)
+            if hasattr(conversation, "messages") and conversation.messages
+            else 0
         )
 
         return ConversationResponse(

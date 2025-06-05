@@ -19,12 +19,14 @@ class SendMessageRequest(BaseModel):
     conversation_id: str = Field(
         ...,
         description="ID of the conversation to send message to",
-        examples=["123e4567-e89b-12d3-a456-426614174000"]
+        examples=["123e4567-e89b-12d3-a456-426614174000"],
     )
     content: str = Field(
         ...,
         description="Message content",
-        examples=["Hello! Can you tell me about Steven's experience with React?"]
+        examples=[
+            "Hello! Can you tell me about Steven's experience with React?"
+        ],
     )
 
 
@@ -34,27 +36,27 @@ class MessageResponse(BaseModel):
     id: str = Field(
         ...,
         description="Unique message identifier",
-        examples=["789e0123-e45f-67g8-h901-234567890abc"]
+        examples=["789e0123-e45f-67g8-h901-234567890abc"],
     )
     conversation_id: str = Field(
         ...,
         description="ID of the conversation this message belongs to",
-        examples=["123e4567-e89b-12d3-a456-426614174000"]
+        examples=["123e4567-e89b-12d3-a456-426614174000"],
     )
     content: str = Field(
         ...,
         description="Message content",
-        examples=["Hello! How can I help you today?"]
+        examples=["Hello! How can I help you today?"],
     )
     sender_type: str = Field(
         ...,
         description="Who sent the message (visitor, ai, human_agent)",
-        examples=["ai"]
+        examples=["ai"],
     )
     timestamp: datetime = Field(
         ...,
         description="When the message was sent",
-        examples=["2024-01-15T10:35:00Z"]
+        examples=["2024-01-15T10:35:00Z"],
     )
 
 
@@ -62,20 +64,18 @@ class SendMessageResponse(BaseModel):
     """Response after sending a message."""
 
     user_message: MessageResponse = Field(
-        ...,
-        description="The user's message that was sent"
+        ..., description="The user's message that was sent"
     )
     ai_response: MessageResponse = Field(
-        ...,
-        description="The AI's response to the user's message"
+        ..., description="The AI's response to the user's message"
     )
 
 
 @router.post("/send", response_model=SendMessageResponse)
 async def send_message(
-    request: SendMessageRequest, 
+    request: SendMessageRequest,
     db: AsyncSession = Depends(get_db),
-    redis_client: redis.Redis = Depends(get_redis)
+    redis_client: redis.Redis = Depends(get_redis),
 ) -> SendMessageResponse:
     """
     Send a message in a conversation.

@@ -92,3 +92,9 @@ frontend/**/*_context.md
 learning_toc.md
 *_bible.md
 beginner_bible_*.md
+development_journal.md
+visitor_identification_strategy.md
+conversation_flow_architecture.md
+next_session.md
+service_refactor_example.md
+visitor_memory_architecture.md

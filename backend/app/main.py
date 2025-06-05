@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.core.database import get_db
-from app.api.routes import visitors, conversations, messages
+from app.api.routes import visitors, conversations, messages, websocket
 
 
 @asynccontextmanager
@@ -56,3 +56,4 @@ async def health_check():
 app.include_router(visitors.router)
 app.include_router(conversations.router)
 app.include_router(messages.router)
+app.include_router(websocket.router)

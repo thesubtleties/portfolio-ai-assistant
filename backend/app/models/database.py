@@ -9,6 +9,7 @@ from sqlalchemy import (
     TIMESTAMP,
     CheckConstraint,
 )
+from pgvector.sqlalchemy import Vector
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship, DeclarativeBase
 from sqlalchemy.sql import func
@@ -185,8 +186,53 @@ class KnowledgeSource(Base):
     )
     checksum: Mapped[str | None] = mapped_column(String(128))
 
+    portfolio_contents: Mapped[list["PortfolioContent"]] = relationship(
+        "PortfolioContent", back_populates="knowledge_source"
+    )
+
     def __repr__(self):
         return (
             f"<KnowledgeSource(id={self.id}, source_name={self.source_name}, "
             f"last_indexed_at={self.last_indexed_at})>"
+        )
+
+
+class PortfolioContent(Base):
+    __tablename__ = "portfolio_content"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    knowledge_source_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("knowledge_sources.id"), index=True
+    )
+    content_type: Mapped[str] = mapped_column(String(50), index=True)
+    title: Mapped[str | None] = mapped_column(String(255))
+    content: Mapped[str] = mapped_column(Text)
+    content_chunk: Mapped[str | None] = mapped_column(Text)
+    chunk_index: Mapped[int | None] = mapped_column()
+    embedding: Mapped[list[float] | None] = mapped_column(Vector(1536))
+    content_metadata: Mapped[dict | None] = mapped_column(JSONB)
+    created_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True), server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+    knowledge_source: Mapped["KnowledgeSource"] = relationship(
+        "KnowledgeSource", back_populates="portfolio_contents"
+    )
+
+    __table_args__ = (
+        CheckConstraint(
+            "content_type IN ('project', 'skill', 'experience', 'about', 'resume', 'general')",
+            name="valid_content_type",
+        ),
+    )
+
+    def __repr__(self):
+        return (
+            f"<PortfolioContent(id={self.id}, content_type={self.content_type}, "
+            f"title={self.title}, chunk_index={self.chunk_index})>"
         )

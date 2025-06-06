@@ -134,9 +134,7 @@ class VisitorService:
         }
 
         await self.redis.hset(cache_key, mapping=visitor_data)
-        await self.redis.expire(
-            cache_key, 7 * 24 * 3600
-        )  # 7 days in seconds
+        await self.redis.expire(cache_key, 7 * 24 * 3600)  # 7 days in seconds
 
     async def update_visitor_data(
         self,

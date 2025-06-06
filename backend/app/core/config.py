@@ -26,6 +26,9 @@ class Settings(BaseSettings):
     redis_decode_responses: bool = True  # Decode to strings for easier handling
     redis_max_connections: int = 50
 
+    # OpenAI settings
+    openai_api_key: str
+    
     # Application settings
     environment: str = "development"
     api_prefix: str = "/api"

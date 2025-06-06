@@ -16,3 +16,10 @@ pydantic-settings
 
 # Redis
 redis[hiredis]  # hiredis for better performance
+
+# Vector Database
+pgvector
+
+# AI Agents
+atomic-agents
+openai

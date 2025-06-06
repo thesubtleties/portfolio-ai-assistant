@@ -10,6 +10,8 @@ import redis.asyncio as redis
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.services.conversation_service import ConversationService
 from app.services.message_service import MessageService
+from app.services.portfolio_agent_service import PortfolioAgentService
+from app.services.visitor_service import VisitorService
 
 logger = logging.getLogger(__name__)
 
@@ -24,6 +26,8 @@ class ConnectionManager:
         self.connection_conversations: Dict[str, str] = {}
         # Conversation to connections mapping: {conversation_id: Set[connection_id]}
         self.conversation_connections: Dict[str, Set[str]] = {}
+        # Portfolio agent service (shared instance)
+        self.agent_service = PortfolioAgentService()
 
     async def connect(
         self,
@@ -35,6 +39,9 @@ class ConnectionManager:
     ) -> tuple[str, str]:
         """
         Accept WebSocket connection and set up conversation.
+        
+        Args:
+            visitor_id: Browser fingerprint ID (not UUID)
 
         Returns:
             tuple[connection_id, conversation_id]
@@ -44,10 +51,14 @@ class ConnectionManager:
         # Generate unique connection ID
         connection_id = str(uuid.uuid4())
 
-        # Get or create conversation using existing service
+        # Get or create visitor using fingerprint_id
+        visitor_service = VisitorService(db, redis_client)
+        visitor, is_new = await visitor_service.get_or_create(fingerprint_id=visitor_id)
+
+        # Get or create conversation using actual visitor UUID
         conversation_service = ConversationService(db, redis_client)
         conversation = await conversation_service.get_or_create_conversation(
-            visitor_id=visitor_id,
+            visitor_id=str(visitor.id),
             conversation_id=conversation_id,
             connection_id=connection_id,
             ai_model_used="gpt-4",
@@ -94,8 +105,12 @@ class ConnectionManager:
             self.conversation_connections[conversation_id].discard(
                 connection_id
             )
+            # If no more connections for this conversation, end it
             if not self.conversation_connections[conversation_id]:
                 del self.conversation_connections[conversation_id]
+                
+                # End conversation agent
+                await self.agent_service.end_conversation(conversation_id)
 
         self.active_connections.pop(connection_id, None)
 
@@ -221,7 +236,7 @@ class ConnectionManager:
         user_message = await message_service.save_message(
             conversation_id=conversation_id,
             content=content,
-            sender_type="user",
+            sender_type="visitor",
         )
 
         # Send confirmation to user
@@ -232,7 +247,7 @@ class ConnectionManager:
                     "message": {
                         "id": str(user_message.id),
                         "content": content,
-                        "sender_type": "user",
+                        "sender_type": "visitor",
                         "timestamp": user_message.timestamp.isoformat(),
                     },
                 }
@@ -240,8 +255,43 @@ class ConnectionManager:
             connection_id,
         )
 
-        # TODO: Generate AI response (placeholder for now)
-        ai_response = f"AI response to: {content}"
+        # Generate AI response using agent service
+        try:
+            # Get conversation using existing service
+            conversation_service = ConversationService(db, redis_client)
+            conversation = await conversation_service.get_or_create_conversation(
+                visitor_id=None,  # Not needed for existing conversation lookup
+                conversation_id=conversation_id,
+            )
+            
+            # Get visitor using conversation's visitor_id
+            from sqlalchemy import select
+            from app.models.database import Visitor
+            
+            stmt = select(Visitor).where(Visitor.id == conversation.visitor_id)
+            result = await db.execute(stmt)
+            visitor = result.scalar_one_or_none()
+            
+            if not visitor:
+                raise ValueError(f"Visitor {conversation.visitor_id} not found")
+            
+            # Get AI response with conversation memory
+            agent_response = await self.agent_service.chat_with_visitor(
+                session=db,
+                visitor=visitor,
+                conversation_id=conversation_id,
+                message=content
+            )
+            
+            ai_response = agent_response.response
+            
+            # Update visitor notes if provided
+            if agent_response.visitor_notes_update:
+                await self.agent_service.update_visitor_notes(db, visitor, agent_response.visitor_notes_update)
+                
+        except Exception as e:
+            logger.error(f"Error generating AI response: {e}")
+            ai_response = "I'm sorry, I encountered an error processing your message. Please try again."
 
         # Save AI message
         ai_message = await message_service.save_message(

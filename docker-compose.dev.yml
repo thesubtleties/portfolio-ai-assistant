@@ -8,7 +8,7 @@ volumes:
 
 services:
   postgres_db:
-    image: postgres:15-alpine
+    image: pgvector/pgvector:pg15
     container_name: portfolio_postgres_dev
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-devuser}

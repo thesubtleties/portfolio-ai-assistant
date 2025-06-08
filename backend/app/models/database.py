@@ -236,3 +236,28 @@ class PortfolioContent(Base):
             f"<PortfolioContent(id={self.id}, content_type={self.content_type}, "
             f"title={self.title}, chunk_index={self.chunk_index})>"
         )
+
+
+class ConversationQuote(Base):
+    """Model for conversation starter quotes."""
+    __tablename__ = "conversation_quotes"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    quote_text: Mapped[str] = mapped_column(Text)
+    category: Mapped[str] = mapped_column(String(50), default="noir")
+    is_active: Mapped[bool] = mapped_column(default=True)
+    usage_count: Mapped[int] = mapped_column(default=0)
+    created_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True), server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+    def __repr__(self):
+        return (
+            f"<ConversationQuote(id={self.id}, category={self.category}, "
+            f"usage_count={self.usage_count})>"
+        )

@@ -6,13 +6,16 @@ This script processes markdown files from the content/ directory and stores them
 in the PostgreSQL database with pgvector embeddings for semantic search.
 
 Usage:
-    python scripts/ingest_portfolio.py
+    python scripts/ingest_portfolio.py [--force]
+    
+    --force: Delete all existing content and re-ingest everything
 
 Environment Variables Required:
     - POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB, POSTGRES_HOST
     - OPENAI_API_KEY
 """
 
+import argparse
 import asyncio
 import hashlib
 import sys
@@ -35,9 +38,10 @@ from app.models.database import KnowledgeSource, PortfolioContent
 class PortfolioIngester:
     """Handles ingestion of portfolio content into pgvector database."""
 
-    def __init__(self):
+    def __init__(self, force_reingest: bool = False):
         self.openai_client = AsyncOpenAI(api_key=settings.openai_api_key)
         self.content_dir = Path(__file__).parent.parent / "content"
+        self.force_reingest = force_reingest
 
     async def ingest_all_content(self):
         """Main entry point - process all content files."""
@@ -59,6 +63,13 @@ class PortfolioIngester:
             return
 
         print(f"=� Found {len(md_files)} markdown files")
+        
+        if self.force_reingest:
+            print("🗑️  Force reingest enabled - wiping all existing content...")
+            async with AsyncSessionLocal() as session:
+                await self._wipe_all_content(session)
+                await session.commit()
+            print("✅  All existing content wiped")
 
         async with AsyncSessionLocal() as session:
             processed_count = 0
@@ -161,7 +172,7 @@ class PortfolioIngester:
             source = KnowledgeSource(
                 source_name=source_path,
                 description=f"Portfolio content from {source_path}",
-                checksum=checksum,
+                checksum="",  # Start with empty checksum so it will be processed
                 last_indexed_at=func.now(),
             )
             session.add(source)
@@ -242,6 +253,16 @@ class PortfolioIngester:
             print(f"   �  Error hashing file {file_path}: {e}")
             return ""
 
+    async def _wipe_all_content(self, session: AsyncSession):
+        """Delete all existing portfolio content and knowledge sources."""
+        # Delete all portfolio content
+        await session.execute(delete(PortfolioContent))
+        print("   🗑️  Deleted all PortfolioContent")
+        
+        # Delete all knowledge sources
+        await session.execute(delete(KnowledgeSource))
+        print("   🗑️  Deleted all KnowledgeSource records")
+
 
 async def main():
     """Main entry point."""
@@ -269,7 +290,7 @@ async def main():
         return
 
     # Run ingestion
-    ingester = PortfolioIngester()
+    ingester = PortfolioIngester(force_reingest=args.force)
     await ingester.ingest_all_content()
 
 

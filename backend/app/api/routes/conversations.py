@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.core.redis import get_redis
+from app.core.config import settings
 from app.services.conversation_service import ConversationService
 from app.services.message_service import MessageService
 import redis.asyncio as redis
@@ -102,7 +103,7 @@ async def start_conversation(
         conversation = await conversation_service.get_or_create_conversation(
             visitor_id=request.visitor_id,
             conversation_id=request.conversation_id,
-            ai_model_used="gpt-4",  # Default model
+            ai_model_used=settings.openai_model,
         )
 
         # Get message count (simplified for now)

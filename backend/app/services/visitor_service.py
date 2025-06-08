@@ -103,7 +103,7 @@ class VisitorService:
             stmt = select(Visitor).where(
                 Visitor.fingerprint_id == fingerprint_id
             )
-            result = await db.execute(stmt)
+            result = await self.db.execute(stmt)
             visitor = result.scalar_one_or_none()
             if visitor:
                 # Cache the existing visitor found after race condition

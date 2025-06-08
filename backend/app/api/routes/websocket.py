@@ -98,7 +98,7 @@ async def websocket_chat_endpoint(
         logger.error(f"WebSocket error: {e}")
     finally:
         if connection_id:
-            await manager.disconnect(connection_id, db)
+            await manager.disconnect(connection_id, db, redis_client)
 
 
 @router.get("/ws/stats")

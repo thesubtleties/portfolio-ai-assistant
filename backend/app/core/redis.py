@@ -1,4 +1,5 @@
 """Redis connection and management."""
+
 import redis.asyncio as redis
 from app.core.config import settings
 
@@ -15,7 +16,7 @@ redis_pool = redis.ConnectionPool(
 async def get_redis() -> redis.Redis:
     """
     Get Redis client instance.
-    
+
     Returns:
         redis.Redis: Redis client
     """

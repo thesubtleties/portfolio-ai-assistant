@@ -12,6 +12,7 @@ from app.services.conversation_service import ConversationService
 from app.services.message_service import MessageService
 from app.services.portfolio_agent_service import PortfolioAgentService
 from app.services.visitor_service import VisitorService
+from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +40,7 @@ class ConnectionManager:
     ) -> tuple[str, str]:
         """
         Accept WebSocket connection and set up conversation.
-        
+
         Args:
             visitor_id: Browser fingerprint ID (not UUID)
 
@@ -53,7 +54,9 @@ class ConnectionManager:
 
         # Get or create visitor using fingerprint_id
         visitor_service = VisitorService(db, redis_client)
-        visitor, is_new = await visitor_service.get_or_create(fingerprint_id=visitor_id)
+        visitor, is_new = await visitor_service.get_or_create(
+            fingerprint_id=visitor_id
+        )
 
         # Get or create conversation using actual visitor UUID
         conversation_service = ConversationService(db, redis_client)
@@ -61,7 +64,7 @@ class ConnectionManager:
             visitor_id=str(visitor.id),
             conversation_id=conversation_id,
             connection_id=connection_id,
-            ai_model_used="gpt-4",
+            ai_model_used=settings.openai_model,
         )
 
         conversation_id = str(conversation.id)
@@ -85,11 +88,12 @@ class ConnectionManager:
         self,
         connection_id: str,
         db: AsyncSession,
+        redis_client,
     ) -> None:
         """Handle WebSocket disconnection."""
 
         # Update conversation status in database
-        conversation_service = ConversationService(db, redis.Redis())
+        conversation_service = ConversationService(db, redis_client)
         await conversation_service.update_connection_on_disconnect(
             connection_id
         )
@@ -108,7 +112,7 @@ class ConnectionManager:
             # If no more connections for this conversation, end it
             if not self.conversation_connections[conversation_id]:
                 del self.conversation_connections[conversation_id]
-                
+
                 # End conversation agent
                 await self.agent_service.end_conversation(conversation_id)
 
@@ -263,32 +267,36 @@ class ConnectionManager:
                 visitor_id=None,  # Not needed for existing conversation lookup
                 conversation_id=conversation_id,
             )
-            
+
             # Get visitor using conversation's visitor_id
             from sqlalchemy import select
             from app.models.database import Visitor
-            
+
             stmt = select(Visitor).where(Visitor.id == conversation.visitor_id)
             result = await db.execute(stmt)
             visitor = result.scalar_one_or_none()
-            
+
             if not visitor:
-                raise ValueError(f"Visitor {conversation.visitor_id} not found")
-            
+                raise ValueError(
+                    f"Visitor {conversation.visitor_id} not found"
+                )
+
             # Get AI response with conversation memory
             agent_response = await self.agent_service.chat_with_visitor(
                 session=db,
                 visitor=visitor,
                 conversation_id=conversation_id,
-                message=content
+                message=content,
             )
-            
+
             ai_response = agent_response.response
-            
+
             # Update visitor notes if provided
             if agent_response.visitor_notes_update:
-                await self.agent_service.update_visitor_notes(db, visitor, agent_response.visitor_notes_update)
-                
+                await self.agent_service.update_visitor_notes(
+                    db, visitor, agent_response.visitor_notes_update
+                )
+
         except Exception as e:
             logger.error(f"Error generating AI response: {e}")
             ai_response = "I'm sorry, I encountered an error processing your message. Please try again."

@@ -3,6 +3,7 @@
 from typing import List, Optional
 import instructor
 import openai
+from openai import AsyncOpenAI
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, text
 
@@ -36,6 +37,7 @@ class PortfolioAgentService:
         # Set up OpenAI client with Instructor
         from app.core.config import settings
         
+        self.async_openai_client = AsyncOpenAI(api_key=settings.openai_api_key)
         self.client = instructor.from_openai(openai.OpenAI(api_key=settings.openai_api_key))
         
         # Store conversation agents: {conversation_id: BaseAgent}
@@ -44,25 +46,12 @@ class PortfolioAgentService:
     def _get_system_prompt_generator(self):
         """Get the system prompt generator for the portfolio agent."""
         from atomic_agents.lib.components.system_prompt_generator import SystemPromptGenerator
+        from app.core.config import settings
         
         return SystemPromptGenerator(
-            background=[
-                "You are Steven's AI portfolio assistant.",
-                "You help visitors learn about Steven's experience, skills, and projects.",
-                "You maintain conversation context and remember visitor interests."
-            ],
-            steps=[
-                "Analyze the visitor's message and any provided context.",
-                "Use relevant portfolio content when discussing Steven's work.",
-                "Provide helpful, conversational responses about Steven's background.",
-                "Remember important details about the visitor for future interactions."
-            ],
-            output_instructions=[
-                "Be conversational and helpful in your responses.",
-                "When discussing Steven's work, reference specific projects or skills.",
-                "Keep responses concise but informative.",
-                "If you can't find specific information, say so honestly."
-            ]
+            background=settings.agent_background,
+            steps=settings.agent_steps,
+            output_instructions=settings.agent_output_instructions
         )
     
     def _create_agent_for_conversation(self, visitor, conversation_id: str) -> BaseAgent:
@@ -70,8 +59,9 @@ class PortfolioAgentService:
         memory = AgentMemory()
         
         # Add initial greeting message to establish conversation context
+        from app.core.config import settings
         initial_message = PortfolioAgentResponse(
-            response="Hello! I'm Steven's AI portfolio assistant. How can I help you learn about his experience, skills, and projects?",
+            response=settings.agent_greeting,
             visitor_notes_update=None
         )
         memory.add_message("assistant", initial_message)
@@ -80,7 +70,7 @@ class PortfolioAgentService:
         agent = BaseAgent(
             config=BaseAgentConfig(
                 client=self.client,
-                model="gpt-4o-mini",
+                model=settings.openai_model,
                 memory=memory,
                 system_prompt_generator=self._get_system_prompt_generator(),
                 output_schema=PortfolioAgentResponse
@@ -113,26 +103,18 @@ class PortfolioAgentService:
 
     async def get_embedding(self, text: str) -> List[float]:
         """Get OpenAI embedding for text."""
-        # This is a placeholder - you'll need to implement actual embedding generation
-        # Using OpenAI's text-embedding-3-small model
         from app.core.config import settings
-        
-        client = openai.OpenAI(api_key=settings.openai_api_key)
-        response = client.embeddings.create(
-            model="text-embedding-3-small", input=text, dimensions=1536
+        response = await self.async_openai_client.embeddings.create(
+            model=settings.openai_embedding_model, input=text, dimensions=1536
         )
         return response.data[0].embedding
 
     def _needs_portfolio_search(self, message: str) -> bool:
         """Decide if we need to search portfolio content."""
-        portfolio_keywords = [
-            "project", "experience", "skill", "work", "built", "technology",
-            "react", "python", "database", "show me", "tell me about",
-            "portfolio", "development", "programming", "code", "app"
-        ]
+        from app.core.config import settings
         
         message_lower = message.lower()
-        return any(keyword in message_lower for keyword in portfolio_keywords)
+        return any(keyword in message_lower for keyword in settings.portfolio_search_keywords)
     
     async def chat_with_visitor(
         self,

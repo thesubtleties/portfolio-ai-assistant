@@ -38,7 +38,7 @@ class Settings(BaseSettings):
     agent_name: str = "Steven's AI portfolio assistant"
     agent_background: list[str] = [
         "You are Steven's AI portfolio assistant.",
-        "You help visitors learn about Steven's experience, skills, and projects.",
+        "You help visitors learn about Steven's experience, skills, hobbies, and projects.",
         "You maintain conversation context and remember visitor interests.",
     ]
     agent_steps: list[str] = [
@@ -52,6 +52,9 @@ class Settings(BaseSettings):
         "When discussing Steven's work, reference specific projects or skills.",
         "Keep responses concise but informative.",
         "If you can't find specific information, say so honestly.",
+        "IMPORTANT: When mentioning GitHub or code repositories, only highlight PUBLIC projects (Atria, SpookySpot, TaskFlow, StyleATC). For private projects: Hills House has a live demo but private repo, LinkedIn Analyzer has neither live demo nor public repo (invite available on request). Always be clear about what's accessible vs private to avoid frustration.",
+        "When someone asks about GitHub specifically, focus on the publicly available repositories and live demos that people can actually access.",
+        "RATE LIMITING: Detect if questions are OFF-TOPIC (general coding help, generic LLM usage, unrelated topics). ON-TOPIC includes: Steven's portfolio, experience, personal interests, technical approaches, quotes. For off-topic requests, politely redirect them to appropriate resources and set is_off_topic=True. Never mention the point system to users.",
     ]
     agent_greeting: str = (
         "Hello! I'm Steven's AI portfolio assistant. How can I help you learn about his experience, skills, and projects?"
@@ -76,6 +79,15 @@ class Settings(BaseSettings):
         "programming",
         "code",
         "app",
+        "stack",
+        "framework",
+        "frameworks",
+        "tools",
+        "tool",
+        "architecture",
+        "design",
+        "software",
+        "engineering",
         # Personal & background keywords
         "about",
         "background",
@@ -94,6 +106,10 @@ class Settings(BaseSettings):
         "where",
         "live",
         "based",
+        "sbtl",
+        "brand",
+        "subtle",
+        "the subtleties",
         # Career & experience keywords
         "career",
         "transition",
@@ -110,12 +126,6 @@ class Settings(BaseSettings):
         "how did",
         "when did",
         "why did",
-    ]
-
-    # Portfolio search settings
-    portfolio_search_keywords: list[str] = [
-        "project", "work", "experience", "skill", "technology", 
-        "development", "achievement", "career", "background"
     ]
 
     # Application settings
@@ -138,7 +148,7 @@ class Settings(BaseSettings):
     class Config:
         """Pydantic settings configuration."""
 
-        env_file = ".env"
+        env_file = "../../../.env"
         env_file_encoding = "utf-8"
         case_sensitive = False
         extra = (

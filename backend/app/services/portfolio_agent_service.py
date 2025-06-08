@@ -27,6 +27,10 @@ class PortfolioAgentResponse(BaseIOSchema):
         default=None,
         description="New notes to append to visitor's profile, or None if no update needed",
     )
+    is_off_topic: bool = Field(
+        default=False,
+        description="True if this conversation is off-topic (general coding help, unrelated questions). Off-topic: asking for coding help, generic LLM usage, unrelated topics. On-topic: Steven's portfolio, experience, personal interests, technical approaches, quotes.",
+    )
 
 
 class PortfolioAgentService:
@@ -36,39 +40,45 @@ class PortfolioAgentService:
         """Initialize the portfolio agent service."""
         self.db = db
         self.redis = redis_client
-        
+
         # Set up OpenAI client with Instructor
         from app.core.config import settings
-        
+
         self.async_openai_client = AsyncOpenAI(api_key=settings.openai_api_key)
-        self.client = instructor.from_openai(openai.OpenAI(api_key=settings.openai_api_key))
-        
+        self.client = instructor.from_openai(
+            openai.OpenAI(api_key=settings.openai_api_key)
+        )
+
         # Store conversation agents: {conversation_id: BaseAgent}
         self.conversation_agents = {}
 
     def _get_system_prompt_generator(self):
         """Get the system prompt generator for the portfolio agent."""
-        from atomic_agents.lib.components.system_prompt_generator import SystemPromptGenerator
+        from atomic_agents.lib.components.system_prompt_generator import (
+            SystemPromptGenerator,
+        )
         from app.core.config import settings
-        
+
         return SystemPromptGenerator(
             background=settings.agent_background,
             steps=settings.agent_steps,
-            output_instructions=settings.agent_output_instructions
+            output_instructions=settings.agent_output_instructions,
         )
-    
-    def _create_agent_for_conversation(self, visitor, conversation_id: str) -> BaseAgent:
+
+    def _create_agent_for_conversation(
+        self, visitor, conversation_id: str
+    ) -> BaseAgent:
         """Create a new agent instance for a conversation."""
         memory = AgentMemory()
-        
+
         # Add initial greeting message to establish conversation context
         from app.core.config import settings
+
         initial_message = PortfolioAgentResponse(
-            response=settings.agent_greeting,
-            visitor_notes_update=None
+            response=settings.agent_greeting, visitor_notes_update=None
         )
         memory.add_message("assistant", initial_message)
-        
+
         # Create agent with conversation-specific memory
         agent = BaseAgent(
             config=BaseAgentConfig(
@@ -76,24 +86,24 @@ class PortfolioAgentService:
                 model=settings.openai_model,
                 memory=memory,
                 system_prompt_generator=self._get_system_prompt_generator(),
-                output_schema=PortfolioAgentResponse
+                output_schema=PortfolioAgentResponse,
             )
         )
-        
+
         return agent
 
     async def search_portfolio_content(
         self,
         query_embedding: List[float],
-        content_type: Optional[str] = None,
+        content_types: Optional[List[str]] = None,
         limit: int = 3,
     ) -> List[PortfolioContent]:
         """Search portfolio content using vector similarity."""
         query = select(PortfolioContent)
 
-        # Filter by content type if specified
-        if content_type:
-            query = query.where(PortfolioContent.content_type == content_type)
+        # Filter by content types if specified
+        if content_types:
+            query = query.where(PortfolioContent.content_type.in_(content_types))
 
         # Order by cosine similarity
         query = query.order_by(
@@ -106,6 +116,7 @@ class PortfolioAgentService:
     async def get_embedding(self, text: str) -> List[float]:
         """Get OpenAI embedding for text."""
         from app.core.config import settings
+
         response = await self.async_openai_client.embeddings.create(
             model=settings.openai_embedding_model, input=text, dimensions=1536
         )
@@ -114,63 +125,113 @@ class PortfolioAgentService:
     def _needs_portfolio_search(self, message: str) -> bool:
         """Decide if we need to search portfolio content."""
         from app.core.config import settings
-        
+
         message_lower = message.lower()
-        return any(keyword in message_lower for keyword in settings.portfolio_search_keywords)
-    
+        return any(
+            keyword in message_lower
+            for keyword in settings.portfolio_search_keywords
+        )
+
+    def _get_search_limit(self, message: str) -> int:
+        """Determine search limit based on query type."""
+        message_lower = message.lower()
+        
+        # Keywords that indicate comprehensive queries
+        comprehensive_keywords = [
+            "all", "list", "every", "each", "show me all", "tell me all",
+            "what are all", "give me all", "everything", "complete list",
+            "all of", "every one", "each of", "full list"
+        ]
+        
+        # Check if this is a comprehensive query
+        if any(keyword in message_lower for keyword in comprehensive_keywords):
+            return 8  # Higher limit for comprehensive queries
+        else:
+            return 3  # Normal limit for specific questions
+
+    def _get_content_types_filter(self, message: str) -> Optional[List[str]]:
+        """Determine content types to filter by based on keywords."""
+        message_lower = message.lower()
+        content_types = []
+        
+        # Project-specific keywords
+        if any(word in message_lower for word in ["project", "projects", "built", "app", "application", "system"]):
+            content_types.append("project")
+        
+        # Experience/career keywords  
+        if any(word in message_lower for word in ["experience", "career", "job", "work history", "worked", "leadership"]):
+            content_types.append("experience")
+        
+        # Personal/about keywords
+        if any(word in message_lower for word in ["about", "personal", "background", "interests", "hobbies"]):
+            content_types.append("about")
+        
+        # Return None if no specific types detected (search all)
+        return content_types if content_types else None
+
     async def chat_with_visitor(
-        self,
-        visitor: Visitor,
-        conversation_id: str,
-        message: str
+        self, visitor: Visitor, conversation_id: str, message: str
     ) -> PortfolioAgentResponse:
         """Handle a chat message from a visitor with conversation memory."""
-        
+
         # Get or create agent for this conversation
         if conversation_id not in self.conversation_agents:
-            agent = self._create_agent_for_conversation(visitor, conversation_id)
+            agent = self._create_agent_for_conversation(
+                visitor, conversation_id
+            )
             self.conversation_agents[conversation_id] = agent
-        
+
         agent = self.conversation_agents[conversation_id]
-        
+
         # Build message with context
         message_with_context = message
-        
+
         # Add quote context if available
         try:
-            stored_quote = await self.redis.get(f"conversation_quote:{conversation_id}")
+            stored_quote = await self.redis.get(
+                f"conversation_quote:{conversation_id}"
+            )
             if stored_quote:
-                quote_context = f"\n\nNote: The visitor saw this conversation starter quote when they arrived: \"{stored_quote}\"\nThey might be responding to it, or they might be starting a completely different conversation. Either approach is fine!"
+                quote_context = f'\n\nNote: The visitor saw this conversation starter quote when they arrived: "{stored_quote}"\nThey might be responding to it, or they might be starting a completely different conversation. Either approach is fine! Do not reference the quote in your response unless it is relevant to the visitor\'s message.\n\n'
                 message_with_context += quote_context
         except Exception as e:
             print(f"Error getting quote context: {e}")
-        
+
         # Smart RAG: only search if needed
         if self._needs_portfolio_search(message):
             message_embedding = await self.get_embedding(message)
-            relevant_content = await self.search_portfolio_content(
-                message_embedding, limit=3
-            )
             
+            # Dynamic search limit based on query type
+            search_limit = self._get_search_limit(message)
+            
+            # Content type filtering based on keywords
+            content_types = self._get_content_types_filter(message)
+            
+            relevant_content = await self.search_portfolio_content(
+                message_embedding, content_types=content_types, limit=search_limit
+            )
+
             if relevant_content:
                 portfolio_context = "\nRelevant portfolio content:\n"
                 for content in relevant_content:
                     portfolio_context += f"- {content.title}: {content.content_chunk or content.content}\n"
-                
-                message_with_context = f"{portfolio_context}\n\nUser message: {message}"
-        
+
+                message_with_context = (
+                    f"{portfolio_context}\n\nUser message: {message}"
+                )
+
         # Agent processes with conversation memory
         response = agent.run(
             BaseAgentInputSchema(chat_message=message_with_context)
         )
-        
+
         return response
-    
+
     async def end_conversation(self, conversation_id: str):
         """End a conversation and clean up memory."""
         if conversation_id not in self.conversation_agents:
             return
-        
+
         # Clean up conversation memory
         del self.conversation_agents[conversation_id]
 

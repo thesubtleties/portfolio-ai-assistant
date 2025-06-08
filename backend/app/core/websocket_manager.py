@@ -12,6 +12,7 @@ from app.services.conversation_service import ConversationService
 from app.services.message_service import MessageService
 from app.services.portfolio_agent_service import PortfolioAgentService
 from app.services.visitor_service import VisitorService
+from app.services.rate_limit_service import RateLimitService
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
@@ -27,7 +28,8 @@ class ConnectionManager:
         self.connection_conversations: Dict[str, str] = {}
         # Conversation to connections mapping: {conversation_id: Set[connection_id]}
         self.conversation_connections: Dict[str, Set[str]] = {}
-        # Portfolio agent service will be created per request with db/redis
+        # Portfolio agent service - shared instance for conversation memory
+        self.agent_service: Optional[PortfolioAgentService] = None
 
     async def connect(
         self,
@@ -67,9 +69,10 @@ class ConnectionManager:
         )
 
         conversation_id = str(conversation.id)
-        
+
         # Get a random quote for this conversation
         from app.services.quote_service import QuoteService
+
         quote_service = QuoteService(db, redis_client)
         selected_quote = await quote_service.get_random_quote()
         quote_text = selected_quote.quote_text if selected_quote else None
@@ -81,20 +84,19 @@ class ConnectionManager:
         if conversation_id not in self.conversation_connections:
             self.conversation_connections[conversation_id] = set()
         self.conversation_connections[conversation_id].add(connection_id)
-        
+
         # Store quote for this conversation (for agent context)
         if quote_text:
             await redis_client.setex(
-                f"conversation_quote:{conversation_id}", 
+                f"conversation_quote:{conversation_id}",
                 3600,  # 1 hour TTL
-                quote_text
+                quote_text,
             )
-            
+
             # Send quote to frontend for placeholder text
-            await websocket.send_text(json.dumps({
-                "type": "conversation_quote",
-                "quote": quote_text
-            }))
+            await websocket.send_text(
+                json.dumps({"type": "conversation_quote", "quote": quote_text})
+            )
 
         logger.info(
             f"WebSocket connected: connection_id={connection_id}, "
@@ -206,7 +208,7 @@ class ConnectionManager:
                 # Handle different message types
                 if message_data["type"] == "user_message":
                     await self._handle_user_message(
-                        message_data, connection_id, db, redis_client
+                        message_data, websocket, connection_id, db, redis_client
                     )
                 elif message_data["type"] == "heartbeat":
                     await self._handle_heartbeat(connection_id)
@@ -235,6 +237,7 @@ class ConnectionManager:
     async def _handle_user_message(
         self,
         message_data: dict,
+        websocket: WebSocket,
         connection_id: str,
         db: AsyncSession,
         redis_client: redis.Redis,
@@ -279,6 +282,29 @@ class ConnectionManager:
             connection_id,
         )
 
+        # Check rate limiting before AI response
+        try:
+            client_ip = websocket.client.host if websocket.client else 'unknown'
+        except AttributeError:
+            client_ip = 'unknown'
+        rate_limit_service = RateLimitService(redis_client)
+        
+        is_limited, limit_message = await rate_limit_service.is_rate_limited(client_ip)
+        if is_limited:
+            # Send rate limit message and return
+            await self.send_personal_message(
+                json.dumps({
+                    "type": "ai_response",
+                    "message": {
+                        "content": limit_message,
+                        "sender_type": "assistant",
+                        "timestamp": datetime.now(timezone.utc).isoformat(),
+                    }
+                }),
+                connection_id,
+            )
+            return
+
         # Generate AI response using agent service
         try:
             # Get conversation using existing service
@@ -301,9 +327,11 @@ class ConnectionManager:
                     f"Visitor {conversation.visitor_id} not found"
                 )
 
-            # Create agent service with dependencies
-            agent_service = PortfolioAgentService(db, redis_client)
-            
+            # Get or create shared agent service with dependencies
+            if self.agent_service is None:
+                self.agent_service = PortfolioAgentService(db, redis_client)
+            agent_service = self.agent_service
+
             # Get AI response with conversation memory
             agent_response = await agent_service.chat_with_visitor(
                 visitor=visitor,
@@ -319,9 +347,17 @@ class ConnectionManager:
                     visitor, agent_response.visitor_notes_update
                 )
 
+            # Add rate limit points based on topic relevance
+            await rate_limit_service.add_points(
+                client_ip, is_off_topic=agent_response.is_off_topic
+            )
+
         except Exception as e:
             logger.error(f"Error generating AI response: {e}")
             ai_response = "I'm sorry, I encountered an error processing your message. Please try again."
+            
+            # Add points for error case (assume on-topic)
+            await rate_limit_service.add_points(client_ip, is_off_topic=False)
 
         # Save AI message
         ai_message = await message_service.save_message(

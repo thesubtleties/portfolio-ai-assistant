@@ -27,8 +27,7 @@ class ConnectionManager:
         self.connection_conversations: Dict[str, str] = {}
         # Conversation to connections mapping: {conversation_id: Set[connection_id]}
         self.conversation_connections: Dict[str, Set[str]] = {}
-        # Portfolio agent service (shared instance)
-        self.agent_service = PortfolioAgentService()
+        # Portfolio agent service will be created per request with db/redis
 
     async def connect(
         self,
@@ -68,6 +67,12 @@ class ConnectionManager:
         )
 
         conversation_id = str(conversation.id)
+        
+        # Get a random quote for this conversation
+        from app.services.quote_service import QuoteService
+        quote_service = QuoteService(db, redis_client)
+        selected_quote = await quote_service.get_random_quote()
+        quote_text = selected_quote.quote_text if selected_quote else None
 
         # Store connection mappings
         self.active_connections[connection_id] = websocket
@@ -76,6 +81,20 @@ class ConnectionManager:
         if conversation_id not in self.conversation_connections:
             self.conversation_connections[conversation_id] = set()
         self.conversation_connections[conversation_id].add(connection_id)
+        
+        # Store quote for this conversation (for agent context)
+        if quote_text:
+            await redis_client.setex(
+                f"conversation_quote:{conversation_id}", 
+                3600,  # 1 hour TTL
+                quote_text
+            )
+            
+            # Send quote to frontend for placeholder text
+            await websocket.send_text(json.dumps({
+                "type": "conversation_quote",
+                "quote": quote_text
+            }))
 
         logger.info(
             f"WebSocket connected: connection_id={connection_id}, "
@@ -113,8 +132,9 @@ class ConnectionManager:
             if not self.conversation_connections[conversation_id]:
                 del self.conversation_connections[conversation_id]
 
-                # End conversation agent
-                await self.agent_service.end_conversation(conversation_id)
+                # End conversation agent - Note: We'll need to pass this through from callers
+                # For now, we'll handle agent cleanup elsewhere
+                pass
 
         self.active_connections.pop(connection_id, None)
 
@@ -281,9 +301,11 @@ class ConnectionManager:
                     f"Visitor {conversation.visitor_id} not found"
                 )
 
+            # Create agent service with dependencies
+            agent_service = PortfolioAgentService(db, redis_client)
+            
             # Get AI response with conversation memory
-            agent_response = await self.agent_service.chat_with_visitor(
-                session=db,
+            agent_response = await agent_service.chat_with_visitor(
                 visitor=visitor,
                 conversation_id=conversation_id,
                 message=content,
@@ -293,8 +315,8 @@ class ConnectionManager:
 
             # Update visitor notes if provided
             if agent_response.visitor_notes_update:
-                await self.agent_service.update_visitor_notes(
-                    db, visitor, agent_response.visitor_notes_update
+                await agent_service.update_visitor_notes(
+                    visitor, agent_response.visitor_notes_update
                 )
 
         except Exception as e:

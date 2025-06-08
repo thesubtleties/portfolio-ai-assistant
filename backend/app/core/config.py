@@ -112,6 +112,12 @@ class Settings(BaseSettings):
         "why did",
     ]
 
+    # Portfolio search settings
+    portfolio_search_keywords: list[str] = [
+        "project", "work", "experience", "skill", "technology", 
+        "development", "achievement", "career", "background"
+    ]
+
     # Application settings
     environment: str = "development"
     api_prefix: str = "/api"

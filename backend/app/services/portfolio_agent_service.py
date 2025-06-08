@@ -32,8 +32,11 @@ class PortfolioAgentResponse(BaseIOSchema):
 class PortfolioAgentService:
     """Service for handling AI agent conversations about the portfolio."""
 
-    def __init__(self):
+    def __init__(self, db: AsyncSession, redis_client):
         """Initialize the portfolio agent service."""
+        self.db = db
+        self.redis = redis_client
+        
         # Set up OpenAI client with Instructor
         from app.core.config import settings
         
@@ -81,7 +84,6 @@ class PortfolioAgentService:
 
     async def search_portfolio_content(
         self,
-        session: AsyncSession,
         query_embedding: List[float],
         content_type: Optional[str] = None,
         limit: int = 3,
@@ -98,7 +100,7 @@ class PortfolioAgentService:
             PortfolioContent.embedding.cosine_distance(query_embedding)
         ).limit(limit)
 
-        result = await session.execute(query)
+        result = await self.db.execute(query)
         return result.scalars().all()
 
     async def get_embedding(self, text: str) -> List[float]:
@@ -118,7 +120,6 @@ class PortfolioAgentService:
     
     async def chat_with_visitor(
         self,
-        session: AsyncSession,
         visitor: Visitor,
         conversation_id: str,
         message: str
@@ -135,11 +136,20 @@ class PortfolioAgentService:
         # Build message with context
         message_with_context = message
         
+        # Add quote context if available
+        try:
+            stored_quote = await self.redis.get(f"conversation_quote:{conversation_id}")
+            if stored_quote:
+                quote_context = f"\n\nNote: The visitor saw this conversation starter quote when they arrived: \"{stored_quote}\"\nThey might be responding to it, or they might be starting a completely different conversation. Either approach is fine!"
+                message_with_context += quote_context
+        except Exception as e:
+            print(f"Error getting quote context: {e}")
+        
         # Smart RAG: only search if needed
         if self._needs_portfolio_search(message):
             message_embedding = await self.get_embedding(message)
             relevant_content = await self.search_portfolio_content(
-                session, message_embedding, limit=3
+                message_embedding, limit=3
             )
             
             if relevant_content:
@@ -165,7 +175,7 @@ class PortfolioAgentService:
         del self.conversation_agents[conversation_id]
 
     async def update_visitor_notes(
-        self, session: AsyncSession, visitor: Visitor, new_notes: str
+        self, visitor: Visitor, new_notes: str
     ) -> None:
         """Update visitor's notes."""
         if visitor.notes_by_agent:
@@ -173,4 +183,4 @@ class PortfolioAgentService:
         else:
             visitor.notes_by_agent = new_notes
 
-        await session.commit()
+        await self.db.commit()

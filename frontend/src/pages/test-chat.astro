@@ -222,6 +222,11 @@
                     console.log('Received:', data);
 
                     switch(data.type) {
+                        case 'conversation_quote':
+                            // Set the quote as placeholder text
+                            messageInput.placeholder = data.quote;
+                            console.log('Quote set as placeholder:', data.quote);
+                            break;
                         case 'message_received':
                             addMessage(`Message received: "${data.message.content}"`, 'system', data.message.timestamp); // this is temp only in frontend to show receipt of message
                             break;

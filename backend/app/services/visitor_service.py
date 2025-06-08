@@ -28,7 +28,7 @@ class VisitorService:
 
         Args:
             db (AsyncSession): Database session for executing queries
-            fingerprint_id (str): Unique browser fingerprint ID
+            fingerprint_id (str): Unique browser fingerprint IDe
             user_agent_raw (Optional[str], optional): Raw user agent string. Defaults to None.
             ip_address_hash (Optional[str], optional): Hashed IP address. Defaults to None.
 

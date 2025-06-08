@@ -217,7 +217,9 @@ class PortfolioContent(Base):
         TIMESTAMP(timezone=True), server_default=func.now()
     )
     updated_at: Mapped[datetime] = mapped_column(
-        TIMESTAMP(timezone=True), server_default=func.now(), onupdate=func.now()
+        TIMESTAMP(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
     )
 
     knowledge_source: Mapped["KnowledgeSource"] = relationship(
@@ -240,6 +242,7 @@ class PortfolioContent(Base):
 
 class ConversationQuote(Base):
     """Model for conversation starter quotes."""
+
     __tablename__ = "conversation_quotes"
 
     id: Mapped[uuid.UUID] = mapped_column(
@@ -253,7 +256,9 @@ class ConversationQuote(Base):
         TIMESTAMP(timezone=True), server_default=func.now()
     )
     updated_at: Mapped[datetime] = mapped_column(
-        TIMESTAMP(timezone=True), server_default=func.now(), onupdate=func.now()
+        TIMESTAMP(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
     )
 
     def __repr__(self):

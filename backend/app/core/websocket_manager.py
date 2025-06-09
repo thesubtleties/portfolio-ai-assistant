@@ -251,6 +251,8 @@ class ConnectionManager:
             return
 
         content = message_data.get("content", "").strip()
+        is_mobile = message_data.get("is_mobile", False)  # Extract mobile flag
+        
         if not content:
             await self.send_personal_message(
                 json.dumps({"error": "Message content required"}),
@@ -348,7 +350,8 @@ class ConnectionManager:
                 visitor=visitor,
                 conversation_id=conversation_id,
                 message=content,
-                chunk_callback=send_chunk
+                chunk_callback=send_chunk,
+                is_mobile=is_mobile
             )
 
             ai_response = agent_response.response

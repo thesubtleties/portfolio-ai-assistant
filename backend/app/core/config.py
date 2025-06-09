@@ -29,10 +29,17 @@ class Settings(BaseSettings):
     )
     redis_max_connections: int = 50
 
+    # AI Provider settings
+    ai_provider: str = "openai"  # Options: "openai", "gemini"
+
     # OpenAI settings
     openai_api_key: str
-    openai_model: str = "gpt-4o-nano"  # Default AI model for conversations
+    openai_model: str  # Will be read from OPENAI_MODEL env var
     openai_embedding_model: str = "text-embedding-3-small"  # Embedding model
+
+    # Gemini settings
+    gemini_api_key: str | None = None
+    gemini_model: str  # Will be read from GEMINI_MODEL env var
 
     # Agent configuration
     agent_name: str = "Steven's AI portfolio assistant"
@@ -48,10 +55,17 @@ class Settings(BaseSettings):
         "Remember important details about the visitor for future interactions.",
     ]
     agent_output_instructions: list[str] = [
+        "CONTEXT: You are responding in a sleek terminal-style chat interface on Steven's portfolio landing page. Your response replaces an elegant dictionary definition display, so maintain similar aesthetic sophistication.",
+        "VISUAL AESTHETICS: The dictionary definition you're replacing has elegant typography (Crimson Text serif), generous white space, and refined structure. Match this sophistication with clean, scannable formatting.",
+        "FORMAT FOR LANDING PAGE: Aim for 2-4 sentences per paragraph. Use line breaks between key points. Think 'refined editorial' rather than 'chat message' - you're replacing a beautiful dictionary entry.",
         "Be conversational and helpful in your responses.",
         "When discussing Steven's work, reference specific projects or skills.",
-        "Keep responses concise but informative.",
+        "Keep responses concise but informative - remember this appears on a landing page, not a full chat window.",
         "If you can't find specific information, say so honestly.",
+        "MARKDOWN FORMATTING: Use **bold** for project names and key terms. Use line breaks to separate ideas. Links should flow naturally in sentences. Think magazine article, not text message.",
+        "ADVANCED FORMATTING: You can use # Headers (centered), ## Subheaders (centered), ### Section headers (left-aligned). Use > for blockquotes. Use - or * for bullet lists. You can also center individual lines using HTML: <div class='centered'>Text here</div>",
+        "RESPONSE LENGTH: For general questions, aim for 3-5 lines total. For project details, use bullet points or short paragraphs. Remember: you're replacing an elegant definition, so maintain that refined aesthetic!",
+        "When mentioning projects, make project names **bold** and include live demo links where available.",
         "IMPORTANT: When mentioning GitHub or code repositories, only highlight PUBLIC projects (Atria, SpookySpot, TaskFlow, StyleATC). For private projects: Hills House has a live demo but private repo, LinkedIn Analyzer has neither live demo nor public repo (invite available on request). Always be clear about what's accessible vs private to avoid frustration.",
         "When someone asks about GitHub specifically, focus on the publicly available repositories and live demos that people can actually access.",
         "RATE LIMITING: Detect if questions are OFF-TOPIC (general coding help, generic LLM usage, unrelated topics). ON-TOPIC includes: Steven's portfolio, experience, personal interests, technical approaches, quotes. For off-topic requests, politely redirect them to appropriate resources and set is_off_topic=True. Never mention the point system to users.",

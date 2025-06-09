@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
 import { SplitText } from 'gsap/SplitText';
+import { marked } from 'marked';
 
 gsap.registerPlugin(SplitText);
 
@@ -32,6 +33,9 @@ const ResponseEmergence: React.FC<ResponseEmergenceProps> = ({
         const split = new SplitText(textRef.current, {
           type: 'chars',
           smartWrap: true,
+          tag: 'span',
+          // Ignore links and other interactive elements
+          ignore: 'a, strong, em, b, i',
         });
 
         gsap.to(split.chars, {
@@ -87,9 +91,16 @@ const ResponseEmergence: React.FC<ResponseEmergenceProps> = ({
       const split = new SplitText(textRef.current, {
         type: 'chars',
         smartWrap: true,
+        tag: 'span',
+        // Ignore links and other interactive elements
+        ignore: 'a, strong, em, b, i',
       });
 
       const chars = split.chars;
+      
+      // Debug: Log what elements are being animated
+      console.log('Split chars:', chars.length, 'elements');
+      console.log('Links in container:', textRef.current?.querySelectorAll('a').length);
 
       // Initial state - characters scattered but closer with hardware acceleration
       gsap.set(chars, {
@@ -175,15 +186,36 @@ const ResponseEmergence: React.FC<ResponseEmergenceProps> = ({
 
   if (!response) return null;
 
+  // Parse markdown to HTML
+  const htmlContent = marked(response, {
+    breaks: true, // Convert line breaks to <br>
+    gfm: true,    // GitHub flavored markdown
+  }) as string;
+
+  // Add target="_blank" to external links and process custom formatting
+  let processedContent = htmlContent.replace(
+    /<a href="(https?:\/\/[^"]+)">/g,
+    '<a href="$1" target="_blank" rel="noopener noreferrer">'
+  );
+
+  // Convert <div class='centered'> to proper centered spans
+  processedContent = processedContent.replace(
+    /<div class=['"]centered['"]>(.*?)<\/div>/g,
+    '<span class="centered">$1</span>'
+  );
+
   return (
     <div
       ref={containerRef}
       className={`response-emergence ${className}`}
-      style={{ display: 'none', opacity: 0 }}
+      style={{ display: 'none', opacity: 0, pointerEvents: 'auto' }}
     >
-      <p ref={textRef} className="response-text">
-        {response}
-      </p>
+      <div 
+        ref={textRef} 
+        className="response-text prose max-w-none [&_a]:font-semibold [&_a]:no-underline [&_a]:cursor-pointer [&_a]:transition-opacity [&_a]:duration-200 [&_a]:pointer-events-auto [&_a]:relative [&_a]:z-10 [&_a]:inline-block [&_a:hover]:opacity-70"
+        style={{ color: 'var(--color-primary)' }}
+        dangerouslySetInnerHTML={{ __html: processedContent }}
+      />
     </div>
   );
 };

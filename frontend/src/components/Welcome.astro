@@ -4,7 +4,7 @@ import TerminalInterface from "./terminal/TerminalInterface"
 
 ---
 
-<section id="home" class="min-h-screen flex items-center justify-center px-4">
+<section id="home" class="min-h-screen flex items-center justify-center">
   <TerminalInterface client:load />
   <SmoothScroll 
     client:load
@@ -147,10 +147,16 @@ import TerminalInterface from "./terminal/TerminalInterface"
     font-family: 'Crimson Text', Georgia, serif;
     color: var(--color-primary);
     padding: 2rem;
-    max-width: 800px;
-    width: 100%;
+    max-width: 900px; /* Reduced from 1150px */
+    width: calc(100% - 4rem); /* Account for padding on smaller screens */
     margin: 0 auto;
     position: relative;
+  }
+  
+  @media (min-width: 1200px) {
+    .terminal-interface {
+      width: 100%;
+    }
   }
 
   .main-content-area {
@@ -329,7 +335,7 @@ import TerminalInterface from "./terminal/TerminalInterface"
 
   .response-emergence {
     position: relative;
-    max-width: 600px;
+    max-width: 1000px;
     padding: 2rem;
     margin: 2rem auto;
     pointer-events: none;
@@ -342,9 +348,65 @@ import TerminalInterface from "./terminal/TerminalInterface"
     font-size: 1.2rem;
     line-height: 1.6;
     color: var(--color-primary);
-    text-align: center;
+    text-align: left; /* Left align for better readability with longer content */
     transform: translateZ(0); /* Force hardware acceleration */
     will-change: transform, opacity; /* Optimize for animations */
+  }
+
+  /* Markdown formatting support */
+  .response-text h1 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin: 1.5rem 0 1rem 0;
+    color: var(--color-primary);
+    text-align: center;
+  }
+
+  .response-text h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 1.25rem 0 0.75rem 0;
+    color: var(--color-primary);
+    text-align: center;
+  }
+
+  .response-text h3 {
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin: 1rem 0 0.5rem 0;
+    color: var(--color-primary);
+  }
+
+  .response-text .centered {
+    text-align: center;
+    display: block;
+    margin: 0.5rem 0;
+  }
+
+  .response-text ul, .response-text ol {
+    margin: 0.75rem 0;
+    padding-left: 1.5rem;
+  }
+
+  .response-text li {
+    margin: 0.25rem 0;
+    line-height: 1.5;
+  }
+
+  .response-text blockquote {
+    border-left: 3px solid var(--color-accent);
+    padding-left: 1rem;
+    margin: 1rem 0;
+    font-style: italic;
+    color: var(--color-accent);
+  }
+  
+  /* Larger screens get enhanced typography */
+  @media (min-width: 1024px) {
+    .response-text {
+      font-size: 1.3rem;
+      line-height: 1.75;
+    }
   }
 
   /* Development indicators */
@@ -365,6 +427,7 @@ import TerminalInterface from "./terminal/TerminalInterface"
   @media (max-width: 768px) {
     .terminal-interface {
       padding: 1.5rem;
+      width: calc(100% - 2rem); /* Less padding on mobile */
     }
 
     .terminal-input-container {

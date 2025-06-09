@@ -88,8 +88,19 @@ const ChatManager: React.FC<ChatManagerProps> = ({
         onStateChange('receiving');
         break;
 
+      case 'ai_response_chunk':
+        // Streaming chunk received - accumulate response
+        onResponseReceived(data.content);
+        onStateChange('responding');
+        break;
+        
+      case 'ai_response_complete':
+        // Streaming complete - final state change
+        onStateChange('responding');
+        break;
+
       case 'ai_response':
-        // AI response received
+        // Fallback for non-streaming responses
         onResponseReceived(data.message.content);
         onStateChange('responding');
         break;
@@ -112,9 +123,13 @@ const ChatManager: React.FC<ChatManagerProps> = ({
       }
 
       try {
+        // Detect if we're on mobile (width < 999px)
+        const isMobile = window.innerWidth < 999;
+
         const messageData = {
           type: 'user_message',
           content: message,
+          is_mobile: isMobile,
         };
 
         wsRef.current.send(JSON.stringify(messageData));

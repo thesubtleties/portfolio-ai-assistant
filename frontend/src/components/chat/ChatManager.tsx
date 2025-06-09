@@ -1,0 +1,155 @@
+import { useEffect, useRef, useState } from 'react';
+import MessageDebouncer from './MessageDebouncer';
+
+interface ChatManagerProps {
+  onQuoteReceived: (quote: string) => void;
+  onResponseReceived: (response: string) => void;
+  onStateChange: (
+    state: 'idle' | 'sending' | 'receiving' | 'responding'
+  ) => void;
+}
+
+const ChatManager: React.FC<ChatManagerProps> = ({
+  onQuoteReceived,
+  onResponseReceived,
+  onStateChange,
+}) => {
+  const wsRef = useRef<WebSocket | null>(null);
+  const [visitorId, setVisitorId] = useState<string>('');
+  const [isConnected, setIsConnected] = useState(false);
+
+  // Generate a simple visitor ID (in production, this would be a proper fingerprint)
+  useEffect(() => {
+    const generateVisitorId = () => {
+      return 'visitor_' + Math.random().toString(36).substr(2, 9);
+    };
+
+    setVisitorId(generateVisitorId());
+  }, []);
+
+  // WebSocket connection management
+  useEffect(() => {
+    if (!visitorId) return;
+
+    const connectWebSocket = () => {
+      try {
+        const wsUrl = `ws://localhost:8000/ws/chat?visitor_id=${visitorId}`;
+        wsRef.current = new WebSocket(wsUrl);
+
+        wsRef.current.onopen = () => {
+          console.log('WebSocket connected');
+          setIsConnected(true);
+        };
+
+        wsRef.current.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            handleWebSocketMessage(data);
+          } catch (error) {
+            console.error('Error parsing WebSocket message:', error);
+          }
+        };
+
+        wsRef.current.onclose = () => {
+          console.log('WebSocket disconnected');
+          setIsConnected(false);
+
+          // Attempt to reconnect after a delay
+          setTimeout(() => {
+            connectWebSocket();
+          }, 3000);
+        };
+
+        wsRef.current.onerror = (error) => {
+          console.error('WebSocket error:', error);
+        };
+      } catch (error) {
+        console.error('Error creating WebSocket connection:', error);
+      }
+    };
+
+    connectWebSocket();
+
+    return () => {
+      if (wsRef.current) {
+        wsRef.current.close();
+      }
+    };
+  }, [visitorId]);
+
+  const handleWebSocketMessage = (data: any) => {
+    switch (data.type) {
+      case 'conversation_quote':
+        onQuoteReceived(data.quote);
+        break;
+
+      case 'message_received':
+        // User message was successfully received
+        onStateChange('receiving');
+        break;
+
+      case 'ai_response':
+        // AI response received
+        onResponseReceived(data.message.content);
+        onStateChange('responding');
+        break;
+
+      case 'error':
+        console.error('WebSocket error:', data.error);
+        onStateChange('idle');
+        break;
+
+      default:
+        console.log('Unknown message type:', data.type);
+    }
+  };
+
+  const sendMessage = (message: string): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+        reject(new Error('WebSocket not connected'));
+        return;
+      }
+
+      try {
+        const messageData = {
+          type: 'user_message',
+          content: message,
+        };
+
+        wsRef.current.send(JSON.stringify(messageData));
+        onStateChange('sending');
+        resolve();
+      } catch (error) {
+        reject(error);
+      }
+    });
+  };
+
+  // Expose sendMessage function to parent via ref or callback
+  useEffect(() => {
+    // Store sendMessage in a way the parent can access it
+    (window as any).chatManager = { sendMessage };
+
+    return () => {
+      delete (window as any).chatManager;
+    };
+  }, []);
+
+  return (
+    <>
+      <MessageDebouncer isConnected={isConnected} onSendMessage={sendMessage} />
+
+      {/* Connection status indicator - commented out for cleaner UI */}
+      {/* 
+      {process.env.NODE_ENV === 'development' && (
+        <div className="connection-status">
+          Status: {isConnected ? 'Connected' : 'Disconnected'}
+        </div>
+      )}
+      */}
+    </>
+  );
+};
+
+export default ChatManager;

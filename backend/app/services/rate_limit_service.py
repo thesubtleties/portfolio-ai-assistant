@@ -69,6 +69,10 @@ class RateLimitService:
         Returns:
             tuple: (is_limited, message_if_limited)
         """
+        # Temporarily disable rate limiting for localhost/development
+        if ip_address in ['127.0.0.1', 'localhost', '::1']:
+            return False, None
+            
         is_allowed, current_points, remaining_points = await self.check_rate_limit(
             ip_address
         )

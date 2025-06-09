@@ -1,11 +1,11 @@
 ---
 import SmoothScroll from "./react/SmoothScroll"
-import AnimatedDefinition from "./react/AnimatedDefinition"
+import TerminalInterface from "./terminal/TerminalInterface"
 
 ---
 
 <section id="home" class="min-h-screen flex items-center justify-center px-4">
-  <AnimatedDefinition client:load />
+  <TerminalInterface client:load />
   <SmoothScroll 
     client:load
     scrollSensitivity={15}    
@@ -22,6 +22,8 @@ import AnimatedDefinition from "./react/AnimatedDefinition"
     max-width: 800px;
     width: 100%;
     margin: 0 auto;
+    transform: translateZ(0); /* Force hardware acceleration */
+    will-change: transform, opacity; /* Optimize for animations */
   }
 
   .word-section {
@@ -138,5 +140,248 @@ import AnimatedDefinition from "./react/AnimatedDefinition"
 
   .scroll-indicator svg {
     animation: pulse 2s infinite;
+  }
+
+  /* Terminal Interface Styles */
+  .terminal-interface {
+    font-family: 'Crimson Text', Georgia, serif;
+    color: var(--color-primary);
+    padding: 2rem;
+    max-width: 800px;
+    width: 100%;
+    margin: 0 auto;
+    position: relative;
+  }
+
+  .main-content-area {
+    position: relative;
+    height: 70vh; /* Take up 70% of viewport height */
+    overflow: hidden; /* Hide any content that exceeds the height */
+  }
+
+  /* Position definition lower/centered, but responses can use full height */
+  .dictionary-entry {
+    position: absolute;
+    top: 50%; /* Center the definition vertically in the content area */
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+  }
+
+  /* Responses can appear anywhere in the content area */
+  .response-content {
+    position: absolute;
+    top: 0; /* Start responses from the top of the content area */
+    left: 0;
+    right: 0;
+    height: 100%;
+    display: flex;
+    align-items: flex-start; /* Align responses to top */
+    justify-content: center;
+    padding-top: 2rem; /* Give some breathing room from very top */
+  }
+
+  .terminal-input-section {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    margin: 0;
+    padding-bottom: 2rem; /* Add some breathing room at bottom */
+  }
+
+  /* Terminal Input Container */
+  .terminal-input-container {
+    background: white;
+    border: none;
+    padding: 1rem;
+    cursor: text;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 0.85rem;
+    line-height: 1.4;
+    border-radius: 0.25rem;
+    transition: all 0.2s ease;
+    transform: translateZ(0); /* Force hardware acceleration */
+    will-change: transform, opacity; /* Optimize for animations */
+  }
+
+  .terminal-content-wrapper {
+    display: flex;
+    align-items: flex-start; /* Align to top for proper wrapping */
+    flex-wrap: wrap;
+    width: 100%;
+  }
+
+  .terminal-input-container:hover {
+    background: rgba(248, 249, 250, 0.5);
+  }
+
+  .terminal-input-container.disabled {
+    opacity: 0.6;
+    cursor: text; /* Keep normal text cursor instead of not-allowed */
+    pointer-events: none; /* Prevent clicking but keep visual appearance */
+  }
+
+  /* Terminal Prompt */
+  .terminal-prompt {
+    color: var(--color-primary);
+    font-weight: 500;
+    flex-shrink: 0;
+  }
+
+  .terminal-path {
+    color: var(--color-accent);
+  }
+
+  .terminal-directory {
+    color: var(--color-primary);
+  }
+
+  .terminal-symbol {
+    color: var(--color-primary);
+    font-weight: 600;
+  }
+
+  .terminal-separator {
+    color: var(--color-accent);
+  }
+
+  /* Terminal Text Content */
+  .terminal-text-content {
+    color: var(--color-accent);
+    margin-left: 0.25rem;
+    word-wrap: break-word;
+    white-space: normal; /* Allow text to wrap to multiple lines */
+    flex: 1; /* Take up remaining space and wrap */
+    transform: translateZ(0); /* Force hardware acceleration */
+    will-change: contents; /* Optimize for text changes */
+  }
+
+  /* Terminal Input Line - for user typing */
+  .terminal-input-line {
+    display: inline-flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    transform: translateZ(0); /* Force hardware acceleration */
+    will-change: contents; /* Optimize for text changes */
+  }
+
+  .terminal-input-text {
+    display: inline;
+    transform: translateZ(0); /* Force hardware acceleration */
+    will-change: contents; /* Optimize for text changes */
+  }
+
+  .quote-text {
+    opacity: 0.7;
+    font-style: italic;
+  }
+
+  /* Terminal Cursor */
+  .terminal-cursor {
+    color: var(--color-primary);
+    font-weight: bold;
+    margin-left: 0.1rem;
+    display: inline-block;
+    transform: translateZ(0); /* Force hardware acceleration */
+    will-change: opacity; /* Optimize for blinking animation */
+  }
+
+  /* Hidden Input */
+  .terminal-hidden-input {
+    position: absolute;
+    left: -9999px;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+  }
+
+  /* Animation Components - with hardware acceleration */
+  .swirling-letters {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 10;
+    transform: translateZ(0); /* Force hardware acceleration */
+    will-change: transform, opacity; /* Optimize for animations */
+  }
+
+  .swarm-overlay {
+    /* Position relative to the main content area, not the whole screen */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 400px; /* Match the min-height of main-content-area */
+  }
+
+  .swirl-letter {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 1.2rem;
+    color: var(--color-accent);
+    pointer-events: none;
+  }
+
+  .response-emergence {
+    position: relative;
+    max-width: 600px;
+    padding: 2rem;
+    margin: 2rem auto;
+    pointer-events: none;
+    transform: translateZ(0); /* Force hardware acceleration */
+    will-change: transform, opacity; /* Optimize for animations */
+  }
+
+  .response-text {
+    font-family: 'Crimson Text', Georgia, serif;
+    font-size: 1.2rem;
+    line-height: 1.6;
+    color: var(--color-primary);
+    text-align: center;
+    transform: translateZ(0); /* Force hardware acceleration */
+    will-change: transform, opacity; /* Optimize for animations */
+  }
+
+  /* Development indicators */
+  .connection-status,
+  .message-debouncer-status {
+    position: fixed;
+    bottom: 1rem;
+    right: 1rem;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 0.5rem;
+    border-radius: 0.25rem;
+    font-family: monospace;
+    font-size: 0.75rem;
+    z-index: 1000;
+  }
+
+  @media (max-width: 768px) {
+    .terminal-interface {
+      padding: 1.5rem;
+    }
+
+    .terminal-input-container {
+      padding: 0.75rem;
+      font-size: 0.85rem;
+    }
+
+    .response-text {
+      font-size: 1rem;
+    }
+
+    .connection-status,
+    .message-debouncer-status {
+      bottom: 0.5rem;
+      right: 0.5rem;
+      padding: 0.25rem;
+      font-size: 0.7rem;
+    }
   }
 </style>

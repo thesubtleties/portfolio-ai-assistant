@@ -305,7 +305,7 @@ class ConnectionManager:
             )
             return
 
-        # Generate AI response using agent service
+        # Generate AI response using streaming agent service
         try:
             # Get conversation using existing service
             conversation_service = ConversationService(db, redis_client)
@@ -332,11 +332,23 @@ class ConnectionManager:
                 self.agent_service = PortfolioAgentService(db, redis_client)
             agent_service = self.agent_service
 
-            # Get AI response with conversation memory
-            agent_response = await agent_service.chat_with_visitor(
+            # Define chunk callback for streaming
+            async def send_chunk(chunk_content: str):
+                await self.send_personal_message(
+                    json.dumps({
+                        "type": "ai_response_chunk",
+                        "content": chunk_content,
+                        "conversation_id": conversation_id
+                    }),
+                    connection_id,
+                )
+
+            # Get AI response with streaming
+            agent_response = await agent_service.chat_with_visitor_streaming(
                 visitor=visitor,
                 conversation_id=conversation_id,
                 message=content,
+                chunk_callback=send_chunk
             )
 
             ai_response = agent_response.response
@@ -356,29 +368,38 @@ class ConnectionManager:
             logger.error(f"Error generating AI response: {e}")
             ai_response = "I'm sorry, I encountered an error processing your message. Please try again."
             
+            # Send error as a single chunk
+            await self.send_personal_message(
+                json.dumps({
+                    "type": "ai_response_chunk", 
+                    "content": ai_response,
+                    "conversation_id": conversation_id
+                }),
+                connection_id,
+            )
+            
             # Add points for error case (assume on-topic)
             await rate_limit_service.add_points(client_ip, is_off_topic=False)
 
-        # Save AI message
+        # Save AI message (full response)
         ai_message = await message_service.save_message(
             conversation_id=conversation_id,
             content=ai_response,
             sender_type="ai",
         )
 
-        # Send AI response
+        # Send completion signal
         await self.send_personal_message(
-            json.dumps(
-                {
-                    "type": "ai_response",
-                    "message": {
-                        "id": str(ai_message.id),
-                        "content": ai_response,
-                        "sender_type": "ai",
-                        "timestamp": ai_message.timestamp.isoformat(),
-                    },
-                }
-            ),
+            json.dumps({
+                "type": "ai_response_complete",
+                "message": {
+                    "id": str(ai_message.id),
+                    "full_content": ai_response,
+                    "sender_type": "ai", 
+                    "timestamp": ai_message.timestamp.isoformat(),
+                },
+                "conversation_id": conversation_id
+            }),
             connection_id,
         )
 

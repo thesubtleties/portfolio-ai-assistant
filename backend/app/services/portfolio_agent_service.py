@@ -73,20 +73,22 @@ class PortfolioAgentService:
 
         # Add initial greeting message to establish conversation context
         from app.core.config import settings
+        from atomic_agents.agents.base_agent import BaseAgentOutputSchema
 
-        initial_message = PortfolioAgentResponse(
-            response=settings.agent_greeting, visitor_notes_update=None
+        initial_message = BaseAgentOutputSchema(
+            chat_message=settings.agent_greeting
         )
         memory.add_message("assistant", initial_message)
 
         # Create agent with conversation-specific memory
+        # Use default output schema for streaming compatibility
         agent = BaseAgent(
             config=BaseAgentConfig(
                 client=self.client,
                 model=settings.openai_model,
                 memory=memory,
                 system_prompt_generator=self._get_system_prompt_generator(),
-                output_schema=PortfolioAgentResponse,
+                # output_schema=PortfolioAgentResponse,  # Commented out for streaming
             )
         )
 
@@ -103,7 +105,9 @@ class PortfolioAgentService:
 
         # Filter by content types if specified
         if content_types:
-            query = query.where(PortfolioContent.content_type.in_(content_types))
+            query = query.where(
+                PortfolioContent.content_type.in_(content_types)
+            )
 
         # Order by cosine similarity
         query = query.order_by(
@@ -135,14 +139,25 @@ class PortfolioAgentService:
     def _get_search_limit(self, message: str) -> int:
         """Determine search limit based on query type."""
         message_lower = message.lower()
-        
+
         # Keywords that indicate comprehensive queries
         comprehensive_keywords = [
-            "all", "list", "every", "each", "show me all", "tell me all",
-            "what are all", "give me all", "everything", "complete list",
-            "all of", "every one", "each of", "full list"
+            "all",
+            "list",
+            "every",
+            "each",
+            "show me all",
+            "tell me all",
+            "what are all",
+            "give me all",
+            "everything",
+            "complete list",
+            "all of",
+            "every one",
+            "each of",
+            "full list",
         ]
-        
+
         # Check if this is a comprehensive query
         if any(keyword in message_lower for keyword in comprehensive_keywords):
             return 8  # Higher limit for comprehensive queries
@@ -153,19 +168,48 @@ class PortfolioAgentService:
         """Determine content types to filter by based on keywords."""
         message_lower = message.lower()
         content_types = []
-        
+
         # Project-specific keywords
-        if any(word in message_lower for word in ["project", "projects", "built", "app", "application", "system"]):
+        if any(
+            word in message_lower
+            for word in [
+                "project",
+                "projects",
+                "built",
+                "app",
+                "application",
+                "system",
+            ]
+        ):
             content_types.append("project")
-        
-        # Experience/career keywords  
-        if any(word in message_lower for word in ["experience", "career", "job", "work history", "worked", "leadership"]):
+
+        # Experience/career keywords
+        if any(
+            word in message_lower
+            for word in [
+                "experience",
+                "career",
+                "job",
+                "work history",
+                "worked",
+                "leadership",
+            ]
+        ):
             content_types.append("experience")
-        
+
         # Personal/about keywords
-        if any(word in message_lower for word in ["about", "personal", "background", "interests", "hobbies"]):
+        if any(
+            word in message_lower
+            for word in [
+                "about",
+                "personal",
+                "background",
+                "interests",
+                "hobbies",
+            ]
+        ):
             content_types.append("about")
-        
+
         # Return None if no specific types detected (search all)
         return content_types if content_types else None
 
@@ -200,15 +244,17 @@ class PortfolioAgentService:
         # Smart RAG: only search if needed
         if self._needs_portfolio_search(message):
             message_embedding = await self.get_embedding(message)
-            
+
             # Dynamic search limit based on query type
             search_limit = self._get_search_limit(message)
-            
+
             # Content type filtering based on keywords
             content_types = self._get_content_types_filter(message)
-            
+
             relevant_content = await self.search_portfolio_content(
-                message_embedding, content_types=content_types, limit=search_limit
+                message_embedding,
+                content_types=content_types,
+                limit=search_limit,
             )
 
             if relevant_content:
@@ -224,6 +270,146 @@ class PortfolioAgentService:
         response = agent.run(
             BaseAgentInputSchema(chat_message=message_with_context)
         )
+
+        return response
+
+    async def chat_with_visitor_streaming(
+        self,
+        visitor: Visitor,
+        conversation_id: str,
+        message: str,
+        chunk_callback=None,
+    ) -> PortfolioAgentResponse:
+        """Handle a chat message with streaming response using atomic-agents."""
+        import time
+        start_time = time.time()
+        print(f"🚀 [TIMING] Chat request started: {message[:50]}...")
+        
+        # Get or create agent for this conversation
+        if conversation_id not in self.conversation_agents:
+            agent = self._create_agent_for_conversation(
+                visitor, conversation_id
+            )
+            self.conversation_agents[conversation_id] = agent
+
+        agent = self.conversation_agents[conversation_id]
+        setup_time = time.time()
+        print(f"⚙️  [TIMING] Agent setup: {(setup_time - start_time)*1000:.0f}ms")
+
+        # Build message with context (same as regular chat)
+        message_with_context = message
+
+        # Add quote context if available
+        try:
+            stored_quote = await self.redis.get(
+                f"conversation_quote:{conversation_id}"
+            )
+            if stored_quote:
+                quote_context = f'\n\nNote: The visitor saw this conversation starter quote when they arrived: "{stored_quote}"\nThey might be responding to it, or they might be starting a completely different conversation. Either approach is fine! Do not reference the quote in your response unless it is relevant to the visitor\'s message.\n\n'
+                message_with_context += quote_context
+        except Exception as e:
+            print(f"Error getting quote context: {e}")
+
+        context_time = time.time()
+        print(f"📝 [TIMING] Context setup: {(context_time - setup_time)*1000:.0f}ms")
+
+        # Smart RAG: only search if needed
+        rag_triggered = self._needs_portfolio_search(message)
+        print(f"🔍 [TIMING] RAG triggered: {rag_triggered}")
+        
+        if rag_triggered:
+            embedding_start = time.time()
+            message_embedding = await self.get_embedding(message)
+            embedding_time = time.time()
+            print(f"🧮 [TIMING] OpenAI embedding: {(embedding_time - embedding_start)*1000:.0f}ms")
+
+            # Dynamic search limit based on query type
+            search_limit = self._get_search_limit(message)
+
+            # Content type filtering based on keywords
+            content_types = self._get_content_types_filter(message)
+
+            search_start = time.time()
+            relevant_content = await self.search_portfolio_content(
+                message_embedding,
+                content_types=content_types,
+                limit=search_limit,
+            )
+            search_time = time.time()
+            print(f"🔎 [TIMING] Vector search: {(search_time - search_start)*1000:.0f}ms")
+
+            if relevant_content:
+                portfolio_context = "\nRelevant portfolio content:\n"
+                for content in relevant_content:
+                    portfolio_context += f"- {content.title}: {content.content_chunk or content.content}\n"
+
+                message_with_context = (
+                    f"{portfolio_context}\n\nUser message: {message}"
+                )
+                print(f"📚 [TIMING] Found {len(relevant_content)} relevant content pieces")
+        else:
+            print(f"⏭️  [TIMING] Skipping RAG - no relevant keywords")
+
+        # Use atomic-agents streaming functionality
+        try:
+            # Create input schema for agent
+            input_data = BaseAgentInputSchema(
+                chat_message=message_with_context
+            )
+
+            openai_start = time.time()
+            print(f"🤖 [TIMING] Starting OpenAI call via atomic-agents...")
+            
+            # Use synchronous execution to avoid async generator issues
+            result = agent.run(input_data)
+            
+            openai_end = time.time()
+            print(f"✅ [TIMING] OpenAI response received: {(openai_end - openai_start)*1000:.0f}ms")
+
+            # Extract response text
+            if hasattr(result, "response"):
+                response_text = result.response
+                response = result
+            elif hasattr(result, "chat_message"):
+                response_text = result.chat_message
+                response = PortfolioAgentResponse(
+                    response=response_text,
+                    visitor_notes_update=None,
+                    is_off_topic=False,
+                )
+            else:
+                response_text = str(result)
+                response = PortfolioAgentResponse(
+                    response=response_text,
+                    visitor_notes_update=None,
+                    is_off_topic=False,
+                )
+
+            # Send complete response as single chunk
+            send_start = time.time()
+            if chunk_callback:
+                await chunk_callback(response_text)
+            send_end = time.time()
+            print(f"📤 [TIMING] Response sent to frontend: {(send_end - send_start)*1000:.0f}ms")
+            
+            total_time = time.time()
+            print(f"🏁 [TIMING] TOTAL REQUEST TIME: {(total_time - start_time)*1000:.0f}ms")
+            print(f"📊 [TIMING] Response length: {len(response_text)} characters")
+
+        except Exception as e:
+            print(f"Error with atomic-agents: {e}")
+            error_response = "I'm sorry, I encountered an error processing your message. Please try again."
+
+            # Send error message as a chunk
+            if chunk_callback:
+                await chunk_callback(error_response)
+
+            # Create error response
+            response = PortfolioAgentResponse(
+                response=error_response,
+                visitor_notes_update=None,
+                is_off_topic=False,
+            )
 
         return response
 

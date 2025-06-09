@@ -31,7 +31,7 @@ class Settings(BaseSettings):
 
     # OpenAI settings
     openai_api_key: str
-    openai_model: str = "gpt-4o-mini"  # Default AI model for conversations
+    openai_model: str = "gpt-4o-nano"  # Default AI model for conversations
     openai_embedding_model: str = "text-embedding-3-small"  # Embedding model
 
     # Agent configuration

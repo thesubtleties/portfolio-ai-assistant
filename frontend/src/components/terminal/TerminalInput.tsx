@@ -93,7 +93,9 @@ const TerminalInput: React.FC<TerminalInputProps> = ({
         {/* Show user input with cursor inline - properly positioned */}
         {!showQuote && (
           <div className="terminal-text-content terminal-input-line">
-            <span className="terminal-input-text">{inputValue}</span>
+            <span className="terminal-input-text" style={{ whiteSpace: 'pre' }}>
+              {inputValue}
+            </span>
             <TerminalCursor isVisible={true} isBlinking={!isTyping} />
           </div>
         )}

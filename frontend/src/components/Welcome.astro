@@ -151,6 +151,8 @@ import TerminalInterface from "./terminal/TerminalInterface"
     width: calc(100% - 4rem); /* Account for padding on smaller screens */
     margin: 0 auto;
     position: relative;
+    contain: layout style; /* Isolate layout calculations for better performance */
+    transform: translateZ(0); /* Force hardware acceleration */
   }
   
   @media (min-width: 1200px) {
@@ -163,6 +165,9 @@ import TerminalInterface from "./terminal/TerminalInterface"
     position: relative;
     height: 70vh; /* Take up 70% of viewport height */
     overflow: hidden; /* Hide any content that exceeds the height */
+    contain: layout style; /* Isolate animations from affecting parent layout */
+    transform: translateZ(0); /* Force GPU acceleration for smoother animations */
+    will-change: transform; /* Hint browser about upcoming transforms */
   }
 
   /* Position definition lower/centered, but responses can use full height */
@@ -223,6 +228,7 @@ import TerminalInterface from "./terminal/TerminalInterface"
     transition: all 0.2s ease;
     transform: translateZ(0); /* Force hardware acceleration */
     will-change: transform, opacity; /* Optimize for animations */
+    contain: layout style; /* Prevent input changes from affecting parent layout */
   }
 
   .terminal-content-wrapper {

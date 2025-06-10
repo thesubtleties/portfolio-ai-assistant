@@ -187,6 +187,20 @@ import TerminalInterface from "./terminal/TerminalInterface"
     padding-top: 2rem; /* Give some breathing room from very top */
   }
 
+  /* Mobile-specific response positioning */
+  @media (max-width: 768px) {
+    .response-content {
+      padding-top: 0.5rem; /* Much closer to top on mobile */
+      height: calc(100% - 1rem); /* Account for reduced padding */
+    }
+    
+    /* For longer responses on mobile, ensure they start at the very top */
+    .response-content .response-emergence {
+      margin-top: 0; /* Remove default margin on mobile */
+      padding-top: 0.5rem; /* Minimal top padding */
+    }
+  }
+
   .terminal-input-section {
     position: absolute;
     bottom: 0;
@@ -198,7 +212,7 @@ import TerminalInterface from "./terminal/TerminalInterface"
 
   /* Terminal Input Container */
   .terminal-input-container {
-    background: white;
+    background: var(--color-background); /* Same as page background */
     border: none;
     padding: 1rem;
     cursor: text;
@@ -219,7 +233,7 @@ import TerminalInterface from "./terminal/TerminalInterface"
   }
 
   .terminal-input-container:hover {
-    background: rgba(248, 249, 250, 0.5);
+    background: var(--color-background); /* Keep same background on hover */
   }
 
   .terminal-input-container.disabled {
@@ -337,7 +351,7 @@ import TerminalInterface from "./terminal/TerminalInterface"
     position: relative;
     max-width: 1000px;
     padding: 2rem;
-    margin: 2rem auto;
+    margin: 0 auto; /* Remove vertical margins that could cause jumps */
     pointer-events: none;
     transform: translateZ(0); /* Force hardware acceleration */
     will-change: transform, opacity; /* Optimize for animations */
@@ -383,6 +397,27 @@ import TerminalInterface from "./terminal/TerminalInterface"
     margin: 0.5rem 0;
   }
 
+  /* Consistent paragraph spacing - same during and after animation */
+  .response-text p {
+    margin: 1.5rem 0 !important; /* Generous spacing between paragraphs */
+    display: block !important; /* Keep as block to maintain line structure */
+    line-height: inherit !important; /* Use the font's line height */
+  }
+
+  .response-text p:first-child {
+    margin-top: 0 !important; /* Remove top margin from first paragraph */
+  }
+
+  .response-text p:last-child {
+    margin-bottom: 0 !important; /* Remove bottom margin from last paragraph */
+  }
+
+  /* Ensure character spans stay inline - always, not conditionally */
+  .response-text span {
+    display: inline !important; /* Character spans stay inline */
+    line-height: inherit !important; /* Inherit line height from parent */
+  }
+
   .response-text ul, .response-text ol {
     margin: 0.75rem 0;
     padding-left: 1.5rem;
@@ -426,8 +461,12 @@ import TerminalInterface from "./terminal/TerminalInterface"
 
   @media (max-width: 768px) {
     .terminal-interface {
-      padding: 1.5rem;
-      width: calc(100% - 2rem); /* Less padding on mobile */
+      padding: 1rem; /* Reduced padding for more space */
+      width: calc(100% - 1rem); /* Less padding on mobile */
+    }
+
+    .main-content-area {
+      height: 75vh; /* Slightly more height on mobile */
     }
 
     .terminal-input-container {
@@ -436,7 +475,13 @@ import TerminalInterface from "./terminal/TerminalInterface"
     }
 
     .response-text {
-      font-size: 1rem;
+      font-size: 1rem; /* Base size - will be overridden by dynamic scaling */
+      padding: 0.5rem; /* Less padding to maximize space */
+    }
+
+    .response-emergence {
+      padding: 1rem; /* Reduced padding on mobile */
+      margin: 0 auto; /* Consistent with desktop - no vertical margins */
     }
 
     .connection-status,

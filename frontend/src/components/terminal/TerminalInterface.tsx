@@ -94,15 +94,8 @@ const TerminalInterface: React.FC<TerminalInterfaceProps> = ({
       return prev + chunk;
     });
 
-    // Reset the idle timeout on each chunk
-    if ((window as any).responseTimeout) {
-      clearTimeout((window as any).responseTimeout);
-    }
-    
-    // Set new timeout for when streaming stops
-    (window as any).responseTimeout = setTimeout(() => {
-      setInteractionState('idle');
-    }, 1200); // 1.2s after last chunk
+    // Since we're not streaming, set to idle immediately after response is received
+    setInteractionState('idle');
   };
 
   return (

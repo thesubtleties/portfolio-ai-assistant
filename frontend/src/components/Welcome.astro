@@ -355,6 +355,8 @@ import TerminalInterface from "./terminal/TerminalInterface"
     pointer-events: none;
     transform: translateZ(0); /* Force hardware acceleration */
     will-change: transform, opacity; /* Optimize for animations */
+    z-index: 10; /* Put animation above other elements */
+    contain: layout style; /* Isolate layout calculations for better performance */
   }
 
   .response-text {
@@ -365,6 +367,14 @@ import TerminalInterface from "./terminal/TerminalInterface"
     text-align: left; /* Left align for better readability with longer content */
     transform: translateZ(0); /* Force hardware acceleration */
     will-change: transform, opacity; /* Optimize for animations */
+    position: relative; /* Create stacking context */
+    z-index: 5; /* Layer above background but below overlays */
+  }
+  
+  /* During animation, lock dimensions to prevent shifts */
+  .response-text.animating {
+    min-height: inherit; /* Maintain container height */
+    contain: layout style; /* Prevent layout recalculation affecting other elements */
   }
 
   /* Markdown formatting support */
@@ -397,9 +407,9 @@ import TerminalInterface from "./terminal/TerminalInterface"
     margin: 0.5rem 0;
   }
 
-  /* Consistent paragraph spacing - same during and after animation */
+  /* Simplified: Just handle normal paragraphs and split content */
   .response-text p {
-    margin: 1.5rem 0 !important; /* Generous spacing between paragraphs */
+    margin: 1.5rem 0 !important; /* Standard paragraph spacing */
     display: block !important; /* Keep as block to maintain line structure */
     line-height: inherit !important; /* Use the font's line height */
   }
@@ -412,10 +422,31 @@ import TerminalInterface from "./terminal/TerminalInterface"
     margin-bottom: 0 !important; /* Remove bottom margin from last paragraph */
   }
 
-  /* Ensure character spans stay inline - always, not conditionally */
-  .response-text span {
+  /* SplitText line containers - no margin to prevent double spacing */
+  .response-text .split-line {
+    margin: 0rem !important; /* No spacing for split line divs */
+    display: block !important; /* Split lines stay block for proper line structure */
+    line-height: inherit !important; /* Use parent line height */
+    padding: 0 !important; /* No padding on split lines */
+  }
+  
+  /* Character spans - naturally inline and optimized for animation */
+  .response-text span:not(.split-line) {
     display: inline !important; /* Character spans stay inline */
+    margin: 0 !important; /* No margins on character spans */
+    padding: 0 !important; /* No padding on character spans */
     line-height: inherit !important; /* Inherit line height from parent */
+    vertical-align: baseline !important; /* Consistent baseline alignment */
+    white-space: inherit !important; /* Inherit whitespace handling */
+    font-size: inherit !important; /* Don't let GSAP change font size */
+  }
+
+  /* SplitText smartWrap creates word wrapper spans - ensure they don't affect layout */
+  .response-text span[style*="white-space: nowrap"] {
+    display: inline !important; /* Word wrapper spans also inline */
+    margin: 0 !important;
+    padding: 0 !important;
+    line-height: inherit !important;
   }
 
   .response-text ul, .response-text ol {

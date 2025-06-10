@@ -208,7 +208,11 @@ class ConnectionManager:
                 # Handle different message types
                 if message_data["type"] == "user_message":
                     await self._handle_user_message(
-                        message_data, websocket, connection_id, db, redis_client
+                        message_data,
+                        websocket,
+                        connection_id,
+                        db,
+                        redis_client,
                     )
                 elif message_data["type"] == "heartbeat":
                     await self._handle_heartbeat(connection_id)
@@ -223,7 +227,7 @@ class ConnectionManager:
                     )
 
         except WebSocketDisconnect:
-            await self.disconnect(connection_id, db)
+            await self.disconnect(connection_id, db, redis_client)
         except json.JSONDecodeError:
             await self.send_personal_message(
                 json.dumps({"error": "Invalid JSON format"}), connection_id
@@ -252,7 +256,7 @@ class ConnectionManager:
 
         content = message_data.get("content", "").strip()
         is_mobile = message_data.get("is_mobile", False)  # Extract mobile flag
-        
+
         if not content:
             await self.send_personal_message(
                 json.dumps({"error": "Message content required"}),
@@ -286,23 +290,31 @@ class ConnectionManager:
 
         # Check rate limiting before AI response
         try:
-            client_ip = websocket.client.host if websocket.client else 'unknown'
+            client_ip = (
+                websocket.client.host if websocket.client else "unknown"
+            )
         except AttributeError:
-            client_ip = 'unknown'
+            client_ip = "unknown"
         rate_limit_service = RateLimitService(redis_client)
-        
-        is_limited, limit_message = await rate_limit_service.is_rate_limited(client_ip)
+
+        is_limited, limit_message = await rate_limit_service.is_rate_limited(
+            client_ip
+        )
         if is_limited:
             # Send rate limit message and return
             await self.send_personal_message(
-                json.dumps({
-                    "type": "ai_response",
-                    "message": {
-                        "content": limit_message,
-                        "sender_type": "assistant",
-                        "timestamp": datetime.now(timezone.utc).isoformat(),
+                json.dumps(
+                    {
+                        "type": "ai_response",
+                        "message": {
+                            "content": limit_message,
+                            "sender_type": "assistant",
+                            "timestamp": datetime.now(
+                                timezone.utc
+                            ).isoformat(),
+                        },
                     }
-                }),
+                ),
                 connection_id,
             )
             return
@@ -337,11 +349,13 @@ class ConnectionManager:
             # Define chunk callback for streaming
             async def send_chunk(chunk_content: str):
                 await self.send_personal_message(
-                    json.dumps({
-                        "type": "ai_response_chunk",
-                        "content": chunk_content,
-                        "conversation_id": conversation_id
-                    }),
+                    json.dumps(
+                        {
+                            "type": "ai_response_chunk",
+                            "content": chunk_content,
+                            "conversation_id": conversation_id,
+                        }
+                    ),
                     connection_id,
                 )
 
@@ -351,7 +365,7 @@ class ConnectionManager:
                 conversation_id=conversation_id,
                 message=content,
                 chunk_callback=send_chunk,
-                is_mobile=is_mobile
+                is_mobile=is_mobile,
             )
 
             ai_response = agent_response.response
@@ -370,17 +384,19 @@ class ConnectionManager:
         except Exception as e:
             logger.error(f"Error generating AI response: {e}")
             ai_response = "I'm sorry, I encountered an error processing your message. Please try again."
-            
+
             # Send error as a single chunk
             await self.send_personal_message(
-                json.dumps({
-                    "type": "ai_response_chunk", 
-                    "content": ai_response,
-                    "conversation_id": conversation_id
-                }),
+                json.dumps(
+                    {
+                        "type": "ai_response_chunk",
+                        "content": ai_response,
+                        "conversation_id": conversation_id,
+                    }
+                ),
                 connection_id,
             )
-            
+
             # Add points for error case (assume on-topic)
             await rate_limit_service.add_points(client_ip, is_off_topic=False)
 
@@ -393,16 +409,18 @@ class ConnectionManager:
 
         # Send completion signal
         await self.send_personal_message(
-            json.dumps({
-                "type": "ai_response_complete",
-                "message": {
-                    "id": str(ai_message.id),
-                    "full_content": ai_response,
-                    "sender_type": "ai", 
-                    "timestamp": ai_message.timestamp.isoformat(),
-                },
-                "conversation_id": conversation_id
-            }),
+            json.dumps(
+                {
+                    "type": "ai_response_complete",
+                    "message": {
+                        "id": str(ai_message.id),
+                        "full_content": ai_response,
+                        "sender_type": "ai",
+                        "timestamp": ai_message.timestamp.isoformat(),
+                    },
+                    "conversation_id": conversation_id,
+                }
+            ),
             connection_id,
         )
 

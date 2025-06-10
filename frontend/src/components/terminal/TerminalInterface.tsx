@@ -81,16 +81,28 @@ const TerminalInterface: React.FC<TerminalInterfaceProps> = ({
     }
   };
 
-  const handleResponseReceived = (response: string) => {
-    // Reset dissolve state when new response comes in
-    setShouldDissolveResponse(false);
-    setCurrentResponse(response);
-    setInteractionState('responding');
+  const handleResponseReceived = (chunk: string) => {
+    // For streaming: accumulate chunks
+    setCurrentResponse(prev => {
+      // If this is the first chunk, clear previous response and start fresh
+      if (interactionState !== 'responding') {
+        setShouldDissolveResponse(false);
+        setInteractionState('responding');
+        return chunk;
+      }
+      // Otherwise, accumulate the chunk
+      return prev + chunk;
+    });
 
-    // Let the ResponseEmergence animation complete (3-stage animation ~1.2s total)
-    setTimeout(() => {
+    // Reset the idle timeout on each chunk
+    if ((window as any).responseTimeout) {
+      clearTimeout((window as any).responseTimeout);
+    }
+    
+    // Set new timeout for when streaming stops
+    (window as any).responseTimeout = setTimeout(() => {
       setInteractionState('idle');
-    }, 1200); // Reduced from 1800ms to 1200ms
+    }, 1200); // 1.2s after last chunk
   };
 
   return (

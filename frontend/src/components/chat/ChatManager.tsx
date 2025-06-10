@@ -100,9 +100,12 @@ const ChatManager: React.FC<ChatManagerProps> = ({
         break;
 
       case 'ai_response':
-        // Fallback for non-streaming responses
+        // Non-streaming response - set content first, then trigger animation
         onResponseReceived(data.message.content);
-        onStateChange('responding');
+        // Longer delay to ensure DOM is updated and animation is visible
+        setTimeout(() => {
+          onStateChange('responding');
+        }, 300);
         break;
 
       case 'error':

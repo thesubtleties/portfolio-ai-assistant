@@ -18,17 +18,12 @@ const TerminalInput: React.FC<TerminalInputProps> = ({
   const [inputValue, setInputValue] = useState('');
   const [showQuote, setShowQuote] = useState(true);
   const [isFocused, setIsFocused] = useState(false);
-  const [containerHeight, setContainerHeight] = useState<number | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const handleContainerClick = useCallback(() => {
     // Allow clicking even when disabled (for debounce state)
     if (showQuote) {
-      // Capture the current height before hiding the quote
-      if (containerRef.current) {
-        setContainerHeight(containerRef.current.offsetHeight);
-      }
       setShowQuote(false);
     }
 
@@ -76,7 +71,9 @@ const TerminalInput: React.FC<TerminalInputProps> = ({
       }`}
       onClick={handleContainerClick}
       style={{
-        minHeight: containerHeight ? `${containerHeight}px` : '2.5rem',
+        position: 'relative', // Allow absolute positioning of children
+        minHeight: '3.5rem', // Fixed height for ~2 lines + padding
+        alignItems: 'flex-start', // Align content to top instead of center
       }}
     >
       <div className="terminal-content-wrapper">
@@ -90,7 +87,7 @@ const TerminalInput: React.FC<TerminalInputProps> = ({
           </div>
         )}
 
-        {/* Show user input with cursor inline - properly positioned */}
+        {/* Show user input with cursor inline - positioned after prompt */}
         {!showQuote && (
           <div className="terminal-text-content terminal-input-line">
             <span className="terminal-input-text" style={{ whiteSpace: 'pre' }}>

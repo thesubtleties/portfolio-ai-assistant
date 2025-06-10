@@ -29,9 +29,8 @@ const TerminalInterface: React.FC<TerminalInterfaceProps> = ({
   const [hasDefinitionCrumbled, setHasDefinitionCrumbled] = useState(false);
   const [shouldDissolveResponse, setShouldDissolveResponse] = useState(false);
   const [currentResponse, setCurrentResponse] = useState<string>('');
-  const [quote, setQuote] = useState(
-    'The terminal was patient. It would wait forever for the right command, the right moment of weakness.'
-  );
+  const [quote, setQuote] = useState('');
+  const [isQuoteLoaded, setIsQuoteLoaded] = useState(false);
 
   const handleMessageSend = async (message: string) => {
     console.log('Sending message, isFirstInteraction:', isFirstInteraction);
@@ -79,6 +78,11 @@ const TerminalInterface: React.FC<TerminalInterfaceProps> = ({
       console.error('Error sending message:', error);
       setInteractionState('idle');
     }
+  };
+
+  const handleQuoteReceived = (newQuote: string) => {
+    setQuote(newQuote);
+    setIsQuoteLoaded(true);
   };
 
   const handleResponseReceived = (chunk: string) => {
@@ -131,15 +135,17 @@ const TerminalInterface: React.FC<TerminalInterfaceProps> = ({
         )}
       </div>
 
-      {/* Terminal Input Section */}
-      <TerminalInput
-        quote={quote}
-        onMessageSend={handleMessageSend}
-        disabled={
-          interactionState === 'sending' || interactionState === 'receiving'
-        }
-        className="terminal-input-section"
-      />
+      {/* Terminal Input Section - only show when quote is loaded */}
+      {isQuoteLoaded && (
+        <TerminalInput
+          quote={quote}
+          onMessageSend={handleMessageSend}
+          disabled={
+            interactionState === 'sending' || interactionState === 'receiving'
+          }
+          className="terminal-input-section"
+        />
+      )}
 
       {/* Debug info - commented out for production */}
       {/* 
@@ -174,7 +180,7 @@ const TerminalInterface: React.FC<TerminalInterfaceProps> = ({
 
       {/* Chat Management */}
       <ChatManager
-        onQuoteReceived={setQuote}
+        onQuoteReceived={handleQuoteReceived}
         onResponseReceived={handleResponseReceived}
         onStateChange={setInteractionState}
       />

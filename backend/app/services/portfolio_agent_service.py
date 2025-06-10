@@ -146,23 +146,201 @@ class PortfolioAgentService:
         query_embedding: List[float],
         content_types: Optional[List[str]] = None,
         limit: int = 3,
+        query_text: str = "",
     ) -> List[PortfolioContent]:
-        """Search portfolio content using vector similarity."""
-        query = select(PortfolioContent)
-
-        # Filter by content types if specified
+        """Search portfolio content using adaptive hybrid strategy."""
+        # Classify query to choose optimal search strategy
+        query_type = self._classify_query(query_text)
+        strategy = self._choose_search_strategy(query_type)
+        
+        print(f"🔍 [SEARCH] Query type: {query_type}, Strategy: {strategy}")
+        
+        if strategy == "semantic":
+            return await self._semantic_search(query_embedding, content_types, limit)
+        elif strategy == "pure_content":
+            return await self._pure_content_search(query_embedding, content_types, limit)
+        else:  # hybrid
+            return await self._hybrid_search(query_embedding, content_types, limit)
+    
+    async def _semantic_search(self, query_embedding: List[float], content_types: Optional[List[str]], limit: int) -> List[PortfolioContent]:
+        """Search using semantic embeddings only."""
+        query = select(PortfolioContent).where(
+            PortfolioContent.content_metadata['embedding_type'].astext == 'semantic'
+        )
+        
         if content_types:
-            query = query.where(
-                PortfolioContent.content_type.in_(content_types)
-            )
-
-        # Order by cosine similarity
+            query = query.where(PortfolioContent.content_type.in_(content_types))
+        
         query = query.order_by(
             PortfolioContent.embedding.cosine_distance(query_embedding)
         ).limit(limit)
-
+        
         result = await self.db.execute(query)
-        return result.scalars().all()
+        initial_results = result.scalars().all()
+        
+        # Add nearby chunks for better context
+        return await self._expand_with_nearby_chunks(initial_results, limit)
+    
+    async def _pure_content_search(self, query_embedding: List[float], content_types: Optional[List[str]], limit: int) -> List[PortfolioContent]:
+        """Search using pure content embeddings only."""
+        query = select(PortfolioContent).where(
+            PortfolioContent.content_metadata['embedding_type'].astext == 'pure_content'
+        )
+        
+        if content_types:
+            query = query.where(PortfolioContent.content_type.in_(content_types))
+        
+        query = query.order_by(
+            PortfolioContent.embedding.cosine_distance(query_embedding)
+        ).limit(limit)
+        
+        result = await self.db.execute(query)
+        initial_results = result.scalars().all()
+        
+        # Add nearby chunks for better context
+        return await self._expand_with_nearby_chunks(initial_results, limit)
+    
+    async def _hybrid_search(self, query_embedding: List[float], content_types: Optional[List[str]], limit: int) -> List[PortfolioContent]:
+        """Hybrid search combining both embedding types with intelligent merging."""
+        # Get results from both methods
+        semantic_query = select(PortfolioContent).where(
+            PortfolioContent.content_metadata['embedding_type'].astext == 'semantic'
+        )
+        pure_query = select(PortfolioContent).where(
+            PortfolioContent.content_metadata['embedding_type'].astext == 'pure_content'
+        )
+        
+        if content_types:
+            semantic_query = semantic_query.where(PortfolioContent.content_type.in_(content_types))
+            pure_query = pure_query.where(PortfolioContent.content_type.in_(content_types))
+        
+        semantic_query = semantic_query.order_by(
+            PortfolioContent.embedding.cosine_distance(query_embedding)
+        ).limit(limit * 2)
+        
+        pure_query = pure_query.order_by(
+            PortfolioContent.embedding.cosine_distance(query_embedding)
+        ).limit(limit * 2)
+        
+        semantic_results = (await self.db.execute(semantic_query)).scalars().all()
+        pure_results = (await self.db.execute(pure_query)).scalars().all()
+        
+        # Merge and deduplicate
+        return self._merge_and_deduplicate(semantic_results, pure_results, limit)
+    
+    def _merge_and_deduplicate(self, semantic_results: List[PortfolioContent], pure_results: List[PortfolioContent], limit: int) -> List[PortfolioContent]:
+        """Intelligently merge results from both methods."""
+        merged = []
+        seen_content = set()
+        
+        # Interleave results to get diversity
+        max_len = max(len(semantic_results), len(pure_results))
+        
+        for i in range(max_len):
+            # Add semantic result if available and not duplicate
+            if i < len(semantic_results):
+                semantic_result = semantic_results[i]
+                content_hash = hash(semantic_result.content_chunk[:100])  # Hash first 100 chars
+                if content_hash not in seen_content:
+                    merged.append(semantic_result)
+                    seen_content.add(content_hash)
+            
+            # Add pure content result if available and not duplicate
+            if i < len(pure_results) and len(merged) < limit:
+                pure_result = pure_results[i]
+                content_hash = hash(pure_result.content_chunk[:100])
+                if content_hash not in seen_content:
+                    merged.append(pure_result)
+                    seen_content.add(content_hash)
+            
+            if len(merged) >= limit:
+                break
+        
+        return merged[:limit]
+    
+    def _classify_query(self, query: str) -> str:
+        """Classify query type to inform search strategy."""
+        query_lower = query.lower()
+        
+        # Technical framework/architecture queries
+        if any(tech in query_lower for tech in [
+            'fastapi', 'react', 'architecture', 'pattern', 'implementation',
+            'framework', 'design', 'approach', 'methodology'
+        ]):
+            return 'technical_conceptual'
+        
+        # Broad overview queries
+        elif any(broad in query_lower for broad in [
+            'all projects', 'tell me about', 'overview', 'everything',
+            'what has steven', 'show me all', 'complete list'
+        ]):
+            return 'broad_overview'
+        
+        # Specific content searches
+        elif any(specific in query_lower for specific in [
+            'code example', 'database', 'what databases', 'which database',
+            'technologies', 'tools', 'languages', 'specific'
+        ]):
+            return 'specific_content'
+        
+        # Personal/background queries
+        elif any(personal in query_lower for personal in [
+            'background', 'personal', 'interests', 'experience', 'career'
+        ]):
+            return 'personal_background'
+        
+        return 'general'
+    
+    def _choose_search_strategy(self, query_type: str) -> str:
+        """Choose optimal search strategy based on query type."""
+        strategy_map = {
+            'technical_conceptual': 'semantic',    # Benefits from contextual understanding
+            'broad_overview': 'hybrid',            # Needs diversity and coverage
+            'specific_content': 'pure_content',    # Direct content matching
+            'personal_background': 'pure_content', # Often in descriptive sections
+            'general': 'hybrid'                    # Safe fallback
+        }
+        
+        return strategy_map.get(query_type, 'hybrid')
+    
+    async def _expand_with_nearby_chunks(self, initial_results: List[PortfolioContent], limit: int) -> List[PortfolioContent]:
+        """Expand results with nearby chunks from same documents for better context."""
+        if not initial_results:
+            return []
+        
+        expanded_results = []
+        seen_chunks = set()
+        
+        for result in initial_results:
+            # Add the original result
+            chunk_id = f"{result.knowledge_source_id}_{result.chunk_index}"
+            if chunk_id not in seen_chunks:
+                expanded_results.append(result)
+                seen_chunks.add(chunk_id)
+            
+            # Get nearby chunks from same document (±2 chunks)
+            source_id = result.knowledge_source_id
+            current_index = result.chunk_index
+            
+            # Get chunks before and after current chunk
+            nearby_query = select(PortfolioContent).where(
+                PortfolioContent.knowledge_source_id == source_id,
+                PortfolioContent.chunk_index.between(current_index - 4, current_index + 4),
+                PortfolioContent.chunk_index != current_index
+            ).order_by(PortfolioContent.chunk_index)
+            
+            nearby_result = await self.db.execute(nearby_query)
+            nearby_chunks = nearby_result.scalars().all()
+            
+            # Add nearby chunks that aren't already included
+            for nearby_chunk in nearby_chunks:
+                nearby_id = f"{nearby_chunk.knowledge_source_id}_{nearby_chunk.chunk_index}"
+                if nearby_id not in seen_chunks and len(expanded_results) < limit * 2:
+                    expanded_results.append(nearby_chunk)
+                    seen_chunks.add(nearby_id)
+        
+        # Return up to the limit, prioritizing original results
+        return expanded_results[:limit * 2]
 
     async def get_embedding(self, text: str) -> List[float]:
         """Get OpenAI embedding for text."""
@@ -208,9 +386,9 @@ class PortfolioAgentService:
 
         # Check if this is a comprehensive query
         if any(keyword in message_lower for keyword in comprehensive_keywords):
-            return 15  # Higher limit for comprehensive queries like "all projects"
+            return 40  # Much higher limit for comprehensive queries
         else:
-            return 3  # Normal limit for specific questions
+            return 15  # Significantly increased from 3 to 15
 
     def _get_content_types_filter(self, message: str) -> Optional[List[str]]:
         """Determine content types to filter by based on keywords."""
@@ -303,6 +481,7 @@ class PortfolioAgentService:
                 message_embedding,
                 content_types=content_types,
                 limit=search_limit,
+                query_text=message,
             )
 
             if relevant_content:
@@ -353,7 +532,9 @@ class PortfolioAgentService:
 
         # Add mobile context if needed
         if is_mobile:
-            print(f"📱 [MOBILE] Mobile device detected - requesting concise response")
+            print(
+                f"📱 [MOBILE] Mobile device detected - requesting concise response"
+            )
             message_with_context += "\n\n[MOBILE CONTEXT: User is on mobile device - keep response extra concise (2-3 lines max for general questions)]"
         else:
             print(f"🖥️  [DESKTOP] Desktop device - normal response length")
@@ -457,6 +638,17 @@ class PortfolioAgentService:
                     is_off_topic=False,
                 )
 
+            # LOG FULL AI RESPONSE FOR DEBUGGING
+            print("=" * 80)
+            print("🤖 [FULL AI RESPONSE] Raw text from AI:")
+            print("=" * 80)
+            print(repr(response_text))  # Using repr to see actual \n characters
+            print("=" * 80)
+            print("🖼️  [FULL AI RESPONSE] Formatted for display:")
+            print("=" * 80)
+            print(response_text)
+            print("=" * 80)
+
             # Send complete response as single chunk
             send_start = time.time()
             if chunk_callback:
@@ -473,11 +665,13 @@ class PortfolioAgentService:
             print(
                 f"📊 [TIMING] Response length: {len(response_text)} characters"
             )
-            
+
             # Check if response meets mobile optimization
             if is_mobile:
-                line_count = response_text.count('\n') + 1
-                print(f"📱 [MOBILE CHECK] Response has {line_count} lines (target: ≤3)")
+                line_count = response_text.count("\n") + 1
+                print(
+                    f"📱 [MOBILE CHECK] Response has {line_count} lines (target: ≤3)"
+                )
                 if line_count <= 3:
                     print(f"✅ [MOBILE] Response optimized for mobile")
                 else:

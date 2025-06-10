@@ -23,8 +23,7 @@ const TerminalInput: React.FC<TerminalInputProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
 
   const handleContainerClick = useCallback(() => {
-    if (disabled) return;
-
+    // Allow clicking even when disabled (for debounce state)
     if (showQuote) {
       // Capture the current height before hiding the quote
       if (containerRef.current) {
@@ -36,7 +35,7 @@ const TerminalInput: React.FC<TerminalInputProps> = ({
     // Focus the hidden input
     inputRef.current?.focus();
     setIsFocused(true);
-  }, [disabled, showQuote]);
+  }, [showQuote]);
 
   const handleInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -65,16 +64,7 @@ const TerminalInput: React.FC<TerminalInputProps> = ({
     }
   }, [inputValue]);
 
-  // Reset to quote when disabled (after sending)
-  useEffect(() => {
-    if (disabled) {
-      setInputValue('');
-      setShowQuote(true);
-      setIsFocused(false);
-      // Reset container height when going back to quote
-      setContainerHeight(null);
-    }
-  }, [disabled]);
+  // Don't auto-reset on disabled - let user stay in terminal for next message
 
   const isTyping = !showQuote && isFocused;
 
@@ -92,9 +82,12 @@ const TerminalInput: React.FC<TerminalInputProps> = ({
       <div className="terminal-content-wrapper">
         <TerminalPrompt />
 
-        {/* Show quote when not typing - let it wrap naturally */}
+        {/* Show quote when not typing with cursor at start */}
         {showQuote && (
-          <span className="terminal-text-content quote-text">{quote}</span>
+          <div className="terminal-text-content">
+            <TerminalCursor isVisible={true} isBlinking={true} />
+            <span className="quote-text" style={{ marginLeft: '0.1rem' }}>{quote}</span>
+          </div>
         )}
 
         {/* Show user input with cursor inline - properly positioned */}
@@ -103,11 +96,6 @@ const TerminalInput: React.FC<TerminalInputProps> = ({
             <span className="terminal-input-text">{inputValue}</span>
             <TerminalCursor isVisible={true} isBlinking={!isTyping} />
           </div>
-        )}
-
-        {/* Show cursor after quote when focused but not typing */}
-        {showQuote && isFocused && (
-          <TerminalCursor isVisible={true} isBlinking={true} />
         )}
       </div>
 
@@ -119,7 +107,7 @@ const TerminalInput: React.FC<TerminalInputProps> = ({
         onChange={handleInputChange}
         onKeyDown={handleKeyDown}
         onBlur={handleInputBlur}
-        disabled={disabled}
+        disabled={false}
         className="terminal-hidden-input"
         autoComplete="off"
         spellCheck="false"

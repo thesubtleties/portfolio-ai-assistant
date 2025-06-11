@@ -135,17 +135,19 @@ const TerminalInterface: React.FC<TerminalInterfaceProps> = ({
         )}
       </div>
 
-      {/* Terminal Input Section - only show when quote is loaded */}
-      {isQuoteLoaded && (
-        <TerminalInput
-          quote={quote}
-          onMessageSend={handleMessageSend}
-          disabled={
-            interactionState === 'sending' || interactionState === 'receiving'
-          }
-          className="terminal-input-section"
-        />
-      )}
+      {/* Terminal Input Section - always rendered but invisible until quote loads */}
+      <TerminalInput
+        quote={quote}
+        onMessageSend={handleMessageSend}
+        disabled={
+          interactionState === 'sending' || interactionState === 'receiving'
+        }
+        className="terminal-input-section"
+        style={{
+          visibility: isQuoteLoaded ? 'visible' : 'hidden',
+          opacity: isQuoteLoaded ? 1 : 0,
+        }}
+      />
 
       {/* Debug info - commented out for production */}
       {/* 

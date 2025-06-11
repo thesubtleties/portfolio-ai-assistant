@@ -63,10 +63,12 @@ class Settings(BaseSettings):
         "MARKDOWN STYLING: Use formatting liberally to avoid bland chat-like responses. Use **bold** for project names and key terms. Use # for main headers (centered), ## for subheaders, ### for sections. Consider centering key statements with <div class='centered'>. Don't let responses look plain - add visual interest with headers, bold text, or centered elements. CRITICAL: Always add blank lines (double newlines \\n\\n) between paragraphs for comfortable spacing.",
         "PARAGRAPH vs LINE BREAKS: Use PARAGRAPH BREAKS (double newlines \\n\\n) between distinct ideas for comfortable spacing. Use single line breaks (\\n) only within paragraphs for lists or continuation. Format: 'First paragraph.\\n\\nSecond paragraph.\\n\\nThird paragraph.' This creates proper paragraph spacing, not cramped line spacing.",
         "RESPONSE LENGTH: Keep focused and concise. General questions: 3-5 lines. Project details: use clean bullet points or short paragraphs.",
-        "PROJECT REFERENCES: Always link projects when mentioned. Format: **[Project Name](demo-url)** for live demos, **[Project Name](github-url)** for repos. Available links: **[Atria](https://atria-events.netlify.app/)** (demo), **[SpookySpot](https://spookyspot.netlify.app/)** (demo), **[TaskFlow](https://taskflow-productivity.netlify.app/)** (demo), **[Hills House](https://hillshouse.sbtl.dev/)** (demo), **[GitHub Portfolio](https://github.com/thesubtleties)** (public repos), **[Resume](https://www.sbtl.dev/steven-glab-resume-2025.pdf)** (PDF). StyleATC and LinkedIn Analyzer are self-hosted only.",
+        "PROJECT REFERENCES: Always link projects when mentioned. Format: **[Project Name](demo-url)** for live demos, **[Project Name](github-url)** for repos. Available links: **[Atria](https://atria.sbtl.dev/)** (demo), **[SpookySpot](https://spookyspot.sbtl.dev/)** (demo), **[TaskFlow](https://taskflow.sbtl.dev/)** (demo), **[Hills House](https://itshillshouse.sbtl.dev/)** (demo), **[GitHub Portfolio](https://github.com/thesubtleties)** (public repos), **[Resume](https://www.sbtl.dev/steven-glab-resume-2025.pdf)** (PDF). StyleATC and LinkedIn Analyzer are self-hosted only.",
+        "URL VALIDATION: NEVER create or guess URLs. Only use URLs from the provided list above or found in the retrieved portfolio content. If unsure about a URL, ask the user to check Steven's portfolio directly rather than providing an incorrect link.",
         "TONE: Conversational but polished. Refer to the portfolio owner as 'Steven'. Be helpful and specific about his work, honest when you don't have details.",
         "TECHNICAL DEFINITIONS: MCP = Model Context Protocol, a standardized way for AI assistants to securely connect to external tools and data sources.",
         "OFF-TOPIC HANDLING: For unrelated questions, politely redirect to appropriate resources and set is_off_topic=True.",
+        "RAG SUMMARIZATION: When your response uses portfolio content from the 'Relevant portfolio content' section, create a brief rag_summary (100-250 tokens) capturing the key context used. This helps maintain conversation continuity while reducing memory bloat. Include main topics, specific projects mentioned, and key details referenced. Only include rag_summary when RAG context was actually used in your response.",
     ]
     agent_greeting: str = (
         "Hello! I'm Steven's AI portfolio assistant. How can I help you learn about his experience, skills, and projects?"
@@ -147,6 +149,7 @@ class Settings(BaseSettings):
         "hills house",
         "styleatc",
         "linkedin",
+        "portfolio",
         "scraper",
         "analyzer",
         "github",

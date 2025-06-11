@@ -34,6 +34,7 @@ const ResponseEmergence: React.FC<ResponseEmergenceProps> = ({
     html: string;
     fontSize: string;
     lineHeight: string;
+    marginTop: string;
     dimensions: { width: number; height: number };
   } | null>(null);
 
@@ -81,6 +82,22 @@ const ResponseEmergence: React.FC<ResponseEmergenceProps> = ({
     return sizeMap[fontSize] || '1.5rem';
   };
 
+  // Calculate top margin based on content length for vertical positioning
+  const getTopMargin = (text: string): string => {
+    const length = text.length;
+    const lineCount = text.split('\n').length;
+    const estimatedLines = Math.max(lineCount, Math.ceil(length / 70));
+
+    // Short content: More margin (centered-ish)
+    if (estimatedLines <= 3) return '25vh';
+
+    // Medium content: Moderate margin (slightly above center)
+    if (estimatedLines <= 10) return '10vh';
+
+    // Long content: Minimal margin (start near top)
+    return '5vh';
+  };
+
   // PHASE 1: Prepare content completely before any animation
   useEffect(() => {
     if (!response || typeof window === 'undefined') {
@@ -122,9 +139,10 @@ const ResponseEmergence: React.FC<ResponseEmergenceProps> = ({
     //   '<p class="actual-paragraph">'
     // );
 
-    // Calculate font sizing
+    // Calculate font sizing and positioning
     const fontSize = getOptimalFontSize(response);
     const lineHeight = getLineHeight(fontSize);
+    const marginTop = getTopMargin(response);
 
     // Measure dimensions using hidden element
     if (measureRef.current) {
@@ -152,6 +170,7 @@ const ResponseEmergence: React.FC<ResponseEmergenceProps> = ({
         html: processedContent,
         fontSize,
         lineHeight,
+        marginTop,
         dimensions: {
           width: rect.width,
           height: rect.height,
@@ -187,13 +206,13 @@ const ResponseEmergence: React.FC<ResponseEmergenceProps> = ({
         // Look for character spans that SplitText would create
         const existingChars = textRef.current?.querySelectorAll('span');
         const existingPs = textRef.current?.querySelectorAll('p');
-        
+
         // If we have many more spans than paragraphs, content is likely already split
         // Also check if spans contain single characters (typical of SplitText)
-        const singleCharSpans = Array.from(existingChars || []).filter(span => 
-          span.textContent && span.textContent.length === 1
+        const singleCharSpans = Array.from(existingChars || []).filter(
+          (span) => span.textContent && span.textContent.length === 1
         ).length;
-        
+
         const isAlreadySplit = singleCharSpans > 10; // If we have 10+ single-char spans, it's split
 
         console.log('💥 Dissolution - detailed check:', {
@@ -400,6 +419,12 @@ const ResponseEmergence: React.FC<ResponseEmergenceProps> = ({
             'characters'
           );
 
+          // Make text visible now that it's split and ready for animation
+          gsap.set(textRef.current, {
+            opacity: 1,
+            visibility: 'visible',
+          });
+
           // Add animating class to reduce paragraph spacing
           textRef.current?.classList.add('animating');
 
@@ -585,6 +610,7 @@ const ResponseEmergence: React.FC<ResponseEmergenceProps> = ({
         opacity: 0,
         visibility: 'hidden',
         pointerEvents: 'auto',
+        marginTop: preparedContent?.marginTop || '4rem',
         // Lock container to prevent any layout shifts
         contain: 'layout style',
         transform: 'translateZ(0)',
@@ -618,6 +644,9 @@ const ResponseEmergence: React.FC<ResponseEmergenceProps> = ({
             contain: 'layout style',
             transform: 'translateZ(0)',
             willChange: 'transform, opacity',
+            // Hide text initially until SplitText processes it
+            opacity: 0,
+            visibility: 'hidden',
           }}
           dangerouslySetInnerHTML={{ __html: preparedContent.html }}
         />

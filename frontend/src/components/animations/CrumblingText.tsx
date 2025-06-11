@@ -23,15 +23,27 @@ const CrumblingText: React.FC<CrumblingTextProps> = ({
     if (typeof window === 'undefined' || !containerRef.current) return;
 
     const ctx = gsap.context(() => {
-      // Show the container first
-      gsap.set(containerRef.current, { visibility: 'visible' });
+      // Keep container invisible but maintain layout space
+      gsap.set(containerRef.current, { opacity: 0 });
 
-      // Split with smartWrap to prevent mid-word breaks
+      // Split with smartWrap to prevent mid-word breaks and use onSplit
       const split1 = new SplitText(
         containerRef.current.querySelector('.animate-text-1'),
         {
           type: 'chars',
           smartWrap: true,
+          onSplit(self) {
+            // Hide characters first
+            gsap.set(self.chars, {
+              opacity: 0,
+              force3D: true,
+            });
+            
+            // Now show container - characters are already hidden
+            gsap.set(containerRef.current, { 
+              opacity: 1 
+            });
+          }
         }
       );
       const split2 = new SplitText(
@@ -39,17 +51,18 @@ const CrumblingText: React.FC<CrumblingTextProps> = ({
         {
           type: 'chars',
           smartWrap: true,
+          onSplit(self) {
+            // Hide characters immediately
+            gsap.set(self.chars, {
+              opacity: 0,
+              force3D: true,
+            });
+          }
         }
       );
 
       const allChars = [...split1.chars, ...split2.chars];
       const totalTypingDuration = allChars.length * 0.03; // Slightly faster typing
-
-      // Set up initial states with hardware acceleration
-      gsap.set(allChars, {
-        opacity: 0,
-        force3D: true, // Force hardware acceleration
-      });
 
       gsap.set(containerRef.current.querySelectorAll('.delayed-fade'), {
         opacity: 0,
@@ -97,15 +110,15 @@ const CrumblingText: React.FC<CrumblingTextProps> = ({
 
     const ctx = gsap.context(() => {
       const wordElement = document.querySelector('.word');
-      let currentText = '';
+      let currentText = 's'; // Start with 's' already visible
 
-      // Start empty
-      wordElement.textContent = '';
+      // Start with 's'
+      wordElement.textContent = 's';
 
       const tl = gsap.timeline({ delay: 0.8 }); // Reduced delay
 
-      // Type out "subtl"
-      ['s', 'u', 'b', 't', 'l'].forEach((letter) => {
+      // Type out "ubtl" (since 's' is already there)
+      ['u', 'b', 't', 'l'].forEach((letter) => {
         tl.call(() => {
           currentText += letter;
           wordElement.textContent = currentText;
@@ -241,7 +254,11 @@ const CrumblingText: React.FC<CrumblingTextProps> = ({
   if (hasCrumbled) return null;
 
   return (
-    <div ref={containerRef} className={`dictionary-entry ${className}`}>
+    <div 
+      ref={containerRef} 
+      className={`dictionary-entry ${className}`}
+      style={{ opacity: 0 }}
+    >
       <div className="word-section">
         <h1 className="word">sbtl</h1>
         <span className="pronunciation">/sʌtl/</span>

@@ -7,6 +7,7 @@ interface TerminalInputProps {
   onMessageSend: (message: string) => void;
   disabled?: boolean;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 const TerminalInput: React.FC<TerminalInputProps> = ({
@@ -14,6 +15,7 @@ const TerminalInput: React.FC<TerminalInputProps> = ({
   onMessageSend,
   disabled = false,
   className = '',
+  style = {},
 }) => {
   const [inputValue, setInputValue] = useState('');
   const [showQuote, setShowQuote] = useState(true);
@@ -74,6 +76,7 @@ const TerminalInput: React.FC<TerminalInputProps> = ({
         position: 'relative', // Allow absolute positioning of children
         minHeight: '3.5rem', // Fixed height for ~2 lines + padding
         alignItems: 'flex-start', // Align content to top instead of center
+        ...style, // Apply passed-in styles (visibility, opacity, etc.)
       }}
     >
       <div className="terminal-content-wrapper">

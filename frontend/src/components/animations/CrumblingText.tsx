@@ -194,45 +194,30 @@ const CrumblingText: React.FC<CrumblingTextProps> = ({
         },
       });
 
-      // Subtle random rotation then fall
+      // Clean tumble and fall - no shake, just natural crumbling
       allChars.forEach((char) => {
-        const trembleDelay = Math.random() * 0.5; // Stagger the rotation start
-        const finalRotation = (Math.random() - 0.5) * 4; // Each letter gets unique rotation (-2 to +2 degrees)
-
-        // Stage 1: Gentle rotation to final position
-        tl.to(
-          char,
-          {
-            rotation: finalRotation,
-            duration: 0.8 + Math.random() * 0.4, // Varied rotation timing
-            ease: 'sine.inOut',
-            force3D: true,
-          },
-          trembleDelay
-        );
-
-        // Stage 2: Fall immediately after rotation ends
-        const rotationEndTime = trembleDelay + (0.8 + Math.random() * 0.4);
-        const randomFallRotation = finalRotation + (Math.random() - 0.5) * 120; // Continue from current rotation
+        const fallDelay = 0.3 + Math.random() * 0.1; // Small delay before fall (0.1-0.2s)
+        const randomRotation = (Math.random() - 0.5) * 120;
         const randomX = (Math.random() - 0.5) * 120;
         const randomY = 150 + Math.random() * 300;
 
+        // Stage 1: Fall with initial rotation
         tl.to(
           char,
           {
             opacity: 0,
             y: randomY,
             x: randomX,
-            rotation: randomFallRotation,
+            rotation: randomRotation,
             scale: 0.3,
-            duration: 0.8 + Math.random() * 0.5,
+            duration: 1.0 + Math.random() * 0.6,
             ease: 'power1.in',
             force3D: true,
           },
-          rotationEndTime
+          fallDelay
         );
 
-        // Stage 3: Additional tumbling during fall
+        // Stage 2: Additional tumbling during fall for natural physics
         tl.to(
           char,
           {
@@ -241,8 +226,8 @@ const CrumblingText: React.FC<CrumblingTextProps> = ({
             ease: 'none',
             force3D: true,
           },
-          rotationEndTime + 0.1
-        ); // Start tumbling just after fall begins
+          fallDelay + 0.1
+        );
       });
     }, containerRef);
 

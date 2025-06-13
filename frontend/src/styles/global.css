@@ -50,3 +50,28 @@ body {
     transform: translateY(0);
   }
 }
+
+/* Fix for GSAP SplitText character spans being overridden by prose/other CSS */
+.response-text span {
+  display: inline-block !important;
+  position: relative !important;
+}
+
+/* More specific rule for prose spans */
+.response-text.prose span {
+  display: inline-block !important;
+  position: relative !important;
+}
+
+/* Even more specific rule */
+.response-text.prose.max-w-none span {
+  display: inline-block !important;
+  position: relative !important;
+}
+
+/* Fix for CrumblingText SplitText spans */
+.dictionary-entry span {
+  display: inline-block !important;
+  position: relative !important;
+}
+

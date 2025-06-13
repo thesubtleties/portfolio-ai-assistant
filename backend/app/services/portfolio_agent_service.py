@@ -911,21 +911,21 @@ class PortfolioAgentService:
                 "Node.js",
                 "PostgreSQL",
                 "social platform",
+                "Redux",
             ],
             "taskflow": [
                 "TaskFlow",
                 "agile project management",
                 "React",
                 "Flask API",
-                "Kanban board",
-                "team collaboration",
+                "Redux" "team collaboration",
             ],
             "hills house": [
                 "Hills House",
                 "headless CMS",
                 "Next.js",
                 "Payload CMS",
-                "entertainment website",
+                "musician website",
                 "Canvas animations",
             ],
             "hillshouse": [
@@ -933,10 +933,17 @@ class PortfolioAgentService:
                 "headless CMS",
                 "Next.js",
                 "Payload CMS",
-                "entertainment website",
+                "musician website",
                 "Canvas animations",
             ],
             "styleatc": [
+                "StyleATC",
+                "MCP integration",
+                "design system",
+                "AI-controlled",
+                "component library",
+            ],
+            "style atc": [
                 "StyleATC",
                 "MCP integration",
                 "design system",
@@ -1049,13 +1056,17 @@ class PortfolioAgentService:
             "full list",
             "some of",
             "and",
+            "relocate",
+            "relocation",
+            "states",
+            "work",
         ]
 
         # Check if this is a comprehensive query (gets doubled by nearby chunks expansion)
         if any(keyword in message_lower for keyword in comprehensive_keywords):
             return 14  # 14 * 2 = 28 total (4 per project for 7 projects)
         else:
-            return 5   # 5 * 2 = 10 total for focused queries
+            return 5  # 5 * 2 = 10 total for focused queries
 
     def _get_content_types_filter(self, message: str) -> Optional[List[str]]:
         """Determine content types to filter by based on keywords."""
@@ -1083,6 +1094,7 @@ class PortfolioAgentService:
                 "portfolio assistant",
                 "stack",
                 "technologies",
+                "fun",
             ]
         ):
             content_types.append("project")
@@ -1113,6 +1125,10 @@ class PortfolioAgentService:
                 "leadership",
                 "experience",
                 "experiences",
+                "fun",
+                "facts",
+                "likes",
+                "dislikes",
             ]
         ):
             content_types.append("about")
@@ -1302,7 +1318,7 @@ class PortfolioAgentService:
             input_data = BaseAgentInputSchema(
                 chat_message=message_with_context
             )
-            
+
             # Prepare original user message (without RAG context) for memory storage
             original_user_input = BaseAgentInputSchema(
                 chat_message=message  # Original message only
@@ -1311,29 +1327,50 @@ class PortfolioAgentService:
             # Log conversation memory to check for RAG compounding
             memory_history = agent.memory.get_history()
             if memory_history:
-                total_memory_chars = sum(len(str(msg)) for msg in memory_history)
-                print(f"🧠 [MEMORY] Conversation has {len(memory_history)} stored messages")
-                print(f"🧠 [MEMORY] Total memory size: {total_memory_chars:,} characters")
-                
+                total_memory_chars = sum(
+                    len(str(msg)) for msg in memory_history
+                )
+                print(
+                    f"🧠 [MEMORY] Conversation has {len(memory_history)} stored messages"
+                )
+                print(
+                    f"🧠 [MEMORY] Total memory size: {total_memory_chars:,} characters"
+                )
+
                 # Check if previous messages contain RAG content
-                for i, msg in enumerate(memory_history[-3:]):  # Last 3 messages
+                for i, msg in enumerate(
+                    memory_history[-3:]
+                ):  # Last 3 messages
                     msg_str = str(msg)
-                    has_rag = "Relevant portfolio content:" in msg_str or "portfolio content:" in msg_str
-                    print(f"🧠 [MEMORY-{i}] Message {len(msg_str)} chars, contains RAG: {has_rag}")
+                    has_rag = (
+                        "Relevant portfolio content:" in msg_str
+                        or "portfolio content:" in msg_str
+                    )
+                    print(
+                        f"🧠 [MEMORY-{i}] Message {len(msg_str)} chars, contains RAG: {has_rag}"
+                    )
                     if has_rag and len(msg_str) > 1000:
-                        print(f"⚠️ [MEMORY-COMPOUND] Previous message contains RAG content!")
+                        print(
+                            f"⚠️ [MEMORY-COMPOUND] Previous message contains RAG content!"
+                        )
             else:
                 print(f"🧠 [MEMORY] No conversation memory found")
 
             # Log request size details
             message_chars = len(message_with_context)
             message_words = len(message_with_context.split())
-            print(f"📏 [REQUEST-SIZE] Message length: {message_chars:,} characters, {message_words:,} words")
-            print(f"📏 [REQUEST-SIZE] Original query: '{message}' ({len(message)} chars)")
+            print(
+                f"📏 [REQUEST-SIZE] Message length: {message_chars:,} characters, {message_words:,} words"
+            )
+            print(
+                f"📏 [REQUEST-SIZE] Original query: '{message}' ({len(message)} chars)"
+            )
             if rag_triggered:
                 original_chars = len(message)
                 context_chars = message_chars - original_chars
-                print(f"📏 [REQUEST-SIZE] Added context: {context_chars:,} characters ({context_chars/message_chars*100:.1f}% of total)")
+                print(
+                    f"📏 [REQUEST-SIZE] Added context: {context_chars:,} characters ({context_chars/message_chars*100:.1f}% of total)"
+                )
 
             ai_start = time.time()
             print(
@@ -1343,54 +1380,77 @@ class PortfolioAgentService:
 
             # MEMORY MANAGEMENT: Prevent RAG compounding by storing original message first
             memory_length_before = len(agent.memory.history)
-            
+
             # 1. Store user's original message (no RAG) in memory FIRST
             agent.memory.add_message("user", original_user_input)
-            
+
             # 2. Process with RAG-enhanced context (atomic-agents will try to store this too)
             result = agent.run(input_data)
-            
+
             # 3. Clean up memory to remove any RAG-enhanced duplicates
             memory_length_after = len(agent.memory.history)
             messages_added = memory_length_after - memory_length_before
-            
-            print(f"🧠 [MEMORY-DEBUG] Messages before: {memory_length_before}, after: {memory_length_after}, added: {messages_added}")
-            
+
+            print(
+                f"🧠 [MEMORY-DEBUG] Messages before: {memory_length_before}, after: {memory_length_after}, added: {messages_added}"
+            )
+
             # If agent.run() added extra messages, remove them (they contain RAG context)
             if messages_added > 2:  # Should only add user + assistant
                 excess_messages = messages_added - 2
-                print(f"🗑️ [MEMORY-CLEANUP] Removing {excess_messages} excess messages with RAG context")
+                print(
+                    f"🗑️ [MEMORY-CLEANUP] Removing {excess_messages} excess messages with RAG context"
+                )
                 for _ in range(excess_messages):
-                    agent.memory.history.pop(-2)  # Remove user messages with RAG context
-            
+                    agent.memory.history.pop(
+                        -2
+                    )  # Remove user messages with RAG context
+
             # 4. Update AI response with RAG summary if present
-            if hasattr(result, 'rag_summary') and result.rag_summary:
-                print(f"💾 [MEMORY-SAVE] Response includes RAG summary: {result.rag_summary[:100]}...")
-                
+            if hasattr(result, "rag_summary") and result.rag_summary:
+                print(
+                    f"💾 [MEMORY-SAVE] Response includes RAG summary: {result.rag_summary[:100]}..."
+                )
+
                 # Find and update the assistant message
-                if agent.memory.history and agent.memory.history[-1].role == "assistant":
+                if (
+                    agent.memory.history
+                    and agent.memory.history[-1].role == "assistant"
+                ):
                     # Create enhanced response with RAG summary for memory
                     enhanced_response = PortfolioAgentResponse(
                         response=result.response,
                         rag_summary=result.rag_summary,
-                        visitor_notes_update=getattr(result, 'visitor_notes_update', None),
-                        is_off_topic=getattr(result, 'is_off_topic', False)
+                        visitor_notes_update=getattr(
+                            result, "visitor_notes_update", None
+                        ),
+                        is_off_topic=getattr(result, "is_off_topic", False),
                     )
                     # Update the content in memory
                     agent.memory.history[-1].content = enhanced_response
-                    print(f"💾 [MEMORY-UPDATE] Updated AI response with RAG summary")
-                
-                print(f"📊 [CONTEXT-EFFICIENCY] RAG context ~{len(message_with_context)} chars → summary ~{len(result.rag_summary)} chars")
+                    print(
+                        f"💾 [MEMORY-UPDATE] Updated AI response with RAG summary"
+                    )
+
+                print(
+                    f"📊 [CONTEXT-EFFICIENCY] RAG context ~{len(message_with_context)} chars → summary ~{len(result.rag_summary)} chars"
+                )
             else:
-                print(f"💾 [MEMORY-SAVE] No RAG context used - standard memory storage")
-            
+                print(
+                    f"💾 [MEMORY-SAVE] No RAG context used - standard memory storage"
+                )
+
             # 5. Final memory validation
             final_memory = agent.memory.get_history()
-            for i, msg in enumerate(final_memory[-2:]):  # Check last 2 messages
+            for i, msg in enumerate(
+                final_memory[-2:]
+            ):  # Check last 2 messages
                 msg_str = str(msg)
                 has_rag = "Relevant portfolio content:" in msg_str
                 if has_rag:
-                    print(f"⚠️ [MEMORY-LEAK] Message {i} still contains RAG content!")
+                    print(
+                        f"⚠️ [MEMORY-LEAK] Message {i} still contains RAG content!"
+                    )
                 else:
                     print(f"✅ [MEMORY-CLEAN] Message {i} is RAG-free")
 

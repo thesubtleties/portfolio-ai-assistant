@@ -514,6 +514,11 @@ async def main():
     # Run ingestion
     ingester = PortfolioIngester(force_reingest=args.force)
     await ingester.ingest_all_content()
+    
+    # IMPORTANT: After adding new projects, remember to update query expansion terms
+    # in backend/app/services/portfolio_agent_service.py -> _get_fallback_project_metadata()
+    print("\n📝 REMINDER: If you added new projects, update query expansion terms in:")
+    print("   backend/app/services/portfolio_agent_service.py -> _get_fallback_project_metadata()")
 
 
 if __name__ == "__main__":

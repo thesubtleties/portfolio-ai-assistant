@@ -264,6 +264,18 @@ class ConnectionManager:
             )
             return
 
+        # Validate message length (200 word limit to prevent abuse)
+        word_count = len([word for word in content.split() if word.strip()])
+        if word_count > 200:
+            await self.send_personal_message(
+                json.dumps({
+                    "type": "error",
+                    "error": "Message too long. Please keep your message under 200 words."
+                }),
+                connection_id,
+            )
+            return
+
         # Save user message
         message_service = MessageService(db, redis_client)
         user_message = await message_service.save_message(

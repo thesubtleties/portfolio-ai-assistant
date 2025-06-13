@@ -90,6 +90,14 @@ async def send_message(
     try:
         conv_id = uuid.UUID(request.conversation_id)
 
+        # Validate message length (200 word limit to prevent abuse)
+        word_count = len([word for word in request.content.split() if word.strip()])
+        if word_count > 200:
+            raise HTTPException(
+                status_code=400,
+                detail="Message too long. Please keep your message under 200 words."
+            )
+
         # Note: We'll validate conversation exists when saving the message
         # The message service will handle updating conversation timestamps
 

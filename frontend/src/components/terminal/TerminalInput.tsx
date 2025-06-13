@@ -44,7 +44,15 @@ const TerminalInput: React.FC<TerminalInputProps> = ({
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
       if (e.key === 'Enter' && !disabled && inputValue.trim()) {
-        onMessageSend(inputValue.trim());
+        const message = inputValue.trim();
+        const wordCount = message.split(/\s+/).filter(word => word.length > 0).length;
+        
+        if (wordCount > 200) {
+          alert('Message too long! Please keep your message under 200 words.');
+          return;
+        }
+        
+        onMessageSend(message);
         setInputValue('');
       }
     },

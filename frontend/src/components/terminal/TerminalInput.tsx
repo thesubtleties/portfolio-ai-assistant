@@ -56,8 +56,6 @@ const TerminalInput: React.FC<TerminalInputProps> = ({
     // If input is empty and not focused, show quote again
     if (!inputValue.trim()) {
       setShowQuote(true);
-      // Reset container height when going back to quote
-      setContainerHeight(null);
     }
   }, [inputValue]);
 

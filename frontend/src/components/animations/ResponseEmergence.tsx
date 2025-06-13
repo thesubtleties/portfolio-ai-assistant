@@ -62,7 +62,7 @@ const ResponseEmergence: React.FC<ResponseEmergenceProps> = ({
       if (estimatedLines <= 4) return '1.875rem'; // text-3xl for short responses
       if (estimatedLines <= 8) return '1.5rem'; // text-2xl for medium responses
       if (estimatedLines <= 15) return '1.25rem'; // text-xl for longer responses
-      if (estimatedLines <= 25) return '1.125rem'; // text-lg for very long responses
+      if (estimatedLines <= 30) return '1.125rem'; // text-lg for very long responses
       if (estimatedLines <= 35) return '1rem'; // text-base for extremely long responses
       return '0.875rem'; // text-sm for massive responses
     }
@@ -92,10 +92,10 @@ const ResponseEmergence: React.FC<ResponseEmergenceProps> = ({
     if (estimatedLines <= 3) return '25vh';
 
     // Medium content: Moderate margin (slightly above center)
-    if (estimatedLines <= 10) return '10vh';
+    if (estimatedLines <= 20) return '12vh';
 
     // Long content: Minimal margin (start near top)
-    return '5vh';
+    return '0';
   };
 
   // PHASE 1: Prepare content completely before any animation
@@ -260,6 +260,10 @@ const ResponseEmergence: React.FC<ResponseEmergenceProps> = ({
                   // Clear prepared content only after dissolution
                   setPreparedContent(null);
                   setIsContentReady(false);
+
+                  // Clean up GSAP context after dissolution animation
+                  // ctx.revert();
+
                   onDissolveComplete?.();
                 },
               });
@@ -295,6 +299,10 @@ const ResponseEmergence: React.FC<ResponseEmergenceProps> = ({
 
                 setPreparedContent(null);
                 setIsContentReady(false);
+
+                // Clean up GSAP context after dissolution animation
+                // ctx.revert();
+
                 onDissolveComplete?.();
               },
             });
@@ -419,7 +427,18 @@ const ResponseEmergence: React.FC<ResponseEmergenceProps> = ({
             'characters'
           );
 
-          // Make text visible now that it's split and ready for animation
+          // Set scattered state FIRST before making anything visible
+          gsap.set(self.chars, {
+            opacity: 0,
+            scale: 0.3,
+            x: () => (Math.random() - 0.5) * 250,
+            y: () => (Math.random() - 0.5) * 250,
+            rotation: () => (Math.random() - 0.5) * 120,
+            force3D: true,
+            transformOrigin: 'center center', // Consistent transform origin
+          });
+
+          // NOW make text visible after scattered state is set
           gsap.set(textRef.current, {
             opacity: 1,
             visibility: 'visible',
@@ -470,17 +489,6 @@ const ResponseEmergence: React.FC<ResponseEmergenceProps> = ({
               });
             });
           }
-
-          // Initial scattered state - ensure no initial shift
-          gsap.set(self.chars, {
-            opacity: 0,
-            scale: 0.3,
-            x: () => (Math.random() - 0.5) * 250,
-            y: () => (Math.random() - 0.5) * 250,
-            rotation: () => (Math.random() - 0.5) * 120,
-            force3D: true,
-            transformOrigin: 'center center', // Consistent transform origin
-          });
 
           return gsap.timeline().to(self.chars, {
             opacity: 1,
@@ -591,12 +599,12 @@ const ResponseEmergence: React.FC<ResponseEmergenceProps> = ({
     return () => {
       isAnimatingRef.current = false; // Clear flag on cleanup
       shouldAnimateRef.current = false; // Clear animation intent
-      // Manually revert SplitText before context cleanup
-      if (splitTextInstanceRef.current) {
-        splitTextInstanceRef.current.revert();
-        splitTextInstanceRef.current = null; // Clear the reference
-      }
-      ctx.revert(); // Clean up GSAP animations
+      // DON'T revert SplitText - keep structure consistent with dissolution
+      // if (splitTextInstanceRef.current) {
+      //   splitTextInstanceRef.current.revert();
+      //   splitTextInstanceRef.current = null; // Clear the reference
+      // }
+      // ctx.revert(); // Clean up GSAP animations
     };
   }, [isActive, preparedContent, isContentReady]); // Need to respond when content becomes ready
 

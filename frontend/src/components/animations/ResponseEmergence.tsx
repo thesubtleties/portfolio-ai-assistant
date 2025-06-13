@@ -28,6 +28,7 @@ const ResponseEmergence: React.FC<ResponseEmergenceProps> = ({
   const isAnimatingRef = useRef(false); // Track if animation is running
   const shouldAnimateRef = useRef(false); // Track if we should animate when content is ready
   const splitTextInstanceRef = useRef<any>(null); // Store SplitText instance for proper cleanup
+  const isTextSplitRef = useRef(false); // Reliable flag to track if content is currently split
 
   // Prepared content state - this stays stable once set
   const [preparedContent, setPreparedContent] = useState<{
@@ -103,6 +104,12 @@ const ResponseEmergence: React.FC<ResponseEmergenceProps> = ({
     if (!response || typeof window === 'undefined') {
       setPreparedContent(null);
       setIsContentReady(false);
+      isTextSplitRef.current = false; // Reset split status for new/no content
+      if (textRef.current) textRef.current.innerHTML = ''; // Clear textRef content
+      if (splitTextInstanceRef.current) {
+        splitTextInstanceRef.current.revert(); // Revert old SplitText instance
+        splitTextInstanceRef.current = null;
+      }
       return;
     }
 
@@ -202,29 +209,40 @@ const ResponseEmergence: React.FC<ResponseEmergenceProps> = ({
       console.log('💥 Starting dissolution');
 
       const ctx = gsap.context(() => {
-        // Check if content is already split to prevent double-splitting
-        // Look for character spans that SplitText would create
-        const existingChars = textRef.current?.querySelectorAll('span');
-        const existingPs = textRef.current?.querySelectorAll('p');
+        // Use reliable flag to determine if content is already split
+        if (isTextSplitRef.current && splitTextInstanceRef.current) {
+          console.log('💥 Content already split - animating existing characters via SplitText instance');
 
-        // If we have many more spans than paragraphs, content is likely already split
-        // Also check if spans contain single characters (typical of SplitText)
-        const singleCharSpans = Array.from(existingChars || []).filter(
-          (span) => span.textContent && span.textContent.length === 1
-        ).length;
-
-        const isAlreadySplit = singleCharSpans > 10; // If we have 10+ single-char spans, it's split
-
-        console.log('💥 Dissolution - detailed check:', {
-          existingChars: existingChars?.length || 0,
-          existingPs: existingPs?.length || 0,
-          singleCharSpans,
-          isAlreadySplit,
-          currentHTML: textRef.current?.innerHTML.substring(0, 100) + '...',
-        });
-
-        // Only create new SplitText if not already split
-        if (!isAlreadySplit) {
+          // Animate existing characters directly from the stored SplitText instance
+          return gsap.to(splitTextInstanceRef.current.chars, {
+            opacity: 0,
+            scale: 0.3,
+            x: () => (Math.random() - 0.5) * 300,
+            y: () => (Math.random() - 0.5) * 300,
+            rotation: () => (Math.random() - 0.5) * 180,
+            duration: 1.0,
+            ease: 'power2.in',
+            force3D: true,
+            stagger: {
+              amount: 0.8,
+              from: 'random',
+            },
+            onComplete: () => {
+              console.log('💥 Dissolution complete (already split)');
+              // Clear prepared content and reset split flag after dissolution
+              setPreparedContent(null);
+              setIsContentReady(false);
+              isTextSplitRef.current = false; // Reset for next content
+              if (textRef.current) textRef.current.innerHTML = ''; // Clear the DOM
+              onDissolveComplete?.();
+            },
+          });
+        } else {
+          console.warn('💥 Dissolution - content NOT split, creating SplitText as fallback');
+          // Ensure textRef has content before splitting
+          if (textRef.current && preparedContent?.html) {
+            textRef.current.innerHTML = preparedContent.html;
+          }
           splitTextInstanceRef.current = SplitText.create(textRef.current, {
             type: 'chars,words', // Just chars and words - no artificial line containers
             smartWrap: true, // Wraps words in nowrap spans to prevent breaking
@@ -269,44 +287,6 @@ const ResponseEmergence: React.FC<ResponseEmergenceProps> = ({
               });
             },
           });
-        } else {
-          // Content is already split, animate existing characters directly
-          console.log(
-            '💥 Content already split - animating existing characters'
-          );
-
-          // DON'T add animating class - test if that's causing the flicker
-          console.log('💥 Skipping animating class to test flicker fix');
-
-          const existingChars = textRef.current?.querySelectorAll('span');
-          if (existingChars) {
-            return gsap.to(existingChars, {
-              opacity: 0,
-              scale: 0.3,
-              x: () => (Math.random() - 0.5) * 300,
-              y: () => (Math.random() - 0.5) * 300,
-              rotation: () => (Math.random() - 0.5) * 180,
-              duration: 1.0,
-              ease: 'power2.in',
-              force3D: true,
-              stagger: {
-                amount: 0.8,
-                from: 'random',
-              },
-              onComplete: () => {
-                console.log('💥 Dissolution complete (already split)');
-                // No animating class to remove since we didn't add it
-
-                setPreparedContent(null);
-                setIsContentReady(false);
-
-                // Clean up GSAP context after dissolution animation
-                // ctx.revert();
-
-                onDissolveComplete?.();
-              },
-            });
-          }
         }
       }, containerRef);
 
@@ -415,12 +395,19 @@ const ResponseEmergence: React.FC<ResponseEmergenceProps> = ({
         transformOrigin: 'left top', // Anchor to prevent shifts
       });
 
+      // Ensure textRef has content before splitting (manual innerHTML management)
+      if (!isTextSplitRef.current && textRef.current && preparedContent?.html) {
+        textRef.current.innerHTML = preparedContent.html;
+        console.log('✨ Setting innerHTML for new content before splitting');
+      }
+
       splitTextInstanceRef.current = SplitText.create(textRef.current, {
         type: 'chars,words', // Just chars and words - no artificial line containers
         smartWrap: true, // Wraps words in nowrap spans to prevent breaking
         tag: 'span', // Use spans for characters - naturally inline
         // Remove linesClass - let natural paragraph structure handle line breaks
         onSplit(self) {
+          isTextSplitRef.current = true; // Mark as split
           console.log(
             '✨ Split complete, animating',
             self.chars.length,
@@ -656,7 +643,7 @@ const ResponseEmergence: React.FC<ResponseEmergenceProps> = ({
             opacity: 0,
             visibility: 'hidden',
           }}
-          dangerouslySetInnerHTML={{ __html: preparedContent.html }}
+          // innerHTML is manually managed to preserve SplitText character spans
         />
       )}
     </div>

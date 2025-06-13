@@ -29,6 +29,8 @@ const ResponseEmergence: React.FC<ResponseEmergenceProps> = ({
   const shouldAnimateRef = useRef(false); // Track if we should animate when content is ready
   const splitTextInstanceRef = useRef<any>(null); // Store SplitText instance for proper cleanup
   const isTextSplitRef = useRef(false); // Reliable flag to track if content is currently split
+  const dissolutionStartTimeRef = useRef<number | null>(null); // Track when dissolution started for timing
+  const isDissolvingRef = useRef(false); // Flag to prevent new content during dissolution
 
   // Prepared content state - this stays stable once set
   const [preparedContent, setPreparedContent] = useState<{
@@ -115,6 +117,23 @@ const ResponseEmergence: React.FC<ResponseEmergenceProps> = ({
 
     console.log('🔧 Preparing content for:', response.substring(0, 50) + '...');
 
+    // If dissolution is happening, wait for it to complete
+    if (isDissolvingRef.current) {
+      console.log('⏸️ Dissolution in progress, waiting for completion before preparing new content');
+      const checkDissolution = () => {
+        if (!isDissolvingRef.current) {
+          console.log('✅ Dissolution complete, now preparing new content');
+          prepareContent();
+        } else {
+          setTimeout(checkDissolution, 100); // Check every 100ms
+        }
+      };
+      setTimeout(checkDissolution, 100);
+      return;
+    }
+
+    const prepareContent = () => {
+
     // Process markdown - more conservative approach
     const processedResponse = response
       .replace(/\r\n/g, '\n')
@@ -196,6 +215,10 @@ const ResponseEmergence: React.FC<ResponseEmergenceProps> = ({
         rect.height
       );
     }
+    };
+
+    // Prepare content immediately (dissolution blocking handles race conditions)
+    prepareContent();
   }, [response]);
 
   // PHASE 2: Handle dissolution (before new content)
@@ -207,6 +230,8 @@ const ResponseEmergence: React.FC<ResponseEmergenceProps> = ({
       isContentReady
     ) {
       console.log('💥 Starting dissolution');
+      dissolutionStartTimeRef.current = Date.now(); // Track when dissolution starts
+      isDissolvingRef.current = true; // Block new content preparation
 
       const ctx = gsap.context(() => {
         // Use reliable flag to determine if content is already split
@@ -233,6 +258,7 @@ const ResponseEmergence: React.FC<ResponseEmergenceProps> = ({
               setPreparedContent(null);
               setIsContentReady(false);
               isTextSplitRef.current = false; // Reset for next content
+              isDissolvingRef.current = false; // Allow new content preparation
               if (textRef.current) textRef.current.innerHTML = ''; // Clear the DOM
               onDissolveComplete?.();
             },
@@ -278,6 +304,7 @@ const ResponseEmergence: React.FC<ResponseEmergenceProps> = ({
                   // Clear prepared content only after dissolution
                   setPreparedContent(null);
                   setIsContentReady(false);
+                  isDissolvingRef.current = false; // Allow new content preparation
 
                   // Clean up GSAP context after dissolution animation
                   // ctx.revert();

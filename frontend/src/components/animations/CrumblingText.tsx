@@ -38,12 +38,12 @@ const CrumblingText: React.FC<CrumblingTextProps> = ({
               opacity: 0,
               force3D: true,
             });
-            
+
             // Now show container - characters are already hidden
-            gsap.set(containerRef.current, { 
-              opacity: 1 
+            gsap.set(containerRef.current, {
+              opacity: 1,
             });
-          }
+          },
         }
       );
       const split2 = new SplitText(
@@ -57,7 +57,7 @@ const CrumblingText: React.FC<CrumblingTextProps> = ({
               opacity: 0,
               force3D: true,
             });
-          }
+          },
         }
       );
 
@@ -165,8 +165,9 @@ const CrumblingText: React.FC<CrumblingTextProps> = ({
       allElements.forEach((element) => {
         if (element.textContent && element.textContent.trim()) {
           const split = new SplitText(element, {
-            type: 'chars',
-            smartWrap: true,
+            type: 'chars,words', // Like ResponseEmergence
+            smartWrap: true, // Wraps words in nowrap spans to prevent breaking
+            tag: 'span', // Use spans for characters - naturally inline
           });
           allSplits.push(split);
           allChars.push(...split.chars);
@@ -193,29 +194,26 @@ const CrumblingText: React.FC<CrumblingTextProps> = ({
         },
       });
 
-      // Smoother crumbling animation with better timing
+      // Subtle random rotation then fall
       allChars.forEach((char) => {
-        const trembleDelay = Math.random() * 0.3; // Shorter delay spread
-        const fallDelay = 0.5 + Math.random() * 0.4; // Start falling sooner
+        const trembleDelay = Math.random() * 0.5; // Stagger the rotation start
+        const finalRotation = (Math.random() - 0.5) * 4; // Each letter gets unique rotation (-2 to +2 degrees)
 
-        // Stage 1: Quick trembles with hardware acceleration
+        // Stage 1: Gentle rotation to final position
         tl.to(
           char,
           {
-            x: () => (Math.random() - 0.5) * 3,
-            y: () => (Math.random() - 0.5) * 3,
-            rotation: () => (Math.random() - 0.5) * 4,
-            duration: 0.08,
-            ease: 'none',
-            repeat: 2 + Math.floor(Math.random() * 3), // Fewer repeats
-            yoyo: true,
-            force3D: true, // Force hardware acceleration
+            rotation: finalRotation,
+            duration: 0.8 + Math.random() * 0.4, // Varied rotation timing
+            ease: 'sine.inOut',
+            force3D: true,
           },
           trembleDelay
         );
 
-        // Stage 2: Fall with smoother physics and hardware acceleration
-        const randomRotation = (Math.random() - 0.5) * 120; // Less extreme rotation
+        // Stage 2: Fall immediately after rotation ends
+        const rotationEndTime = trembleDelay + (0.8 + Math.random() * 0.4);
+        const randomFallRotation = finalRotation + (Math.random() - 0.5) * 120; // Continue from current rotation
         const randomX = (Math.random() - 0.5) * 120;
         const randomY = 150 + Math.random() * 300;
 
@@ -225,37 +223,37 @@ const CrumblingText: React.FC<CrumblingTextProps> = ({
             opacity: 0,
             y: randomY,
             x: randomX,
-            rotation: randomRotation,
+            rotation: randomFallRotation,
             scale: 0.3,
-            duration: 0.8 + Math.random() * 0.5, // Shorter, more consistent duration
-            ease: 'power1.in', // Gentler easing
-            force3D: true, // Force hardware acceleration
+            duration: 0.8 + Math.random() * 0.5,
+            ease: 'power1.in',
+            force3D: true,
           },
-          fallDelay
+          rotationEndTime
         );
 
-        // Stage 3: Subtle tumbling (overlapping with fall) with hardware acceleration
+        // Stage 3: Additional tumbling during fall
         tl.to(
           char,
           {
             rotation: `+=${(Math.random() - 0.5) * 180}`,
             duration: 0.4,
             ease: 'none',
-            force3D: true, // Force hardware acceleration
+            force3D: true,
           },
-          fallDelay + 0.1
-        ); // Start tumbling almost immediately
+          rotationEndTime + 0.1
+        ); // Start tumbling just after fall begins
       });
     }, containerRef);
 
     return () => ctx.revert();
-  }, [shouldCrumble, hasCrumbled, onComplete]);
+  }, [shouldCrumble, hasCrumbled]);
 
   if (hasCrumbled) return null;
 
   return (
-    <div 
-      ref={containerRef} 
+    <div
+      ref={containerRef}
       className={`dictionary-entry ${className}`}
       style={{ opacity: 0 }}
     >

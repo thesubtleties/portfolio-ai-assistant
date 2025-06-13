@@ -376,6 +376,7 @@ import TerminalInterface from "./terminal/TerminalInterface"
     will-change: transform, opacity; /* Optimize for animations */
     position: relative; /* Create stacking context */
     z-index: 5; /* Layer above background but below overlays */
+    
   }
   
   /* During animation, lock dimensions to prevent shifts */
@@ -412,6 +413,13 @@ import TerminalInterface from "./terminal/TerminalInterface"
     text-align: center;
     display: block;
     margin: 0.5rem 0;
+  }
+
+  .response-text .ascii-art {
+    text-align: center;
+    display: block;
+    margin: 0.5rem 0;
+    font-family: 'Courier New', 'Monaco', monospace;
   }
 
   /* Simplified: Just handle normal paragraphs and split content */

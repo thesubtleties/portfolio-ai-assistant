@@ -33,7 +33,11 @@ const ChatManager: React.FC<ChatManagerProps> = ({
 
     const connectWebSocket = () => {
       try {
-        const wsUrl = `ws://localhost:8000/ws/chat?visitor_id=${visitorId}`;
+        // Dynamic WebSocket URL based on environment
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const host = window.location.hostname;
+        const port = window.location.hostname === 'localhost' ? ':8000' : '';
+        const wsUrl = `${protocol}//${host}${port}/ws/chat?visitor_id=${visitorId}`;
         wsRef.current = new WebSocket(wsUrl);
 
         wsRef.current.onopen = () => {

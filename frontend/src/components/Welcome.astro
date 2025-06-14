@@ -189,13 +189,13 @@ import TerminalInterface from "./terminal/TerminalInterface"
     display: flex;
     align-items: flex-start; /* Align responses to top */
     justify-content: center;
-    padding-top: 2rem; /* Give some breathing room from very top */
+    padding-top: 0; /* Give some breathing room from very top */
   }
 
   /* Mobile-specific response positioning */
   @media (max-width: 768px) {
     .response-content {
-      padding-top: 0.5rem; /* Much closer to top on mobile */
+      padding-top: 0; /* Much closer to top on mobile */
       height: calc(100% - 1rem); /* Account for reduced padding */
     }
     

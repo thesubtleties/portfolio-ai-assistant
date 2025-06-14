@@ -104,6 +104,7 @@ class Settings(BaseSettings):
         "tool",
         "architecture",
         "design",
+        "philosophy",
         "software",
         "engineering",
         # Personal & background keywords

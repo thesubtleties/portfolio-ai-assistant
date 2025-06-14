@@ -2,10 +2,10 @@ import { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import { SplitText } from 'gsap/SplitText';
 import { marked } from 'marked';
-import { 
-  EMERGENCE_DURATION, 
-  EMERGENCE_STAGGER, 
-  DISSOLUTION_DURATION, 
+import {
+  EMERGENCE_DURATION,
+  EMERGENCE_STAGGER,
+  DISSOLUTION_DURATION,
   DISSOLUTION_STAGGER,
   SCATTER_RANGE_X,
   SCATTER_RANGE_Y,
@@ -13,13 +13,16 @@ import {
   DISSOLUTION_SCATTER_X,
   DISSOLUTION_SCATTER_Y,
   DISSOLUTION_SCATTER_ROTATION,
-  SCATTERED_SCALE,
-  FINAL_SCALE,
+  EMERGENCE_SCATTERED_SCALE,
+  EMERGENCE_FINAL_SCALE,
+  DISSOLUTION_SCATTERED_SCALE,
+  DISSOLUTION_FINAL_SCALE,
   EMERGENCE_EASE,
   DISSOLUTION_EASE,
   FORCE_3D,
   TRANSFORM_ORIGIN,
-  STAGGER_FROM
+  EMERGENCE_STAGGER_FROM,
+  DISSOLUTION_STAGGER_FROM,
 } from '../../constants/animations';
 
 gsap.registerPlugin(SplitText);
@@ -138,7 +141,9 @@ const ResponseEmergence: React.FC<ResponseEmergenceProps> = ({
 
     // If dissolution is happening, wait for it to complete
     if (isDissolvingRef.current) {
-      console.log('⏸️ Dissolution in progress, waiting for completion before preparing new content');
+      console.log(
+        '⏸️ Dissolution in progress, waiting for completion before preparing new content'
+      );
       const checkDissolution = () => {
         if (!isDissolvingRef.current) {
           console.log('✅ Dissolution complete, now preparing new content');
@@ -152,112 +157,111 @@ const ResponseEmergence: React.FC<ResponseEmergenceProps> = ({
     }
 
     const prepareContent = () => {
+      // Process markdown - more conservative approach
+      const processedResponse = response
+        .replace(/\r\n/g, '\n')
+        .replace(/\r/g, '\n')
+        // Only convert sentence endings followed by new sentences to paragraph breaks
+        .replace(/([.!?])\s*\n\s*([A-Z])/g, '$1\n\n$2')
+        // Don't aggressively convert list items - let them stay as single breaks
+        // .replace(/\n+(-|\*|\d+\.)\s/g, '\n\n$1 ') // REMOVED - was causing extra spacing
+        .replace(/\n{3,}/g, '\n\n'); // Normalize excessive breaks only
 
-    // Process markdown - more conservative approach
-    const processedResponse = response
-      .replace(/\r\n/g, '\n')
-      .replace(/\r/g, '\n')
-      // Only convert sentence endings followed by new sentences to paragraph breaks
-      .replace(/([.!?])\s*\n\s*([A-Z])/g, '$1\n\n$2')
-      // Don't aggressively convert list items - let them stay as single breaks
-      // .replace(/\n+(-|\*|\d+\.)\s/g, '\n\n$1 ') // REMOVED - was causing extra spacing
-      .replace(/\n{3,}/g, '\n\n'); // Normalize excessive breaks only
+      const htmlContent = marked(processedResponse, {
+        breaks: false,
+        gfm: true,
+      }) as string;
 
-    const htmlContent = marked(processedResponse, {
-      breaks: false,
-      gfm: true,
-    }) as string;
-    
-    console.log('🔍 Markdown processing:', {
-      input: processedResponse.substring(0, 200),
-      output: htmlContent.substring(0, 200)
-    });
-    
-    // Post-process to handle markdown inside HTML elements (like centered divs)
-    let finalContent = htmlContent;
-    
-    // Handle markdown inside <div class='centered'> tags
-    finalContent = finalContent.replace(
-      /<div class=['"]centered['"]>\s*\n([\s\S]*?)\n\s*<\/div>/g,
-      (match, content) => {
-        console.log('🔧 Processing markdown inside centered div:', content);
-        // Process the content inside the div as markdown
-        const processedInner = marked(content.trim(), {
-          breaks: false,
-          gfm: true,
-        }) as string;
-        // Remove the wrapping <p> tags that marked adds
-        const cleanInner = processedInner.replace(/^<p>(.*)<\/p>$/s, '$1');
-        return `<div class='centered'>\n${cleanInner}\n</div>`;
-      }
-    );
-
-    let processedContent = finalContent.replace(
-      /<a href="(https?:\/\/[^"]+)">/g,
-      '<a href="$1" target="_blank" rel="noopener noreferrer">'
-    );
-
-    processedContent = processedContent.replace(
-      /<div class=['"]centered['"]>(.*?)<\/div>/g,
-      '<span class="centered">$1</span>'
-    );
-
-    // Remove the actual-paragraph class system - we don't need it since we keep split structure
-    // processedContent = processedContent.replace(
-    //   /<p>/g,
-    //   '<p class="actual-paragraph">'
-    // );
-
-    // Calculate font sizing and positioning
-    const fontSize = getOptimalFontSize(response);
-    const lineHeight = getLineHeight(fontSize);
-    const marginTop = getTopMargin(response);
-
-    // Measure dimensions using hidden element
-    if (measureRef.current) {
-      // Apply the same styles that will be used in final render
-      measureRef.current.style.fontSize = fontSize;
-      measureRef.current.style.lineHeight = lineHeight;
-      measureRef.current.style.visibility = 'hidden';
-      measureRef.current.style.position = 'absolute';
-      measureRef.current.style.top = '-9999px';
-      measureRef.current.style.left = '0';
-
-      // Use a reasonable max width instead of container width
-      const parentWidth =
-        containerRef.current?.parentElement?.offsetWidth || 800;
-      measureRef.current.style.width = Math.min(parentWidth - 64, 800) + 'px'; // Account for padding
-      measureRef.current.style.maxWidth = '100%';
-
-      measureRef.current.innerHTML = processedContent;
-
-      // Force layout calculation
-      const rect = measureRef.current.getBoundingClientRect();
-
-      // Store everything we need
-      setPreparedContent({
-        html: processedContent,
-        fontSize,
-        lineHeight,
-        marginTop,
-        dimensions: {
-          width: rect.width,
-          height: rect.height,
-        },
+      console.log('🔍 Markdown processing:', {
+        input: processedResponse.substring(0, 200),
+        output: htmlContent.substring(0, 200),
       });
 
-      // Clean up measurement element
-      measureRef.current.innerHTML = '';
-      measureRef.current.style.cssText = ''; // Reset all styles
+      // Post-process to handle markdown inside HTML elements (like centered divs)
+      let finalContent = htmlContent;
 
-      setIsContentReady(true);
-      console.log(
-        '✅ Content prepared, dimensions:',
-        rect.width,
-        'x',
-        rect.height
+      // Handle markdown inside <div class='centered'> tags
+      finalContent = finalContent.replace(
+        /<div class=['"]centered['"]>\s*\n([\s\S]*?)\n\s*<\/div>/g,
+        (match, content) => {
+          console.log('🔧 Processing markdown inside centered div:', content);
+          // Process the content inside the div as markdown
+          const processedInner = marked(content.trim(), {
+            breaks: false,
+            gfm: true,
+          }) as string;
+          // Remove the wrapping <p> tags that marked adds
+          const cleanInner = processedInner.replace(/^<p>(.*)<\/p>$/s, '$1');
+          return `<div class='centered'>\n${cleanInner}\n</div>`;
+        }
       );
-    }
+
+      let processedContent = finalContent.replace(
+        /<a href="(https?:\/\/[^"]+)">/g,
+        '<a href="$1" target="_blank" rel="noopener noreferrer">'
+      );
+
+      processedContent = processedContent.replace(
+        /<div class=['"]centered['"]>(.*?)<\/div>/g,
+        '<span class="centered">$1</span>'
+      );
+
+      // Remove the actual-paragraph class system - we don't need it since we keep split structure
+      // processedContent = processedContent.replace(
+      //   /<p>/g,
+      //   '<p class="actual-paragraph">'
+      // );
+
+      // Calculate font sizing and positioning
+      const fontSize = getOptimalFontSize(response);
+      const lineHeight = getLineHeight(fontSize);
+      const marginTop = getTopMargin(response);
+
+      // Measure dimensions using hidden element
+      if (measureRef.current) {
+        // Apply the same styles that will be used in final render
+        measureRef.current.style.fontSize = fontSize;
+        measureRef.current.style.lineHeight = lineHeight;
+        measureRef.current.style.visibility = 'hidden';
+        measureRef.current.style.position = 'absolute';
+        measureRef.current.style.top = '-9999px';
+        measureRef.current.style.left = '0';
+
+        // Use a reasonable max width instead of container width
+        const parentWidth =
+          containerRef.current?.parentElement?.offsetWidth || 800;
+        measureRef.current.style.width = Math.min(parentWidth - 64, 800) + 'px'; // Account for padding
+        measureRef.current.style.maxWidth = '100%';
+
+        measureRef.current.innerHTML = processedContent;
+
+        // Force layout calculation
+        const rect = measureRef.current.getBoundingClientRect();
+
+        // Store everything we need
+        setPreparedContent({
+          html: processedContent,
+          fontSize,
+          lineHeight,
+          marginTop,
+          dimensions: {
+            width: rect.width,
+            height: rect.height,
+          },
+        });
+
+        // Clean up measurement element
+        measureRef.current.innerHTML = '';
+        measureRef.current.style.cssText = ''; // Reset all styles
+
+        setIsContentReady(true);
+        console.log(
+          '✅ Content prepared, dimensions:',
+          rect.width,
+          'x',
+          rect.height
+        );
+      }
     };
 
     // Prepare content immediately (dissolution blocking handles race conditions)
@@ -279,21 +283,24 @@ const ResponseEmergence: React.FC<ResponseEmergenceProps> = ({
       const ctx = gsap.context(() => {
         // Use reliable flag to determine if content is already split
         if (isTextSplitRef.current && splitTextInstanceRef.current) {
-          console.log('💥 Content already split - animating existing characters via SplitText instance');
+          console.log(
+            '💥 Content already split - animating existing characters via SplitText instance'
+          );
 
           // Animate existing characters directly from the stored SplitText instance
           return gsap.to(splitTextInstanceRef.current.chars, {
             opacity: 0,
-            scale: SCATTERED_SCALE,
+            scale: DISSOLUTION_SCATTERED_SCALE,
             x: () => (Math.random() - 0.5) * DISSOLUTION_SCATTER_X,
             y: () => (Math.random() - 0.5) * DISSOLUTION_SCATTER_Y,
-            rotation: () => (Math.random() - 0.5) * DISSOLUTION_SCATTER_ROTATION,
+            rotation: () =>
+              (Math.random() - 0.5) * DISSOLUTION_SCATTER_ROTATION,
             duration: DISSOLUTION_DURATION,
             ease: DISSOLUTION_EASE,
             force3D: FORCE_3D,
             stagger: {
               amount: DISSOLUTION_STAGGER,
-              from: STAGGER_FROM,
+              from: DISSOLUTION_STAGGER_FROM,
             },
             onComplete: () => {
               console.log('💥 Dissolution complete (already split)');
@@ -307,7 +314,9 @@ const ResponseEmergence: React.FC<ResponseEmergenceProps> = ({
             },
           });
         } else {
-          console.warn('💥 Dissolution - content NOT split, creating SplitText as fallback');
+          console.warn(
+            '💥 Dissolution - content NOT split, creating SplitText as fallback'
+          );
           // Ensure textRef has content before splitting
           if (textRef.current && preparedContent?.html) {
             textRef.current.innerHTML = preparedContent.html;
@@ -323,16 +332,17 @@ const ResponseEmergence: React.FC<ResponseEmergenceProps> = ({
 
               return gsap.to(self.chars, {
                 opacity: 0,
-                scale: SCATTERED_SCALE,
+                scale: DISSOLUTION_SCATTERED_SCALE,
                 x: () => (Math.random() - 0.5) * DISSOLUTION_SCATTER_X,
                 y: () => (Math.random() - 0.5) * DISSOLUTION_SCATTER_Y,
-                rotation: () => (Math.random() - 0.5) * DISSOLUTION_SCATTER_ROTATION,
+                rotation: () =>
+                  (Math.random() - 0.5) * DISSOLUTION_SCATTER_ROTATION,
                 duration: DISSOLUTION_DURATION,
                 ease: DISSOLUTION_EASE,
                 force3D: FORCE_3D,
                 stagger: {
                   amount: DISSOLUTION_STAGGER,
-                  from: STAGGER_FROM,
+                  from: DISSOLUTION_STAGGER_FROM,
                 },
                 onComplete: () => {
                   console.log('💥 Dissolution complete');
@@ -461,7 +471,7 @@ const ResponseEmergence: React.FC<ResponseEmergenceProps> = ({
           // Set scattered state FIRST before making anything visible
           gsap.set(self.chars, {
             opacity: 0,
-            scale: SCATTERED_SCALE,
+            scale: EMERGENCE_SCATTERED_SCALE,
             x: () => (Math.random() - 0.5) * SCATTER_RANGE_X,
             y: () => (Math.random() - 0.5) * SCATTER_RANGE_Y,
             rotation: () => (Math.random() - 0.5) * SCATTER_ROTATION,
@@ -480,7 +490,7 @@ const ResponseEmergence: React.FC<ResponseEmergenceProps> = ({
 
           return gsap.timeline().to(self.chars, {
             opacity: 1,
-            scale: FINAL_SCALE,
+            scale: EMERGENCE_FINAL_SCALE,
             x: 0,
             y: 0,
             rotation: 0,
@@ -490,7 +500,7 @@ const ResponseEmergence: React.FC<ResponseEmergenceProps> = ({
             force3D: FORCE_3D,
             stagger: {
               amount: EMERGENCE_STAGGER,
-              from: STAGGER_FROM,
+              from: EMERGENCE_STAGGER_FROM,
             },
             onComplete: () => {
               console.log('🎯 BOUNCE ANIMATION COMPLETE!');

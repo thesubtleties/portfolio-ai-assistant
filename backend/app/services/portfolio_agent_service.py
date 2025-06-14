@@ -355,6 +355,10 @@ class PortfolioAgentService:
             "approach",
             "methodology",
             "component",
+            "stack",
+            "database",
+            "db",
+            "api",
         ]
         tech_conceptual_matches = sum(
             1 for term in tech_conceptual_terms if term in query_lower
@@ -363,11 +367,11 @@ class PortfolioAgentService:
 
         # Broad overview indicators
         broad_terms = [
-            "all projects",
+            "projects",
             "tell me about",
             "overview",
             "everything",
-            "what has steven",
+            "what all",
             "show me all",
             "complete list",
         ]
@@ -409,6 +413,9 @@ class PortfolioAgentService:
             "hobbies",
             "quotes",
             "inspiration",
+            "job",
+            "operations",
+            "transition",
         ]
         personal_matches = sum(
             1 for term in personal_terms if term in query_lower

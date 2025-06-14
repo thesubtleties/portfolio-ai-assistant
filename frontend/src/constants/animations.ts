@@ -8,9 +8,9 @@
 export const RESPONSE_ANIMATION_CONFIG = {
   // ===== TIMING =====
   // Individual animation durations (in seconds)
-  EMERGENCE_DURATION: 2,
-  EMERGENCE_STAGGER: 0.1,
-  DISSOLUTION_DURATION: 2.0,
+  EMERGENCE_DURATION: 1,
+  EMERGENCE_STAGGER: 0.2,
+  DISSOLUTION_DURATION: 1,
   DISSOLUTION_STAGGER: 0.3,
 
   // ===== TRANSFORM VALUES =====
@@ -24,22 +24,30 @@ export const RESPONSE_ANIMATION_CONFIG = {
   DISSOLUTION_SCATTER_Y: 600, // pixels: -150 to +150
   DISSOLUTION_SCATTER_ROTATION: 360, // degrees: -90 to +90
 
-  // Scale values
-  SCATTERED_SCALE: 0.1, // Scale when scattered
-  FINAL_SCALE: 1.0, // Scale when in position
+  // ===== SCALE VALUES =====
+  // Emergence scale values
+  EMERGENCE_SCATTERED_SCALE: 0.2, // Scale when scattered (emergence)
+  EMERGENCE_FINAL_SCALE: 1.0, // Scale when in position (emergence)
+
+  // Dissolution scale values
+  DISSOLUTION_SCATTERED_SCALE: 0.5, // Scale when scattered (dissolution)
+  DISSOLUTION_FINAL_SCALE: 1.0, // Scale when starting dissolution
 
   // ===== EASING & PHYSICS =====
-  EMERGENCE_EASE: 'elastic.out(.2, .5)', // Gentler elastic bounce
+  EMERGENCE_EASE: 'back.out(.4, .01)', // Gentler elastic bounce
   DISSOLUTION_EASE: 'power1.out', // Sharp dissolution
 
   // ===== GSAP SETTINGS =====
   FORCE_3D: true,
-  TRANSFORM_ORIGIN: '0px 1000px -1000px', // Center origin for transforms
-  STAGGER_FROM: 'random',
+  TRANSFORM_ORIGIN: '50% 50% -1000px', // Center origin for transforms
+
+  // Stagger direction settings
+  EMERGENCE_STAGGER_FROM: 'start', // 'start', 'center', 'end', 'edges', 'random'
+  DISSOLUTION_STAGGER_FROM: 'random', // 'start', 'center', 'end', 'edges', 'random'
 
   // ===== TIMING GUARANTEES =====
   // Buffer time to ensure smooth transitions (in milliseconds)
-  TIMING_BUFFER: -1000,
+  TIMING_BUFFER: 0,
 
   // Calculated total durations
   get EMERGENCE_TOTAL_MS() {
@@ -76,8 +84,12 @@ export const {
   DISSOLUTION_SCATTER_X,
   DISSOLUTION_SCATTER_Y,
   DISSOLUTION_SCATTER_ROTATION,
-  SCATTERED_SCALE,
-  FINAL_SCALE,
+
+  // Scale values
+  EMERGENCE_SCATTERED_SCALE,
+  EMERGENCE_FINAL_SCALE,
+  DISSOLUTION_SCATTERED_SCALE,
+  DISSOLUTION_FINAL_SCALE,
 
   // Easing
   EMERGENCE_EASE,
@@ -86,7 +98,8 @@ export const {
   // GSAP settings
   FORCE_3D,
   TRANSFORM_ORIGIN,
-  STAGGER_FROM,
+  EMERGENCE_STAGGER_FROM,
+  DISSOLUTION_STAGGER_FROM,
 
   // Calculated values
   MINIMUM_API_INTERVAL_MS,

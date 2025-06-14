@@ -69,9 +69,13 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-portfolio_user}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB:-portfolio_prod}
+      POSTGRES_HOST: portfolio_postgres_prod
+      POSTGRES_PORT: 5432
 
       # Redis configuration
       REDIS_URL: redis://portfolio_redis_prod:6379/0
+      REDIS_HOST: portfolio_redis_prod
+      REDIS_PORT: 6379
 
       # AI Provider configuration
       OPENAI_API_KEY: ${OPENAI_API_KEY}

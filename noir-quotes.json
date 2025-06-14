@@ -55,6 +55,24 @@
     "The API was RESTful. The world it connected was restless.",
     "Every commit was a small act of faith. Most of them were misplaced.",
     "The cache was full of things better left forgotten.",
-    "The connection timed out. Story of my life."
+    "The connection timed out. Story of my life.",
+    "I'd seen a thousand passwords. None of them could protect what really mattered.",
+    "They called it machine learning. I called it teaching silicon to make the same mistakes we did.",
+    "Trust came with an expiration date. Most of it spoiled before you could use it.",
+    "Every zero-day exploit was just another reminder that perfection was a myth we sold to ourselves.",
+    "The blockchain was immutable. The trust it was supposed to replace was already dead.",
+    "Another dependency injection. Another way for someone else's problems to become mine.",
+    "Every socket connection was a handshake with the void.",
+    "The feature flag was toggled off. So was my faith in feature flags.",
+    "The GraphQL query was efficient. The organization behind it was anything but.",
+    "Another retrospective meeting. We looked back at our failures and planned new ones.",
+    "Every merge conflict told a story. Most of them were tragedies.",
+    "The documentation was comprehensive. The understanding was optional.",
+    "The container registry was full of images. None of them painted a pretty picture.",
+    "My development setup loved the new feature. Production was less enthusiastic about the relationship.",
+    "The deployment was automated. The disappointment was still very much manual.",
+    "array.sort(() => Math.random() - 0.5); // close enough",
+    "The commit history was a confession booth with no absolution. Every secret pushed was a sin that lived forever.",
+    "They called it technical debt. I called it a mortgage on tomorrow's sanity."
   ]
 }

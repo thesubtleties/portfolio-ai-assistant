@@ -21,6 +21,8 @@ const TerminalInterface: React.FC<TerminalInterfaceProps> = ({
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const responseRef = useRef<HTMLDivElement>(null);
+  const pendingResponseRef = useRef<string>('');
+  const isDissolutionCompleteRef = useRef<boolean>(true);
 
   const [interactionState, setInteractionState] =
     useState<InteractionState>('idle');
@@ -29,6 +31,7 @@ const TerminalInterface: React.FC<TerminalInterfaceProps> = ({
   const [hasDefinitionCrumbled, setHasDefinitionCrumbled] = useState(false);
   const [shouldDissolveResponse, setShouldDissolveResponse] = useState(false);
   const [currentResponse, setCurrentResponse] = useState<string>('');
+  const [pendingResponse, setPendingResponse] = useState<string>('');
   const [quote, setQuote] = useState('');
   const [isQuoteLoaded, setIsQuoteLoaded] = useState(false);
 
@@ -57,6 +60,8 @@ const TerminalInterface: React.FC<TerminalInterfaceProps> = ({
     if (currentResponse) {
       console.log('Starting response dissolve after sending');
       setTimeout(() => {
+        console.log('🧪 Setting shouldDissolveResponse to true');
+        isDissolutionCompleteRef.current = false; // Mark dissolution as in progress
         setShouldDissolveResponse(true);
         setInteractionState('dissolving');
       }, 50); // Small delay to let API request start first
@@ -67,13 +72,74 @@ const TerminalInterface: React.FC<TerminalInterfaceProps> = ({
     setInteractionState('sending');
 
     try {
+      // Track start time for minimum timing guarantee
+      const startTime = Date.now();
+      const MINIMUM_ANIMATION_TIME = 2200; // 2.2 seconds to match animation duration
+
       // Use the global sendMessage function provided by ChatManager
-      const success = await (window as any).sendMessage?.(message);
-      if (success) {
-        setInteractionState('receiving');
-      } else {
-        setInteractionState('idle');
+      await (window as any).chatManager?.sendMessage(message);
+
+      // Wait for response to arrive AND ensure minimum timing
+      console.log('⏳ Waiting for response to arrive...');
+      
+      // Poll for pending response with a timeout
+      const waitForResponse = async () => {
+        const maxWaitTime = 10000; // 10 second timeout
+        const pollInterval = 100; // Check every 100ms
+        let totalWaited = 0;
+        
+        while (!pendingResponseRef.current && totalWaited < maxWaitTime) {
+          await new Promise((resolve) => setTimeout(resolve, pollInterval));
+          totalWaited += pollInterval;
+        }
+        
+        if (!pendingResponseRef.current) {
+          throw new Error('Response timeout - no response received within 10 seconds');
+        }
+      };
+      
+      await waitForResponse();
+      console.log('📥 Response received, now ensuring minimum timing...');
+      
+      // Now ensure minimum animation time has passed
+      const elapsed = Date.now() - startTime;
+      const remainingTime = Math.max(0, MINIMUM_ANIMATION_TIME - elapsed);
+
+      if (remainingTime > 0) {
+        console.log(
+          `⏱️ Response received quickly (${elapsed}ms), waiting additional ${remainingTime}ms for smooth animation`
+        );
+        await new Promise((resolve) => setTimeout(resolve, remainingTime));
       }
+
+      // Now wait for dissolution to complete before processing response
+      console.log('✅ Timing complete, now waiting for dissolution to finish...');
+      
+      // Wait for dissolution to complete
+      const waitForDissolution = async () => {
+        const maxWaitTime = 5000; // 5 second timeout
+        const pollInterval = 100; // Check every 100ms
+        let totalWaited = 0;
+        
+        while (!isDissolutionCompleteRef.current && totalWaited < maxWaitTime) {
+          await new Promise((resolve) => setTimeout(resolve, pollInterval));
+          totalWaited += pollInterval;
+        }
+        
+        if (!isDissolutionCompleteRef.current) {
+          console.warn('⚠️ Dissolution timeout - proceeding anyway');
+        }
+      };
+      
+      await waitForDissolution();
+      console.log('✅ Dissolution complete, now processing response');
+      
+      setCurrentResponse(pendingResponseRef.current);
+      setPendingResponse(''); // Clear pending state
+      pendingResponseRef.current = ''; // Clear pending ref
+      console.log('🧪 Setting shouldDissolveResponse to false before new response');
+      setShouldDissolveResponse(false);
+      setInteractionState('responding');
     } catch (error) {
       console.error('Error sending message:', error);
       setInteractionState('idle');
@@ -86,20 +152,13 @@ const TerminalInterface: React.FC<TerminalInterfaceProps> = ({
   };
 
   const handleResponseReceived = (chunk: string) => {
-    // For streaming: accumulate chunks
-    setCurrentResponse(prev => {
-      // If this is the first chunk, clear previous response and start fresh
-      if (interactionState !== 'responding') {
-        setShouldDissolveResponse(false);
-        setInteractionState('responding');
-        return chunk;
-      }
-      // Otherwise, accumulate the chunk
-      return prev + chunk;
+    // Store response as pending instead of setting it immediately
+    console.log('📦 Response received, storing as pending until timing completes:', {
+      length: chunk.length,
+      preview: chunk.substring(0, 50)
     });
-
-    // Since we're not streaming, set to idle immediately after response is received
-    setInteractionState('idle');
+    setPendingResponse(chunk);
+    pendingResponseRef.current = chunk; // Also store in ref for immediate access
   };
 
   return (
@@ -127,6 +186,7 @@ const TerminalInterface: React.FC<TerminalInterfaceProps> = ({
               shouldDissolve={shouldDissolveResponse}
               onDissolveComplete={() => {
                 console.log('ResponseEmergence dissolve complete');
+                isDissolutionCompleteRef.current = true; // Mark dissolution as complete
                 setCurrentResponse(''); // Clear only after dissolve animation
                 setShouldDissolveResponse(false);
               }}

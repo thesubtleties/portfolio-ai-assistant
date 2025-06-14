@@ -148,8 +148,32 @@ const ResponseEmergence: React.FC<ResponseEmergenceProps> = ({
       breaks: false,
       gfm: true,
     }) as string;
+    
+    console.log('🔍 Markdown processing:', {
+      input: processedResponse.substring(0, 200),
+      output: htmlContent.substring(0, 200)
+    });
+    
+    // Post-process to handle markdown inside HTML elements (like centered divs)
+    let finalContent = htmlContent;
+    
+    // Handle markdown inside <div class='centered'> tags
+    finalContent = finalContent.replace(
+      /<div class=['"]centered['"]>\s*\n([\s\S]*?)\n\s*<\/div>/g,
+      (match, content) => {
+        console.log('🔧 Processing markdown inside centered div:', content);
+        // Process the content inside the div as markdown
+        const processedInner = marked(content.trim(), {
+          breaks: false,
+          gfm: true,
+        }) as string;
+        // Remove the wrapping <p> tags that marked adds
+        const cleanInner = processedInner.replace(/^<p>(.*)<\/p>$/s, '$1');
+        return `<div class='centered'>\n${cleanInner}\n</div>`;
+      }
+    );
 
-    let processedContent = htmlContent.replace(
+    let processedContent = finalContent.replace(
       /<a href="(https?:\/\/[^"]+)">/g,
       '<a href="$1" target="_blank" rel="noopener noreferrer">'
     );
@@ -373,32 +397,6 @@ const ResponseEmergence: React.FC<ResponseEmergenceProps> = ({
 
     console.log('✨ Starting emergence animation');
 
-    // Log container position/margins before animation
-    if (containerRef.current && textRef.current) {
-      const containerRect = containerRef.current.getBoundingClientRect();
-      const textRect = textRef.current.getBoundingClientRect();
-      const containerStyle = getComputedStyle(containerRef.current);
-      const textStyle = getComputedStyle(textRef.current);
-
-      console.log('📐 BEFORE animation - Container:', {
-        x: containerRect.left,
-        y: containerRect.top,
-        width: containerRect.width,
-        height: containerRect.height,
-        marginLeft: containerStyle.marginLeft,
-        marginTop: containerStyle.marginTop,
-      });
-
-      console.log('📐 BEFORE animation - Text:', {
-        x: textRect.left,
-        y: textRect.top,
-        width: textRect.width,
-        height: textRect.height,
-        marginLeft: textStyle.marginLeft,
-        marginTop: textStyle.marginTop,
-      });
-    }
-
     isAnimatingRef.current = true;
 
     const ctx = gsap.context(() => {
@@ -461,49 +459,6 @@ const ResponseEmergence: React.FC<ResponseEmergenceProps> = ({
           // Add animating class to reduce paragraph spacing
           textRef.current?.classList.add('animating');
 
-          // Log styles during animation
-          if (textRef.current) {
-            console.log('🎨 DURING ANIMATION - Inspecting styles...');
-
-            // Log response-text container styles
-            const textStyles = getComputedStyle(textRef.current);
-            console.log('📦 response-text container styles:', {
-              display: textStyles.display,
-              margin: textStyles.margin,
-              padding: textStyles.padding,
-              lineHeight: textStyles.lineHeight,
-              fontSize: textStyles.fontSize,
-            });
-
-            // Log paragraph styles
-            const paragraphs = textRef.current.querySelectorAll('p');
-            paragraphs.forEach((p, i) => {
-              const pStyles = getComputedStyle(p);
-              console.log(`📝 Paragraph ${i} styles:`, {
-                display: pStyles.display,
-                margin: pStyles.margin,
-                padding: pStyles.padding,
-                lineHeight: pStyles.lineHeight,
-                height: p.getBoundingClientRect().height + 'px',
-              });
-            });
-
-            // Log character div/span styles (first few)
-            const chars = textRef.current.querySelectorAll('div, span');
-            const sampleChars = Array.from(chars).slice(0, 5);
-            sampleChars.forEach((char, i) => {
-              const charStyles = getComputedStyle(char);
-              console.log(`🔤 Character ${i} (${char.tagName}) styles:`, {
-                display: charStyles.display,
-                margin: charStyles.margin,
-                padding: charStyles.padding,
-                lineHeight: charStyles.lineHeight,
-                verticalAlign: charStyles.verticalAlign,
-                textContent: char.textContent,
-              });
-            });
-          }
-
           return gsap.timeline().to(self.chars, {
             opacity: 1,
             scale: 1,
@@ -520,33 +475,6 @@ const ResponseEmergence: React.FC<ResponseEmergenceProps> = ({
             },
             onComplete: () => {
               console.log('🎯 BOUNCE ANIMATION COMPLETE!');
-
-              // Log container position/margins after animation
-              if (containerRef.current && textRef.current) {
-                const containerRect =
-                  containerRef.current.getBoundingClientRect();
-                const textRect = textRef.current.getBoundingClientRect();
-                const containerStyle = getComputedStyle(containerRef.current);
-                const textStyle = getComputedStyle(textRef.current);
-
-                console.log('📐 AFTER animation - Container:', {
-                  x: containerRect.left,
-                  y: containerRect.top,
-                  width: containerRect.width,
-                  height: containerRect.height,
-                  marginLeft: containerStyle.marginLeft,
-                  marginTop: containerStyle.marginTop,
-                });
-
-                console.log('📐 AFTER animation - Text:', {
-                  x: textRect.left,
-                  y: textRect.top,
-                  width: textRect.width,
-                  height: textRect.height,
-                  marginLeft: textStyle.marginLeft,
-                  marginTop: textStyle.marginTop,
-                });
-              }
 
               isAnimatingRef.current = false; // Clear animation flag
               shouldAnimateRef.current = false; // Clear animation intent

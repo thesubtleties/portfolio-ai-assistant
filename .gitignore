@@ -1,5 +1,6 @@
 # Secrets - IMPORTANT
 .env
+.env.prod
 *.pem
 *.key
 credentials.json

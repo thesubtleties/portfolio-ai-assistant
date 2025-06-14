@@ -1,0 +1,115 @@
+version: '3.8'
+
+networks:
+  shared_portainer_network:
+    external: true
+
+volumes:
+  postgres_data_prod:
+    driver: local
+  redis_data_prod:
+    driver: local
+
+services:
+  # PostgreSQL with pgvector for production
+  portfolio_postgres_prod:
+    image: pgvector/pgvector:pg15
+    container_name: portfolio_postgres_prod
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-portfolio_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-portfolio_prod}
+    volumes:
+      - postgres_data_prod:/var/lib/postgresql/data
+    expose:
+      - "5432"
+    networks:
+      - shared_portainer_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-portfolio_user} -d ${POSTGRES_DB:-portfolio_prod}"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Redis cache for production
+  portfolio_redis_prod:
+    image: redis:7-alpine
+    container_name: portfolio_redis_prod
+    restart: unless-stopped
+    volumes:
+      - redis_data_prod:/data
+    expose:
+      - "6379"
+    networks:
+      - shared_portainer_network
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # FastAPI Backend with gunicorn + uvicorn workers
+  portfolio_backend_prod:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: portfolio_backend_prod
+    restart: unless-stopped
+    environment:
+      # Database configuration
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-portfolio_user}:${POSTGRES_PASSWORD}@portfolio_postgres_prod:5432/${POSTGRES_DB:-portfolio_prod}
+      
+      # Redis configuration
+      REDIS_URL: redis://portfolio_redis_prod:6379/0
+      
+      # AI Provider configuration
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      AI_PROVIDER: ${AI_PROVIDER:-openai}
+      
+      # Environment
+      ENVIRONMENT: production
+      
+      # CORS settings for production
+      CORS_ORIGINS: ${CORS_ORIGINS:-["https://yourdomain.com"]}
+      
+      # Gunicorn settings
+      WORKERS: ${WORKERS:-4}
+      BIND: "0.0.0.0:8000"
+    expose:
+      - "8000"
+    networks:
+      - shared_portainer_network
+    depends_on:
+      portfolio_postgres_prod:
+        condition: service_healthy
+      portfolio_redis_prod:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Astro Frontend (static site)
+  portfolio_frontend_prod:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: portfolio_frontend_prod
+    restart: unless-stopped
+    expose:
+      - "3000"
+    networks:
+      - shared_portainer_network
+    depends_on:
+      portfolio_backend_prod:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3

@@ -30,7 +30,7 @@ class Settings(BaseSettings):
     redis_max_connections: int = 50
 
     # AI Provider settings
-    ai_provider: str = "openai"  # Options: "openai", "gemini"
+    ai_provider: str  # Options: "openai", "gemini"
 
     # OpenAI settings
     openai_api_key: str
@@ -148,6 +148,7 @@ class Settings(BaseSettings):
         "inspirational",
         "inspire",
         "influences",
+        "his",
         # Career & experience keywords
         "career",
         "transition",
@@ -185,7 +186,13 @@ class Settings(BaseSettings):
         "can you",
         "could you",
         # Question patterns
-        "who is",
+        "who",
+        "where",
+        "when",
+        "why",
+        "how",
+        "which",
+        "what",
         "what does",
         "what is",
         "how did",
@@ -206,6 +213,7 @@ class Settings(BaseSettings):
         "analyzer",
         "github",
         "resume",
+        "coding",
     ]
 
     # Application settings

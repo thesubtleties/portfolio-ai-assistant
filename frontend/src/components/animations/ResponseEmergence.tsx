@@ -2,6 +2,25 @@ import { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import { SplitText } from 'gsap/SplitText';
 import { marked } from 'marked';
+import { 
+  EMERGENCE_DURATION, 
+  EMERGENCE_STAGGER, 
+  DISSOLUTION_DURATION, 
+  DISSOLUTION_STAGGER,
+  SCATTER_RANGE_X,
+  SCATTER_RANGE_Y,
+  SCATTER_ROTATION,
+  DISSOLUTION_SCATTER_X,
+  DISSOLUTION_SCATTER_Y,
+  DISSOLUTION_SCATTER_ROTATION,
+  SCATTERED_SCALE,
+  FINAL_SCALE,
+  EMERGENCE_EASE,
+  DISSOLUTION_EASE,
+  FORCE_3D,
+  TRANSFORM_ORIGIN,
+  STAGGER_FROM
+} from '../../constants/animations';
 
 gsap.registerPlugin(SplitText);
 
@@ -265,16 +284,16 @@ const ResponseEmergence: React.FC<ResponseEmergenceProps> = ({
           // Animate existing characters directly from the stored SplitText instance
           return gsap.to(splitTextInstanceRef.current.chars, {
             opacity: 0,
-            scale: 0.3,
-            x: () => (Math.random() - 0.5) * 300,
-            y: () => (Math.random() - 0.5) * 300,
-            rotation: () => (Math.random() - 0.5) * 180,
-            duration: 1.0,
-            ease: 'power2.in',
-            force3D: true,
+            scale: SCATTERED_SCALE,
+            x: () => (Math.random() - 0.5) * DISSOLUTION_SCATTER_X,
+            y: () => (Math.random() - 0.5) * DISSOLUTION_SCATTER_Y,
+            rotation: () => (Math.random() - 0.5) * DISSOLUTION_SCATTER_ROTATION,
+            duration: DISSOLUTION_DURATION,
+            ease: DISSOLUTION_EASE,
+            force3D: FORCE_3D,
             stagger: {
-              amount: 0.8,
-              from: 'random',
+              amount: DISSOLUTION_STAGGER,
+              from: STAGGER_FROM,
             },
             onComplete: () => {
               console.log('💥 Dissolution complete (already split)');
@@ -304,16 +323,16 @@ const ResponseEmergence: React.FC<ResponseEmergenceProps> = ({
 
               return gsap.to(self.chars, {
                 opacity: 0,
-                scale: 0.3,
-                x: () => (Math.random() - 0.5) * 300,
-                y: () => (Math.random() - 0.5) * 300,
-                rotation: () => (Math.random() - 0.5) * 180,
-                duration: 1.0,
-                ease: 'power2.in',
-                force3D: true,
+                scale: SCATTERED_SCALE,
+                x: () => (Math.random() - 0.5) * DISSOLUTION_SCATTER_X,
+                y: () => (Math.random() - 0.5) * DISSOLUTION_SCATTER_Y,
+                rotation: () => (Math.random() - 0.5) * DISSOLUTION_SCATTER_ROTATION,
+                duration: DISSOLUTION_DURATION,
+                ease: DISSOLUTION_EASE,
+                force3D: FORCE_3D,
                 stagger: {
-                  amount: 0.8,
-                  from: 'random',
+                  amount: DISSOLUTION_STAGGER,
+                  from: STAGGER_FROM,
                 },
                 onComplete: () => {
                   console.log('💥 Dissolution complete');
@@ -442,12 +461,12 @@ const ResponseEmergence: React.FC<ResponseEmergenceProps> = ({
           // Set scattered state FIRST before making anything visible
           gsap.set(self.chars, {
             opacity: 0,
-            scale: 0.3,
-            x: () => (Math.random() - 0.5) * 250,
-            y: () => (Math.random() - 0.5) * 250,
-            rotation: () => (Math.random() - 0.5) * 120,
-            force3D: true,
-            transformOrigin: 'center center', // Consistent transform origin
+            scale: SCATTERED_SCALE,
+            x: () => (Math.random() - 0.5) * SCATTER_RANGE_X,
+            y: () => (Math.random() - 0.5) * SCATTER_RANGE_Y,
+            rotation: () => (Math.random() - 0.5) * SCATTER_ROTATION,
+            force3D: FORCE_3D,
+            transformOrigin: TRANSFORM_ORIGIN,
           });
 
           // NOW make text visible after scattered state is set
@@ -461,17 +480,17 @@ const ResponseEmergence: React.FC<ResponseEmergenceProps> = ({
 
           return gsap.timeline().to(self.chars, {
             opacity: 1,
-            scale: 1,
+            scale: FINAL_SCALE,
             x: 0,
             y: 0,
             rotation: 0,
-            transformOrigin: 'center center', // Keep consistent
-            duration: 1.0,
-            ease: 'elastic.out(1, 0.5)', // Gentler elastic bounce
-            force3D: true,
+            transformOrigin: TRANSFORM_ORIGIN,
+            duration: EMERGENCE_DURATION,
+            ease: EMERGENCE_EASE,
+            force3D: FORCE_3D,
             stagger: {
-              amount: 0.8, // Faster stagger for smoother flow
-              from: 'random',
+              amount: EMERGENCE_STAGGER,
+              from: STAGGER_FROM,
             },
             onComplete: () => {
               console.log('🎯 BOUNCE ANIMATION COMPLETE!');

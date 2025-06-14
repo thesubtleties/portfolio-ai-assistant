@@ -3,6 +3,7 @@ import TerminalInput from './TerminalInput';
 import CrumblingText from '../animations/CrumblingText';
 import ResponseEmergence from '../animations/ResponseEmergence';
 import ChatManager from '../chat/ChatManager';
+import { MINIMUM_API_INTERVAL_MS } from '../../constants/animations';
 
 interface TerminalInterfaceProps {
   className?: string;
@@ -74,7 +75,6 @@ const TerminalInterface: React.FC<TerminalInterfaceProps> = ({
     try {
       // Track start time for minimum timing guarantee
       const startTime = Date.now();
-      const MINIMUM_ANIMATION_TIME = 2200; // 2.2 seconds to match animation duration
 
       // Use the global sendMessage function provided by ChatManager
       await (window as any).chatManager?.sendMessage(message);
@@ -103,7 +103,7 @@ const TerminalInterface: React.FC<TerminalInterfaceProps> = ({
       
       // Now ensure minimum animation time has passed
       const elapsed = Date.now() - startTime;
-      const remainingTime = Math.max(0, MINIMUM_ANIMATION_TIME - elapsed);
+      const remainingTime = Math.max(0, MINIMUM_API_INTERVAL_MS - elapsed);
 
       if (remainingTime > 0) {
         console.log(

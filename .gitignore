@@ -59,6 +59,9 @@ pnpm-debug.log*
 # frontend/dist/
 # frontend/.astro/
 
+
+# GLUETUN VPN
+/gluetun
 # Next.js (for the admin panel later)
 # admin/.next/
 # admin/out/

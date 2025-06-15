@@ -5,7 +5,7 @@
 WORKERS=${WORKERS:-4}
 
 # Bind address
-BIND=${BIND:-"0.0.0.0:8000"}
+BIND=${BIND:-"0.0.0.0:8001"}
 
 # Run Gunicorn with Uvicorn workers
 exec gunicorn app.main:app \

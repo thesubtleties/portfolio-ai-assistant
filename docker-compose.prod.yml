@@ -11,21 +11,42 @@ volumes:
     driver: local
 
 services:
+  # Gluetun VPN container for Mullvad
+  gluetun:
+    image: qmcgaw/gluetun
+    container_name: gluetun
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    environment:
+      - VPN_SERVICE_PROVIDER=mullvad
+      - VPN_TYPE=wireguard
+      - WIREGUARD_PRIVATE_KEY=${WIREGUARD_PRIVATE_KEY}
+      - WIREGUARD_ADDRESSES=${WIREGUARD_ADDRESSES}
+      - SERVER_CITIES=${SERVER_CITIES:-"San Jose"}
+      - DNS_ADDRESS=${DNS_ADDRESS}
+      - LOG_LEVEL=debug
+    volumes:
+      - /tmp/gluetun:/tmp/gluetun
+    networks:
+      - shared_portainer_network
+    ports:
+      - '8001:8001'
+
   # PostgreSQL with pgvector for production
   portfolio_postgres_prod:
     image: pgvector/pgvector:pg15
     container_name: portfolio_postgres_prod
     restart: unless-stopped
+    network_mode: "service:gluetun"
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-portfolio_user}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB:-portfolio_prod}
     volumes:
       - postgres_data_prod:/var/lib/postgresql/data
-    expose:
-      - '5432'
-    networks:
-      - shared_portainer_network
     healthcheck:
       test:
         [
@@ -42,12 +63,9 @@ services:
     image: redis:7-alpine
     container_name: portfolio_redis_prod
     restart: unless-stopped
+    network_mode: "service:gluetun"
     volumes:
       - redis_data_prod:/data
-    expose:
-      - '6379'
-    networks:
-      - shared_portainer_network
     command: redis-server --appendonly yes
     healthcheck:
       test: ['CMD', 'redis-cli', 'ping']
@@ -63,15 +81,20 @@ services:
       dockerfile: Dockerfile
     container_name: portfolio_backend_prod
     restart: unless-stopped
+    network_mode: "service:gluetun"
     environment:
       # Database configuration
-      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-portfolio_user}:${POSTGRES_PASSWORD}@portfolio_postgres_prod:5432/${POSTGRES_DB:-portfolio_prod}
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-portfolio_user}:${POSTGRES_PASSWORD}@localhost:5432/${POSTGRES_DB:-portfolio_prod}
       POSTGRES_USER: ${POSTGRES_USER:-portfolio_user}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB:-portfolio_prod}
+      POSTGRES_HOST: localhost
+      POSTGRES_PORT: 5432
 
       # Redis configuration
-      REDIS_URL: redis://portfolio_redis_prod:6379/0
+      REDIS_URL: redis://localhost:6379/0
+      REDIS_HOST: localhost
+      REDIS_PORT: 6379
 
       # AI Provider configuration
       OPENAI_API_KEY: ${OPENAI_API_KEY}
@@ -84,22 +107,20 @@ services:
       ENVIRONMENT: production
 
       # CORS settings for production
-      CORS_ORIGINS: ${CORS_ORIGINS:-["https://yourdomain.com"]}
+      CORS_ORIGINS: ${CORS_ORIGINS:-["https://sbtl.dev"]}
 
       # Gunicorn settings
       WORKERS: ${WORKERS:-4}
-      BIND: '0.0.0.0:8000'
-    expose:
-      - '8000'
-    networks:
-      - shared_portainer_network
+      BIND: '0.0.0.0:8001'
     depends_on:
+      gluetun:
+        condition: service_healthy
       portfolio_postgres_prod:
-        condition: service_healthy
+        condition: service_started
       portfolio_redis_prod:
-        condition: service_healthy
+        condition: service_started
     healthcheck:
-      test: ['CMD', 'curl', '-f', 'http://localhost:8000/api/health']
+      test: ['CMD', 'curl', '-f', 'http://localhost:8001/api/health']
       interval: 30s
       timeout: 10s
       retries: 3
@@ -117,8 +138,13 @@ services:
     networks:
       - shared_portainer_network
     depends_on:
+      gluetun:
+        condition: service_healthy
       portfolio_backend_prod:
         condition: service_healthy
+    environment:
+      # Backend URL needs to point to gluetun since backend uses its network
+      BACKEND_URL: http://gluetun:8000
     healthcheck:
       test: ['CMD', 'wget', '--spider', '-q', 'http://localhost:3000']
       interval: 30s

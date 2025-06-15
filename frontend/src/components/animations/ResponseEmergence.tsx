@@ -72,7 +72,7 @@ const ResponseEmergence: React.FC<ResponseEmergenceProps> = ({
     const estimatedLines = Math.max(lineCount, Math.ceil(length / 70)); // ~70 chars per line (more generous)
 
     // Check if we're on mobile
-    const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
+    const isMobile = typeof window !== 'undefined' && window.innerWidth <= 999;
 
     if (isMobile) {
       // Mobile-specific font sizes (smaller to fit more content)

@@ -1243,7 +1243,7 @@ class PortfolioAgentService:
             print(
                 f"📱 [MOBILE] Mobile device detected - requesting concise response"
             )
-            message_with_context += "\n\n[MOBILE CONTEXT: User is on mobile device - keep response extra concise (2-3 lines max for general questions)]"
+            message_with_context += "\n\n[MOBILE CONTEXT: User is on mobile device - keep response extra concise (2-3 lines max for general questions or a SHORT list of concise bullet points)]"
         else:
             print(f"🖥️  [DESKTOP] Desktop device - normal response length")
 

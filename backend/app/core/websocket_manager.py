@@ -268,10 +268,12 @@ class ConnectionManager:
         word_count = len([word for word in content.split() if word.strip()])
         if word_count > 200:
             await self.send_personal_message(
-                json.dumps({
-                    "type": "error",
-                    "error": "Message too long. Please keep your message under 200 words."
-                }),
+                json.dumps(
+                    {
+                        "type": "error",
+                        "error": "Message too long. Please keep your message under 200 words.",
+                    }
+                ),
                 connection_id,
             )
             return

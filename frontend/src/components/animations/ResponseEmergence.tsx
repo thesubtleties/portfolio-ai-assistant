@@ -77,18 +77,18 @@ const ResponseEmergence: React.FC<ResponseEmergenceProps> = ({
     if (isMobile) {
       // Mobile-specific font sizes (smaller to fit more content)
       if (estimatedLines <= 3) return '1.5rem'; // text-2xl for short responses
-      if (estimatedLines <= 6) return '1.25rem'; // text-xl for medium responses
-      if (estimatedLines <= 12) return '1.125rem'; // text-lg for longer responses
-      if (estimatedLines <= 20) return '1rem'; // text-base for very long responses
-      if (estimatedLines <= 30) return '0.875rem'; // text-sm for extremely long responses
+      if (estimatedLines <= 5) return '1.25rem'; // text-xl for medium responses
+      if (estimatedLines <= 8) return '1.125rem'; // text-lg for longer responses
+      if (estimatedLines <= 10) return '1rem'; // text-base for very long responses
+      if (estimatedLines <= 15) return '0.875rem'; // text-sm for extremely long responses
       return '0.75rem'; // text-xs for massive responses
     } else {
       // Desktop font sizes (larger for better visibility)
       if (estimatedLines <= 4) return '1.875rem'; // text-3xl for short responses
       if (estimatedLines <= 8) return '1.5rem'; // text-2xl for medium responses
       if (estimatedLines <= 15) return '1.25rem'; // text-xl for longer responses
-      if (estimatedLines <= 30) return '1.125rem'; // text-lg for very long responses
-      if (estimatedLines <= 35) return '1rem'; // text-base for extremely long responses
+      if (estimatedLines <= 25) return '1.125rem'; // text-lg for very long responses
+      if (estimatedLines <= 30) return '1rem'; // text-base for extremely long responses
       return '0.875rem'; // text-sm for massive responses
     }
   };
@@ -113,14 +113,20 @@ const ResponseEmergence: React.FC<ResponseEmergenceProps> = ({
     const lineCount = text.split('\n').length;
     const estimatedLines = Math.max(lineCount, Math.ceil(length / 70));
 
-    // Short content: More margin (centered-ish)
-    if (estimatedLines <= 3) return '25vh';
+    // Check if we're on mobile
+    const isMobile = typeof window !== 'undefined' && window.innerWidth <= 999;
 
-    // Medium content: Moderate margin (slightly above center)
-    if (estimatedLines <= 20) return '12vh';
-
-    // Long content: Minimal margin (start near top)
-    return '0';
+    if (isMobile) {
+      // Mobile: Minimal top margins to maximize space
+      if (estimatedLines <= 3) return '8vh';
+      if (estimatedLines <= 20) return '4vh';
+      return '0';
+    } else {
+      // Desktop: More generous margins for better positioning
+      if (estimatedLines <= 3) return '25vh';
+      if (estimatedLines <= 20) return '12vh';
+      return '0';
+    }
   };
 
   // PHASE 1: Prepare content completely before any animation

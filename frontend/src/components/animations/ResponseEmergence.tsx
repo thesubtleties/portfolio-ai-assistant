@@ -80,7 +80,7 @@ const ResponseEmergence: React.FC<ResponseEmergenceProps> = ({
       if (estimatedLines <= 5) return '1.25rem'; // text-xl for medium responses
       if (estimatedLines <= 8) return '1.125rem'; // text-lg for longer responses
       if (estimatedLines <= 10) return '1rem'; // text-base for very long responses
-      if (estimatedLines <= 15) return '0.875rem'; // text-sm for extremely long responses
+      if (estimatedLines <= 12) return '0.875rem'; // text-sm for extremely long responses
       return '0.75rem'; // text-xs for massive responses
     } else {
       // Desktop font sizes (larger for better visibility)

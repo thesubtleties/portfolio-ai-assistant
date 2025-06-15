@@ -88,7 +88,7 @@ import TerminalInterface from "./terminal/TerminalInterface"
     font-style: italic;
   }
 
-  @media (max-width: 768px) {
+  @media (max-width: 999px) {
     .dictionary-entry {
       padding: 1.5rem;
     }
@@ -193,7 +193,7 @@ import TerminalInterface from "./terminal/TerminalInterface"
   }
 
   /* Mobile-specific response positioning */
-  @media (max-width: 768px) {
+  @media (max-width: 999px) {
     .response-content {
       padding-top: 0; /* Much closer to top on mobile */
       height: calc(100% - 1rem); /* Account for reduced padding */
@@ -202,7 +202,7 @@ import TerminalInterface from "./terminal/TerminalInterface"
     /* For longer responses on mobile, ensure they start at the very top */
     .response-content .response-emergence {
       margin-top: 0; /* Remove default margin on mobile */
-      padding-top: 0.5rem; /* Minimal top padding */
+      padding-top: 0; /* Minimal top padding */
     }
   }
 
@@ -505,7 +505,7 @@ import TerminalInterface from "./terminal/TerminalInterface"
     z-index: 1000;
   }
 
-  @media (max-width: 768px) {
+  @media (max-width: 999px) {
     .terminal-interface {
       padding: 1rem; /* Reduced padding for more space */
       width: calc(100% - 1rem); /* Less padding on mobile */

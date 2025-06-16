@@ -221,7 +221,11 @@ class Settings(BaseSettings):
     # Application settings
     environment: str = "development"
     api_prefix: str = "/api"
-    cors_origins: list[str] = ["http://localhost:4321"]  # Astro dev server
+    cors_origins: list[str] = [
+        "http://localhost:4321",  # Astro dev server
+        "https://sbtl.dev",
+        "https://www.sbtl.dev"
+    ]
 
     # WebSocket settings
     ws_heartbeat_interval: int = 30  # Seconds between heartbeats

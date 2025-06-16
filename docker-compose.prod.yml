@@ -82,6 +82,8 @@ services:
     container_name: portfolio_backend_prod
     restart: unless-stopped
     network_mode: "service:gluetun"
+    volumes:
+      - ./conversation_exports:/app/exports
     environment:
       # Database configuration
       DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-portfolio_user}:${POSTGRES_PASSWORD}@localhost:5432/${POSTGRES_DB:-portfolio_prod}

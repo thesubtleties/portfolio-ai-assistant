@@ -6,6 +6,7 @@ import openai
 from openai import AsyncOpenAI
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, text
+import re
 
 from atomic_agents.lib.components.agent_memory import AgentMemory
 from atomic_agents.agents.base_agent import (
@@ -78,6 +79,12 @@ class PortfolioAgentService:
 
         # Store conversation agents: {conversation_id: BaseAgent}
         self.conversation_agents = {}
+        
+        # Compile content safety patterns
+        self.content_safety_regex = [
+            re.compile(pattern, re.IGNORECASE) 
+            for pattern in settings.content_safety_patterns
+        ]
 
     def _create_gemini_client(self):
         """Create Gemini client using instructor."""
@@ -91,6 +98,20 @@ class PortfolioAgentService:
         )
 
         return instructor.from_openai(gemini_client, mode=instructor.Mode.JSON)
+
+    def _check_content_safety(self, message: str) -> tuple[bool, Optional[str]]:
+        """
+        Check if message contains content that could violate API terms.
+        
+        Returns:
+            tuple[bool, Optional[str]]: (is_safe, violation_reason)
+        """
+        for pattern in self.content_safety_regex:
+            if pattern.search(message):
+                print(f"🚨 [SAFETY] Content filter triggered for message: {message[:100]}...")
+                return False, self.settings.content_safety_message
+        
+        return True, None
 
     def _get_current_model(self) -> str:
         """Get the current model based on provider."""
@@ -1148,6 +1169,17 @@ class PortfolioAgentService:
     ) -> PortfolioAgentResponse:
         """Handle a chat message from a visitor with conversation memory."""
 
+        # Content safety filter - check BEFORE any API calls
+        is_safe, safety_message = self._check_content_safety(message)
+        if not is_safe:
+            print(f"🚨 [SAFETY] Message blocked by content filter")
+            return PortfolioAgentResponse(
+                response=safety_message,
+                is_off_topic=True,  # Mark as off-topic for rate limiting
+                visitor_notes_update=None,
+                rag_summary=None
+            )
+
         # Get or create agent for this conversation
         if conversation_id not in self.conversation_agents:
             agent = self._create_agent_for_conversation(
@@ -1221,6 +1253,17 @@ class PortfolioAgentService:
 
         start_time = time.time()
         print(f"🚀 [TIMING] Chat request started: {message[:50]}...")
+
+        # Content safety filter - check BEFORE any API calls
+        is_safe, safety_message = self._check_content_safety(message)
+        if not is_safe:
+            print(f"🚨 [SAFETY] Message blocked by content filter")
+            return PortfolioAgentResponse(
+                response=safety_message,
+                is_off_topic=True,  # Mark as off-topic for rate limiting
+                visitor_notes_update=None,
+                rag_summary=None
+            )
 
         # Get or create agent for this conversation
         if conversation_id not in self.conversation_agents:

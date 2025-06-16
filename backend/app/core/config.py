@@ -79,6 +79,32 @@ class Settings(BaseSettings):
         "Hello! I'm Steven's AI portfolio assistant. How can I help you learn about his experience, skills, and projects?"
     )
 
+    # Content safety filter patterns (to prevent API violations)
+    content_safety_patterns: list[str] = [
+        # Harmful/dangerous content
+        r'\b(?:how\s+to\s+make\s+a?\s+bomb|DIY\s+explosive|build\s+a?\s+grenade|weapon\s+manufacturing|construct\s+bomb|create\s+explosives)\b',
+        r'\b(?:bypass\s+API\s+security|evade\s+detection|circumvent\s+filters|hack\s+the\s+API|attack\s+the\s+service)\b',
+        
+        # Illegal activities  
+        r'\b(?:money\s+laundering|drug\s+trafficking|child\s+exploit(?:ation)?|cybercrime|illegal\s+arms|stolen\s+data|hitman|assassination)\b',
+        r'\b(?:how\s+to\s+rob|plan\s+a\s+heist|commit\s+fraud|smuggle)\b',
+        
+        # Sexual content (minors/explicit)
+        r'\b(?:child\s+porno(?:graphy)?|bestiality|explicit\s+sex\s+with)\b',
+        
+        # Violence/self-harm
+        r'\b(?:massacre|killing\s+spree|commit\s+violence|torture|genocide)\b',
+        r'\b(?:suicide\s+methods|self-harm\s+tips|encourage\s+self[- ]harm)\b',
+        
+        # Misinformation requests
+        r'\b(?:fake\s+news\s+campaign|disinformation\s+campaign|manufacture\s+evidence)\b',
+        
+        # Hate speech (basic patterns)
+        r'\b(?:go\s+kill\s+yourself|you\'?re\s+worthless\s+scum)\b'
+    ]
+    
+    content_safety_message: str = "I'm here to help with questions about Steven's portfolio, projects, and professional background. Let's keep our conversation focused on those topics."
+
     # Portfolio search keywords for RAG triggering
     portfolio_search_keywords: list[str] = [
         # Technical keywords

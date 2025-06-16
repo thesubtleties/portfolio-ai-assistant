@@ -222,9 +222,9 @@ class Settings(BaseSettings):
     environment: str = "development"
     api_prefix: str = "/api"
     cors_origins: list[str] = [
-        "http://localhost:4321",  # Astro dev server
+        "http://localhost:3000",  # Astro dev server
         "https://sbtl.dev",
-        "https://www.sbtl.dev"
+        "https://www.sbtl.dev",
     ]
 
     # WebSocket settings

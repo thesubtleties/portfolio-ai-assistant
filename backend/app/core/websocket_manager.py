@@ -2,12 +2,14 @@
 
 import json
 import uuid
+import re
 from typing import Dict, Set, Optional
 from fastapi import WebSocket, WebSocketDisconnect
 from datetime import datetime, timezone
 import logging
 import redis.asyncio as redis
 from sqlalchemy.ext.asyncio import AsyncSession
+import html
 from app.services.conversation_service import ConversationService
 from app.services.message_service import MessageService
 from app.services.portfolio_agent_service import PortfolioAgentService
@@ -30,6 +32,77 @@ class ConnectionManager:
         self.conversation_connections: Dict[str, Set[str]] = {}
         # Portfolio agent service - shared instance for conversation memory
         self.agent_service: Optional[PortfolioAgentService] = None
+        
+        # Connection limits
+        self.max_connections_per_ip: int = 5
+        self.max_total_connections: int = 100
+        self.connection_ips: Dict[str, Set[str]] = {}  # IP -> connection_ids
+        
+        # Input validation patterns
+        self.visitor_id_pattern = re.compile(r'^[a-zA-Z0-9_-]{8,64}$')
+        self.conversation_id_pattern = re.compile(r'^[a-fA-F0-9-]{36}$')  # UUID format
+        self.content_sanitize_pattern = re.compile(r'<[^>]*>|javascript:|data:|vbscript:', re.IGNORECASE)
+        
+    def _validate_visitor_id(self, visitor_id: str) -> bool:
+        """Validate visitor ID format."""
+        return bool(visitor_id and self.visitor_id_pattern.match(visitor_id))
+    
+    def _validate_conversation_id(self, conversation_id: str) -> bool:
+        """Validate conversation ID format (UUID)."""
+        return bool(conversation_id and self.conversation_id_pattern.match(conversation_id))
+    
+    def _sanitize_content(self, content: str) -> str:
+        """Sanitize user input content."""
+        if not content:
+            return ""
+        
+        # Remove HTML tags, scripts, and dangerous protocols
+        sanitized = self.content_sanitize_pattern.sub('', content)
+        # HTML encode remaining content
+        sanitized = html.escape(sanitized)
+        # Limit length
+        return sanitized[:2000]  # Hard limit beyond word count
+        
+    def _check_connection_limits(self, websocket: WebSocket) -> bool:
+        """Check if connection should be allowed based on limits."""
+        # Check total connections
+        if len(self.active_connections) >= self.max_total_connections:
+            logger.warning(f"Connection rejected - total limit reached: {len(self.active_connections)}")
+            return False
+        
+        # Check per-IP limits
+        try:
+            client_ip = websocket.client.host if websocket.client else "unknown"
+        except AttributeError:
+            client_ip = "unknown"
+        
+        if client_ip != "unknown":
+            current_ip_connections = len(self.connection_ips.get(client_ip, set()))
+            if current_ip_connections >= self.max_connections_per_ip:
+                logger.warning(f"Connection rejected - IP limit reached for {client_ip}: {current_ip_connections}")
+                return False
+        
+        return True
+        
+    def _track_connection_ip(self, connection_id: str, websocket: WebSocket) -> None:
+        """Track connection by IP address."""
+        try:
+            client_ip = websocket.client.host if websocket.client else "unknown"
+        except AttributeError:
+            client_ip = "unknown"
+        
+        if client_ip not in self.connection_ips:
+            self.connection_ips[client_ip] = set()
+        self.connection_ips[client_ip].add(connection_id)
+        
+    def _untrack_connection_ip(self, connection_id: str) -> None:
+        """Remove connection from IP tracking."""
+        for ip, connection_ids in self.connection_ips.items():
+            if connection_id in connection_ids:
+                connection_ids.discard(connection_id)
+                if not connection_ids:
+                    del self.connection_ips[ip]
+                break
 
     async def connect(
         self,
@@ -48,6 +121,22 @@ class ConnectionManager:
         Returns:
             tuple[connection_id, conversation_id]
         """
+        # Check connection limits before accepting
+        if not self._check_connection_limits(websocket):
+            await websocket.close(code=4429, reason="Too many connections")
+            raise ConnectionError("Connection limit exceeded")
+        
+        # Validate inputs before accepting connection
+        if not self._validate_visitor_id(visitor_id):
+            logger.warning(f"Invalid visitor_id format: {visitor_id}")
+            await websocket.close(code=4400, reason="Invalid visitor ID format")
+            raise ValueError("Invalid visitor ID format")
+        
+        if conversation_id and not self._validate_conversation_id(conversation_id):
+            logger.warning(f"Invalid conversation_id format: {conversation_id}")
+            await websocket.close(code=4400, reason="Invalid conversation ID format")
+            raise ValueError("Invalid conversation ID format")
+        
         await websocket.accept()
 
         # Generate unique connection ID
@@ -80,6 +169,9 @@ class ConnectionManager:
         # Store connection mappings
         self.active_connections[connection_id] = websocket
         self.connection_conversations[connection_id] = conversation_id
+        
+        # Track connection by IP
+        self._track_connection_ip(connection_id, websocket)
 
         if conversation_id not in self.conversation_connections:
             self.conversation_connections[conversation_id] = set()
@@ -139,6 +231,9 @@ class ConnectionManager:
                 pass
 
         self.active_connections.pop(connection_id, None)
+        
+        # Untrack connection IP
+        self._untrack_connection_ip(connection_id)
 
         logger.info(f"WebSocket disconnected: connection_id={connection_id}")
 
@@ -259,7 +354,17 @@ class ConnectionManager:
 
         if not content:
             await self.send_personal_message(
-                json.dumps({"error": "Message content required"}),
+                json.dumps({"type": "error", "error": "Message content required"}),
+                connection_id,
+            )
+            return
+
+        # Sanitize content
+        content = self._sanitize_content(content)
+        
+        if not content:
+            await self.send_personal_message(
+                json.dumps({"type": "error", "error": "Invalid message content"}),
                 connection_id,
             )
             return

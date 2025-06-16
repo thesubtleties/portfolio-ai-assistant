@@ -1,12 +1,13 @@
 """WebSocket endpoints for real-time messaging."""
 
 from typing import Optional
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends, Query
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends, Query, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 import redis.asyncio as redis
 from app.core.database import get_db
 from app.core.redis import get_redis
 from app.core.websocket_manager import manager
+from app.core.config import settings
 import logging
 
 logger = logging.getLogger(__name__)
@@ -73,6 +74,13 @@ async def websocket_chat_endpoint(
     
     connection_id = None
     try:
+        # Validate origin before accepting connection
+        origin = websocket.headers.get("origin")
+        if not origin or origin not in settings.cors_origins:
+            logger.warning(f"WebSocket connection rejected - invalid origin: {origin}")
+            await websocket.close(code=4403, reason="Forbidden: Invalid origin")
+            return
+        
         # Connect and get conversation
         connection_id, active_conversation_id = await manager.connect(
             websocket=websocket,

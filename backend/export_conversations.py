@@ -11,7 +11,7 @@ from datetime import datetime
 from pathlib import Path
 
 # Import our models directly since we're in backend now
-from app.core.database import get_db_session
+from app.core.database import AsyncSessionLocal
 from app.models.database import Conversation, Message, Visitor
 from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
@@ -19,14 +19,14 @@ from sqlalchemy.orm import selectinload
 
 async def get_conversation_count():
     """Get total number of conversations"""
-    async with get_db_session() as session:
+    async with AsyncSessionLocal() as session:
         result = await session.execute(select(func.count(Conversation.id)))
         return result.scalar()
 
 
 async def get_conversations(limit: int):
     """Get conversations with their messages, ordered by most recent"""
-    async with get_db_session() as session:
+    async with AsyncSessionLocal() as session:
         # Get conversations with messages and visitor info
         stmt = (
             select(Conversation)

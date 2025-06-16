@@ -6,7 +6,6 @@ import openai
 from openai import AsyncOpenAI
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, text
-import re
 
 from atomic_agents.lib.components.agent_memory import AgentMemory
 from atomic_agents.agents.base_agent import (
@@ -18,6 +17,7 @@ from atomic_agents.lib.base.base_io_schema import BaseIOSchema
 from pydantic import Field
 
 from app.models.database import Visitor, PortfolioContent
+from app.services.security.content_safety_service import ContentSafetyService
 
 
 class PortfolioAgentResponse(BaseIOSchema):
@@ -80,11 +80,11 @@ class PortfolioAgentService:
         # Store conversation agents: {conversation_id: BaseAgent}
         self.conversation_agents = {}
         
-        # Compile content safety patterns
-        self.content_safety_regex = [
-            re.compile(pattern, re.IGNORECASE) 
-            for pattern in settings.content_safety_patterns
-        ]
+        # Initialize content safety service
+        self.content_safety_service = ContentSafetyService(
+            safety_patterns=settings.content_safety_patterns,
+            safety_message=settings.content_safety_message
+        )
 
     def _create_gemini_client(self):
         """Create Gemini client using instructor."""
@@ -106,12 +106,7 @@ class PortfolioAgentService:
         Returns:
             tuple[bool, Optional[str]]: (is_safe, violation_reason)
         """
-        for pattern in self.content_safety_regex:
-            if pattern.search(message):
-                print(f"🚨 [SAFETY] Content filter triggered for message: {message[:100]}...")
-                return False, self.settings.content_safety_message
-        
-        return True, None
+        return self.content_safety_service.check_content_safety(message)
 
     def _get_current_model(self) -> str:
         """Get the current model based on provider."""

@@ -1258,6 +1258,11 @@ class PortfolioAgentService:
         is_safe, safety_message = self._check_content_safety(message)
         if not is_safe:
             print(f"🚨 [SAFETY] Message blocked by content filter")
+            
+            # Send the safety message through the chunk callback if provided
+            if chunk_callback:
+                await chunk_callback(safety_message)
+            
             return PortfolioAgentResponse(
                 response=safety_message,
                 is_off_topic=True,  # Mark as off-topic for rate limiting

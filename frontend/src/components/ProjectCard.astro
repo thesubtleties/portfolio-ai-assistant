@@ -7,6 +7,11 @@ interface Theme {
   background: string;
   cardBorder: string;
   cardGlow: string;
+  accentGradient?: string;
+  light1Color?: string;
+  light2Color?: string;
+  light3Color?: string;
+  light4Color?: string;
 }
 
 interface ProjectProps {
@@ -46,6 +51,19 @@ const themes: Record<string, Theme> = {
     cardBorder: "1px solid #dde5f0",
     cardGlow: "0 8px 24px rgba(58, 100, 145, 0.15)",
     accentGradient: "linear-gradient(135deg, #3a6491, #4a7bb7)"
+  },
+midnightAnalog: {
+    font: "'JetBrains Mono', 'Courier New', monospace",
+    primaryColor: "#F59E0B",
+    secondaryColor: "#F5F5F5",
+    background: "rgba(0, 0, 0, 0.95)",
+    cardBorder: "1px solid rgba(245, 158, 11, 0.3)",
+    cardGlow: "0 0 24px rgba(245, 158, 11, 0.6)",
+    accentGradient: "linear-gradient(135deg, #F59E0B, #B45309)",
+    light1Color: "#F59E0B",
+    light2Color: "#FCD34D",
+    light3Color: "#FF0033",
+    light4Color: "#FFCC00"
   }
 };
 
@@ -344,6 +362,136 @@ const theme = themes[project.id] || {
     100% { background-position: 0% 50%; }
   }
 
+  /* MidnightAnalog Theme */
+  .midnightAnalog-theme {
+    position: relative;
+    transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    background: linear-gradient(to right, white, rgba(200, 200, 200, 0.02));
+    overflow: hidden;
+  }
+
+  .midnightAnalog-theme::before,
+  .midnightAnalog-theme::after {
+    content: '';
+    position: absolute;
+    opacity: 0;
+    transition: opacity 0.6s ease;
+    pointer-events: none;
+  }
+
+  /* LED dot pattern overlay */
+  .midnightAnalog-theme::before {
+    inset: 0;
+    background-image: radial-gradient(circle, var(--light1Color) 0.5px, transparent 1px);
+    background-size: 4px 4px;
+    mix-blend-mode: screen;
+    z-index: 2;
+  }
+
+  /* Moving warm analog lights */
+  .midnightAnalog-theme::after {
+    inset: -50%;
+    background:
+      radial-gradient(circle at 20% 20%, var(--light1Color) 0%, transparent 40%),
+      radial-gradient(circle at 80% 80%, var(--light2Color) 0%, transparent 40%),
+      radial-gradient(circle at 80% 20%, var(--light3Color) 0%, transparent 40%),
+      radial-gradient(circle at 20% 80%, var(--light4Color) 0%, transparent 40%);
+    background-size: 200% 200%;
+    filter: blur(50px);
+    mix-blend-mode: lighten;
+    z-index: 1;
+  }
+
+  .midnightAnalog-theme:hover {
+    background: var(--background);
+    border: var(--cardBorder);
+    box-shadow: var(--cardGlow);
+    position: relative;
+    isolation: isolate;
+  }
+
+  .midnightAnalog-theme:hover::before {
+    opacity: 0.08;
+    animation: analogPulse 4s ease-in-out infinite;
+  }
+
+  .midnightAnalog-theme:hover::after {
+    opacity: 0.25;
+    animation: analogSweep 20s linear infinite;
+  }
+
+  .midnightAnalog-theme:hover .project-content {
+    z-index: 3;
+    position: relative;
+  }
+
+  .midnightAnalog-theme:hover .project-title {
+    color: var(--primaryColor);
+    font-family: var(--font);
+    font-weight: 600;
+    text-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+    letter-spacing: 1px;
+  }
+
+  .midnightAnalog-theme:hover .project-description {
+    color: var(--secondaryColor);
+    font-family: var(--font);
+    opacity: 0.95;
+  }
+
+  .midnightAnalog-theme:hover .tech-tag {
+    background: rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(245, 158, 11, 0.4);
+    color: var(--primaryColor);
+    font-family: var(--font);
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+  }
+
+  .midnightAnalog-theme:hover .tech-tag:hover {
+    background: rgba(0, 0, 0, 0.3);
+    box-shadow: 0 0 8px rgba(245, 158, 11, 0.2);
+  }
+
+  .midnightAnalog-theme:hover .project-link {
+    background: rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(245, 158, 11, 0.5);
+    color: var(--primaryColor);
+    font-family: var(--font);
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 1px;
+  }
+
+  .midnightAnalog-theme:hover .project-link:hover {
+    background: rgba(245, 158, 11, 0.1);
+    border-color: var(--primaryColor);
+    box-shadow: 0 0 10px rgba(245, 158, 11, 0.3);
+  }
+
+  @keyframes analogSweep {
+    0% {
+      transform: rotate(0deg) scale(1);
+    }
+    50% {
+      transform: rotate(180deg) scale(1.2);
+    }
+    100% {
+      transform: rotate(360deg) scale(1);
+    }
+  }
+
+  @keyframes analogPulse {
+    0%, 100% {
+      opacity: 0.1;
+    }
+    50% {
+      opacity: 0.2;
+    }
+  }
+
   @media (max-width: 768px) {
     .project-title {
       font-size: 1.5rem;
@@ -360,6 +508,63 @@ const theme = themes[project.id] || {
 
 
 @media (pointer: coarse) {
+  /* MidnightAnalog Theme */
+  .midnightAnalog-theme {
+    background: var(--background);
+    border: var(--cardBorder);
+    box-shadow: var(--cardGlow);
+  }
+
+  .midnightAnalog-theme::before {
+    opacity: 0.08;
+    animation: analogPulse 4s ease-in-out infinite;
+  }
+
+  .midnightAnalog-theme::after {
+    opacity: 0.25;
+    animation: analogSweep 20s linear infinite;
+  }
+
+  .midnightAnalog-theme .project-content {
+    z-index: 3;
+    position: relative;
+  }
+
+  .midnightAnalog-theme .project-title {
+    color: var(--primaryColor);
+    font-family: var(--font);
+    font-weight: 600;
+    text-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+    letter-spacing: 1px;
+  }
+
+  .midnightAnalog-theme .project-description {
+    color: var(--secondaryColor);
+    font-family: var(--font);
+    opacity: 0.95;
+  }
+
+  .midnightAnalog-theme .tech-tag {
+    background: rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(245, 158, 11, 0.4);
+    color: var(--primaryColor);
+    font-family: var(--font);
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+  }
+
+  .midnightAnalog-theme .project-link {
+    background: rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(245, 158, 11, 0.5);
+    color: var(--primaryColor);
+    font-family: var(--font);
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 1px;
+  }
+
   /* SpookySpot Theme */
   .spookyspot-theme {
     background: var(--background);

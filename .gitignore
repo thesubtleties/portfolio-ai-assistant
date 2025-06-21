@@ -105,3 +105,7 @@ visitor_memory_architecture.md
 tech_debt.md
 /content
 /conversation_exports
+
+# Documentation folders
+frontend/docs/
+backend/docs/

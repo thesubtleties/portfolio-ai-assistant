@@ -1,0 +1,446 @@
+/* Base Project Card Styles */
+.project-card {
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 1px solid var(--color-subtle);
+  display: flex;
+  flex-direction: column;
+  height: 450px;
+}
+
+.project-card:hover {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.project-content {
+  padding: 1.5rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  justify-content: space-between;
+}
+
+.project-title {
+  font-size: 1.5rem;
+  color: var(--color-primary);
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.project-description {
+  color: var(--color-text);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin-bottom: 1rem;
+  flex: 1;
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.tech-stack {
+  display: flex;
+  flex-wrap: wrap-reverse;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.tech-tag {
+  background-color: var(--color-subtle);
+  color: var(--color-primary);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  border: 1px solid var(--color-subtle);
+  font-size: 0.8rem;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  margin: 0;
+}
+
+.tech-tag:hover {
+  margin: -1px 1px 1px -1px; 
+}
+
+.project-links {
+  display: flex;
+  gap: 1rem;
+  margin-top: auto;
+}
+
+.project-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  text-decoration: none;
+}
+
+.project-link.live {
+  background-color: var(--color-primary);
+  border: 1px solid var(--color-subtle);
+  color: white;
+}
+
+.project-link.github {
+  background-color: var(--color-subtle);
+  border: 1px solid var(--color-subtle);
+  color: var(--color-primary);
+}
+
+.project-link:hover {
+  transform: translateY(-2px);
+  border: 1px solid var(--color-subtle);
+}
+
+/* SpookySpot Theme */
+.spookyspot-theme {
+  transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  background: linear-gradient(to right, white, rgba(26, 26, 26, 0.02));
+}
+
+.swiper-slide-active .spookyspot-theme {
+  background: #1a1a1a;
+  border: 1px solid rgb(212, 175, 55, 0.3);
+  box-shadow: 0 0px 24px 2px rgba(255, 130, 0, .7);
+}
+
+.swiper-slide-active .spookyspot-theme .project-title {
+  color: rgb(212, 175, 55);
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  font-size: 1.7rem;
+}
+
+.swiper-slide-active .spookyspot-theme .project-description {
+  color: rgb(169, 169, 169);
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.1rem;
+}
+
+.swiper-slide-active .spookyspot-theme .tech-tag {
+  background: transparent;
+  border: 1px solid rgb(212, 175, 55);
+  color: rgb(212, 175, 55);
+  opacity: 0.8;
+}
+
+.swiper-slide-active .spookyspot-theme .tech-tag:hover {
+  opacity: 1;
+}
+
+.swiper-slide-active .spookyspot-theme .project-link {
+  background: transparent;
+  border: 1px solid rgb(212, 175, 55);
+  color: rgb(212, 175, 55);
+}
+
+.swiper-slide-active .spookyspot-theme .project-link:hover {
+  background: rgb(212, 175, 55);
+  color: #1a1a1a;
+}
+
+/* Atria Theme */
+.atria-theme {
+  transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  background: linear-gradient(to right, white, rgba(214, 152, 219, 0.02));
+}
+
+.swiper-slide-active .atria-theme {
+  background: linear-gradient(-45deg, #d698db, #563ab1, #8831c7, #d6d6d6);
+  background-size: 400% 400%;
+  animation: gradientFlow 15s ease infinite;
+  border: none;
+  box-shadow: 0 8px 24px rgba(215, 131, 255, .7);
+}
+
+.swiper-slide-active .atria-theme .project-title {
+  color: #e4e4e4;
+  font-family: 'M PLUS 2', sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+.swiper-slide-active .atria-theme .project-description {
+  color: #d6d6d6;
+  font-family: 'M PLUS 2', sans-serif;
+}
+
+.swiper-slide-active .atria-theme .tech-tag {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #e4e4e4;
+}
+
+.swiper-slide-active .atria-theme .tech-tag:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.swiper-slide-active .atria-theme .project-link {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #e4e4e4;
+}
+
+.swiper-slide-active .atria-theme .project-link:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* TaskFlow Theme */
+.taskflow-theme {
+  transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  background: linear-gradient(to right, rgba(255, 255, 255, 0.1), rgba(79, 71, 247, 0.02));
+}
+
+.swiper-slide-active .taskflow-theme {
+  background: linear-gradient(135deg, #ffffff 0%, #f0f4f9 100%);
+  border: 1px solid #dde5f0;
+  box-shadow: 0 8px 24px rgba(58, 100, 145, 0.15);
+}
+
+.swiper-slide-active .taskflow-theme .project-title {
+  background: linear-gradient(135deg, #3a6491, #4a7bb7);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-family: 'Times New Roman', serif;
+  font-weight: 800;
+  line-height: 1.1;
+  font-size: 1.9rem;
+}
+
+.swiper-slide-active .taskflow-theme .project-description {
+  color: #405165;
+  font-family: 'Times New Roman', serif;
+  font-size: 1.1rem;
+}
+
+.swiper-slide-active .taskflow-theme .tech-tag {
+  background: #f8f9fa;
+  color: #3a6491;
+  border: 1px solid #e5e7eb;
+}
+
+.swiper-slide-active .taskflow-theme .project-link.live {
+  background: linear-gradient(135deg, #3a6491, #4a7bb7);
+  border: 1px solid #3a6491;
+  color: white;
+  border: none;
+}
+
+.swiper-slide-active .taskflow-theme .project-link.github {
+  background: white;
+  color: #3a6491;
+  border: 1px solid #3a6491;
+}
+
+.swiper-slide-active .taskflow-theme .project-link.github:hover {
+  background: #3a6491;
+  color: white;
+  border: 1px solid #3a6491;
+}
+
+/* MidnightAnalog Theme */
+.midnightAnalog-theme {
+  position: relative;
+  transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  background: linear-gradient(to right, white, rgba(200, 200, 200, 0.02));
+  overflow: hidden;
+}
+
+.midnightAnalog-theme::before,
+.midnightAnalog-theme::after {
+  content: '';
+  position: absolute;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+  pointer-events: none;
+}
+
+/* LED dot pattern overlay */
+.midnightAnalog-theme::before {
+  inset: 0;
+  background-image: radial-gradient(circle, #F59E0B 0.5px, transparent 1px);
+  background-size: 4px 4px;
+  mix-blend-mode: screen;
+  z-index: 2;
+}
+
+/* Moving warm analog lights */
+.midnightAnalog-theme::after {
+  inset: -50%;
+  background:
+    radial-gradient(circle at 20% 20%, #F59E0B 0%, transparent 40%),
+    radial-gradient(circle at 80% 80%, #FCD34D 0%, transparent 40%),
+    radial-gradient(circle at 80% 20%, #FF0033 0%, transparent 40%),
+    radial-gradient(circle at 20% 80%, #FFCC00 0%, transparent 40%);
+  background-size: 200% 200%;
+  filter: blur(50px);
+  mix-blend-mode: lighten;
+  z-index: 1;
+}
+
+.swiper-slide-active .midnightAnalog-theme {
+  background: rgba(0, 0, 0, 0.95);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  box-shadow: 0 0 24px rgba(245, 158, 11, 0.6);
+  position: relative;
+  isolation: isolate;
+}
+
+.swiper-slide-active .midnightAnalog-theme::before {
+  opacity: 0.08;
+  animation: analogPulse 4s ease-in-out infinite;
+}
+
+.swiper-slide-active .midnightAnalog-theme::after {
+  opacity: 0.25;
+  animation: analogSweep 20s linear infinite;
+}
+
+.swiper-slide-active .midnightAnalog-theme .project-content {
+  z-index: 3;
+  position: relative;
+}
+
+.swiper-slide-active .midnightAnalog-theme .project-title {
+  color: #F59E0B;
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  font-weight: 600;
+  text-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+  letter-spacing: 1px;
+}
+
+.swiper-slide-active .midnightAnalog-theme .project-description {
+  color: #F5F5F5;
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  opacity: 0.95;
+}
+
+.swiper-slide-active .midnightAnalog-theme .tech-tag {
+  background: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  color: #F59E0B;
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.5px;
+}
+
+.swiper-slide-active .midnightAnalog-theme .tech-tag:hover {
+  background: rgba(0, 0, 0, 0.3);
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.2);
+}
+
+.swiper-slide-active .midnightAnalog-theme .project-link {
+  background: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(245, 158, 11, 0.5);
+  color: #F59E0B;
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  letter-spacing: 1px;
+}
+
+.swiper-slide-active .midnightAnalog-theme .project-link:hover {
+  background: rgba(245, 158, 11, 0.1);
+  border-color: #F59E0B;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.3);
+}
+
+/* Scale and perspective effect for slides */
+.swiper-slide .project-card {
+  transition: all 0.5s ease;
+}
+
+.swiper-slide-prev .project-card {
+  transform: perspective(1200px) rotateY(25deg) scale(0.85);
+  opacity: 0.6;
+}
+
+.swiper-slide-next .project-card {
+  transform: perspective(1200px) rotateY(-25deg) scale(0.85);
+  opacity: 0.6;
+}
+
+.swiper-slide:not(.swiper-slide-active):not(.swiper-slide-prev):not(.swiper-slide-next) .project-card {
+  transform: scale(0.8);
+  opacity: 0.4;
+}
+
+.swiper-slide-active .project-card {
+  transform: scale(1);
+  opacity: 1;
+  z-index: 2;
+}
+
+/* Allow glow to extend slightly beyond card bounds */
+.swiper-slide-active .project-card {
+  position: relative;
+}
+
+.swiper-slide-active .project-card::before {
+  content: '';
+  position: absolute;
+  inset: -10px;
+  border-radius: 8px;
+  pointer-events: none;
+  z-index: -1;
+}
+
+@keyframes gradientFlow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes analogSweep {
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+  50% {
+    transform: rotate(180deg) scale(1.2);
+  }
+  100% {
+    transform: rotate(360deg) scale(1);
+  }
+}
+
+@keyframes analogPulse {
+  0%, 100% {
+    opacity: 0.1;
+  }
+  50% {
+    opacity: 0.2;
+  }
+}
+
+@media (max-width: 768px) {
+  .project-title {
+    font-size: 1.5rem;
+  }
+
+  .project-description {
+    font-size: 1rem;
+  }
+  .project-card {
+    height: 450px;
+  }
+  
+  /* Reset 3D effects on mobile, just use scale */
+  .swiper-slide-prev .project-card,
+  .swiper-slide-next .project-card {
+    transform: scale(0.85);
+  }
+  
+  .swiper-slide-active .project-card {
+    transform: scale(0.92);
+  }
+}

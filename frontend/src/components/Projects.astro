@@ -1,7 +1,7 @@
 ---
 // Projects.astro
-import ProjectCard from './ProjectCard.astro';
-import FadeIn from '../components/FadeIn';
+import FadeIn from './react/FadeIn';
+import ProjectsCarousel from './react/ProjectsCarousel';
 
 const projects = [
   {
@@ -48,12 +48,8 @@ const projects = [
       <h2 class="section-title">Projects</h2>
     </FadeIn>
     
-    <div class="projects-grid">
-      {projects.map((project, index) => (
-        <FadeIn client:visible delay={0.2 * (index + 1)}>
-          <ProjectCard project={project} />
-        </FadeIn>
-      ))}
+    <div class="projects-carousel-container">
+      <ProjectsCarousel client:visible projects={projects} />
     </div>
   </div>
 </section>
@@ -73,25 +69,125 @@ const projects = [
       margin-bottom: 3rem;
     }
   
-    .projects-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr); 
-      gap: 2rem;
-      padding: 1rem;
+    .projects-carousel-container {
+      width: 100%;
+      padding: 2rem 80px 4rem;
+      min-height: 500px;
+      position: relative;
     }
-    .projects-grid :global(.project-card) {
-    transform-origin: top;
-  }
-  
-    @media (max-width: 1098px) {
-      .projects-grid {
-        grid-template-columns: repeat(2, 1fr);
+    
+    /* Fade out edges */
+    .projects-carousel-container::before,
+    .projects-carousel-container::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 100px;
+      pointer-events: none;
+      z-index: 10;
+    }
+    
+    .projects-carousel-container::before {
+      left: 0;
+      background: linear-gradient(90deg, 
+        var(--color-background) 0%, 
+        transparent 100%
+      );
+    }
+    
+    .projects-carousel-container::after {
+      right: 0;
+      background: linear-gradient(-90deg, 
+        var(--color-background) 0%, 
+        transparent 100%
+      );
+    }
+    
+    @media (max-width: 1200px) {
+      .projects-carousel-container {
+        padding: 2rem 20px 4rem;
       }
+    }
+
+    /* Swiper container styles */
+    :global(.projects-swiper) {
+      width: 100%;
+      padding: 20px 0;
+      overflow: hidden;
+    }
+
+    :global(.projects-swiper .swiper-slide) {
+      height: auto;
+    }
+
+    :global(.projects-swiper .project-card) {
+      height: 450px;
+      width: 100%;
+      margin: 0 auto;
+    }
+    
+    /* Navigation buttons positioned outside */
+    :global(.swiper-button-prev),
+    :global(.swiper-button-next) {
+      color: var(--color-primary);
+      top: 50%;
+      transform: translateY(-50%);
+      width: 44px;
+      height: 44px;
+    }
+    
+    :global(.swiper-button-prev) {
+      left: -60px;
+    }
+    
+    :global(.swiper-button-next) {
+      right: -60px;
+    }
+    
+    :global(.swiper-button-prev::after),
+    :global(.swiper-button-next::after) {
+      font-size: 24px;
+    }
+
+    /* Pagination dots styling */
+    :global(.swiper-pagination) {
+      position: relative;
+      margin-top: 2rem;
+    }
+
+    :global(.swiper-pagination-bullet) {
+      background: var(--color-subtle);
+      opacity: 0.5;
+      width: 8px;
+      height: 8px;
+      transition: all 0.3s ease;
+    }
+
+    :global(.swiper-pagination-bullet-active) {
+      background: var(--color-primary);
+      opacity: 1;
     }
   
     @media (max-width: 768px) {
-      .projects-grid {
-        grid-template-columns: 1fr;
+      :global(.swiper-button-prev),
+      :global(.swiper-button-next) {
+        display: none;
+      }
+      
+      /* Allow some padding for glow on mobile */
+      .projects-carousel-container {
+        padding: 2rem 15px 4rem;
+      }
+      
+      :global(.projects-swiper) {
+        padding: 20px 5px;
+      }
+      
+      /* Hide edge fades on mobile */
+      .projects-carousel-container::before,
+      .projects-carousel-container::after {
+        display: none;
       }
     }
   </style>

@@ -37,7 +37,7 @@ const projects = [
     description: "Modern music artist website with headless CMS. Features a unique Club LED Wall visual effect system, creating immersive analog-inspired visuals with dynamic content management.",
     tech: ["Next.js", "TypeScript", "Tailwind CSS", "React"],
     liveLink: "https://itshillshouse.sbtl.dev",
-    githubLink: "#"
+    // githubLink not provided - private repository
   }
 ];
 ---
@@ -157,8 +157,8 @@ const projects = [
     }
 
     :global(.swiper-pagination-bullet) {
-      background: var(--color-subtle);
-      opacity: 0.5;
+      background: var(--color-accent);
+      opacity: 0.6;
       width: 8px;
       height: 8px;
       transition: all 0.3s ease;
@@ -167,6 +167,8 @@ const projects = [
     :global(.swiper-pagination-bullet-active) {
       background: var(--color-primary);
       opacity: 1;
+      width: 10px;
+      height: 10px;
     }
   
     @media (max-width: 768px) {

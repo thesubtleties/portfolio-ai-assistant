@@ -434,13 +434,8 @@
     height: 450px;
   }
   
-  /* Reset 3D effects on mobile, just use scale */
-  .swiper-slide-prev .project-card,
-  .swiper-slide-next .project-card {
-    transform: scale(0.85);
-  }
-  
-  .swiper-slide-active .project-card {
-    transform: scale(0.92);
+  /* Keep all cards same size on mobile */
+  .swiper-slide .project-card {
+    transform: scale(0.92) !important;
   }
 }

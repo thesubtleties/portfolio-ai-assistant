@@ -177,13 +177,15 @@ const projects = [
         display: none;
       }
       
-      /* Allow some padding for glow on mobile */
+      /* Full width container on mobile to allow glow to edge of screen */
       .projects-carousel-container {
-        padding: 2rem 15px 4rem;
+        width: 100vw;
+        margin-left: calc(-50vw + 50%);
+        padding: 2rem 0 4rem;
       }
       
       :global(.projects-swiper) {
-        padding: 20px 5px;
+        padding: 20px 0;
       }
       
       /* Hide edge fades on mobile */

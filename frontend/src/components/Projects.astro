@@ -206,4 +206,25 @@ const projects = [
         display: none;
       }
     }
+
+    /* Responsive scaling for laptop screens with limited height */
+    @media (max-height: 900px) and (min-width: 768px) {
+      .section-title {
+        font-size: clamp(2rem, 4vh, 3rem);
+        margin-bottom: clamp(1.5rem, 3vh, 3rem);
+      }
+
+      .projects-carousel-container {
+        padding: clamp(1rem, 2vh, 2rem) 80px clamp(2rem, 4vh, 4rem);
+        min-height: clamp(350px, 50vh, 500px);
+      }
+
+      :global(.projects-swiper .project-card) {
+        height: clamp(350px, 50vh, 450px);
+      }
+
+      :global(.swiper-pagination) {
+        margin-top: clamp(1rem, 2vh, 2rem);
+      }
+    }
   </style>

@@ -412,6 +412,84 @@ import FadeIn from './react/FadeIn';
       margin-bottom: 1.5rem;
     }
   }
+
+  /* Responsive scaling for laptop screens with limited height */
+  @media (max-height: 900px) and (min-width: 768px) {
+    .about-header {
+      margin-bottom: clamp(1.5rem, 4vh, 3rem);
+    }
+
+    .name {
+      font-size: clamp(2.5rem, 5vh, 3.5rem);
+      margin-bottom: clamp(0.8rem, 2vh, 1.2rem);
+    }
+
+    .contact-links {
+      gap: clamp(1rem, 2vh, 1.5rem);
+    }
+
+    .icon-link svg {
+      width: clamp(20px, 3vh, 24px);
+      height: clamp(20px, 3vh, 24px);
+    }
+
+    .resume-link {
+      font-size: clamp(0.85rem, 1.5vh, 0.95rem);
+    }
+
+    .content-section {
+      gap: clamp(1.5rem, 3vh, 2.5rem);
+    }
+
+    .highlight-text {
+      font-size: clamp(1rem, 2vh, 1.2rem);
+      line-height: 1.5;
+    }
+
+    .skills-container {
+      gap: clamp(1.2rem, 2.5vh, 2rem);
+      margin: clamp(1.2rem, 2.5vh, 2rem) 0;
+    }
+
+    .skills-group h3 {
+      font-size: clamp(0.95rem, 2vh, 1.1rem);
+      margin-bottom: clamp(0.6rem, 1.5vh, 1rem);
+    }
+
+    .skills-list {
+      gap: clamp(0.3rem, 0.8vh, 0.5rem);
+    }
+
+    .skill-tag {
+      padding: clamp(0.3rem, 0.6vh, 0.4rem) clamp(0.6rem, 1.2vh, 0.8rem);
+      font-size: clamp(0.8rem, 1.5vh, 0.9rem);
+    }
+
+    .background-highlight {
+      font-size: clamp(0.95rem, 2vh, 1.1rem);
+      padding: clamp(1.2rem, 2.5vh, 2rem);
+      line-height: 1.5;
+    }
+
+    .tab-navigation {
+      margin-bottom: clamp(1.2rem, 2.5vh, 2rem);
+    }
+
+    .tab-button {
+      padding: clamp(0.4rem, 0.8vh, 0.5rem) clamp(1rem, 2vh, 1.2rem);
+      font-size: clamp(0.85rem, 1.5vh, 0.95rem);
+    }
+
+    .journey-text {
+      font-size: clamp(0.95rem, 2vh, 1.1rem);
+      margin-bottom: clamp(1.2rem, 2.5vh, 2rem);
+    }
+
+    .tab-panel,
+    .tab-panel.active {
+      min-height: clamp(400px, 60vh, 600px);
+    }
+  }
 </style>
 
 <script>

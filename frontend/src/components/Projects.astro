@@ -42,7 +42,7 @@ const projects = [
 ];
 ---
 
-<section id="projects" class="min-h-screen flex items-center justify-center px-4 py-16">
+<section id="projects" class="projects-section min-h-screen flex items-center justify-center px-4 py-16">
   <div class="projects-container">
     <FadeIn client:visible>
       <h2 class="section-title">Projects</h2>
@@ -172,16 +172,28 @@ const projects = [
     }
   
     @media (max-width: 768px) {
+      /* Adjust section padding for better vertical centering */
+      .projects-section {
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+      }
+      
       :global(.swiper-button-prev),
       :global(.swiper-button-next) {
         display: none;
+      }
+      
+      /* Reduce title margin on mobile */
+      .section-title {
+        margin-bottom: 1.5rem;
+        font-size: 2.5rem;
       }
       
       /* Full width container on mobile to allow glow to edge of screen */
       .projects-carousel-container {
         width: 100vw;
         margin-left: calc(-50vw + 50%);
-        padding: 2rem 0 4rem;
+        padding: 1rem 0 2rem;  /* Reduced padding */
       }
       
       :global(.projects-swiper) {

@@ -59,6 +59,9 @@ const LenisScroll: React.FC<LenisScrollProps> = ({ enableCarouselScroll = true }
     }
     requestAnimationFrame(raf);
 
+    // Track if we're locked in carousel
+    let carouselLocked = false;
+
     // Handle carousel scroll interception
     const handleWheel = (e: WheelEvent) => {
       if (!enableCarouselScroll) return;
@@ -72,9 +75,6 @@ const LenisScroll: React.FC<LenisScrollProps> = ({ enableCarouselScroll = true }
       const inProjectsView = rect.top <= navbarHeight && rect.bottom >= window.innerHeight - 100;
 
       if (inProjectsView) {
-        // Prevent Lenis from scrolling
-        lenis.stop();
-        
         // Find swiper instance
         const swiperElement = projectsSection.querySelector('.projects-swiper');
         if (!swiperElement) return;
@@ -82,43 +82,44 @@ const LenisScroll: React.FC<LenisScrollProps> = ({ enableCarouselScroll = true }
         const swiper = (swiperElement as any).swiper;
         if (!swiper) return;
 
+        const scrollDirection = e.deltaY > 0 ? 'down' : 'up';
+        
+        // Check if we should exit carousel mode
+        if ((scrollDirection === 'down' && swiper.isEnd) || 
+            (scrollDirection === 'up' && swiper.isBeginning)) {
+          // We're at the edge, allow normal scrolling to continue
+          if (carouselLocked) {
+            carouselLocked = false;
+            lenis.start();
+          }
+          return;
+        }
+        
+        // We're in carousel mode
+        if (!carouselLocked) {
+          carouselLocked = true;
+          lenis.stop();
+        }
+
         // Throttle carousel navigation
         const now = Date.now();
         if (now - lastScrollTime.current < 600) return; // 600ms throttle
         
-        const scrollDirection = e.deltaY > 0 ? 'down' : 'up';
-        
         if (scrollDirection === 'down') {
-          if (swiper.isEnd) {
-            // At last slide, resume Lenis and scroll to next section
-            lenis.start();
-            const contactSection = document.getElementById('contact');
-            if (contactSection) {
-              lenis.scrollTo(contactSection, { offset: 0 });
-            }
-          } else {
-            swiper.slideNext();
-            lastScrollTime.current = now;
-          }
+          swiper.slideNext();
         } else {
-          if (swiper.isBeginning) {
-            // At first slide, resume Lenis and scroll to previous section
-            lenis.start();
-            const aboutSection = document.getElementById('about');
-            if (aboutSection) {
-              lenis.scrollTo(aboutSection, { offset: 0 });
-            }
-          } else {
-            swiper.slidePrev();
-            lastScrollTime.current = now;
-          }
+          swiper.slidePrev();
         }
+        lastScrollTime.current = now;
         
         e.preventDefault();
         e.stopPropagation();
       } else {
-        // Not in carousel, ensure Lenis is running
-        lenis.start();
+        // Not in carousel view
+        if (carouselLocked) {
+          carouselLocked = false;
+          lenis.start();
+        }
       }
     };
 

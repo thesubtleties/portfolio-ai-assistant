@@ -253,6 +253,8 @@ class PortfolioAgentService:
         message: str,
         chunk_callback=None,
         is_mobile: bool = False,
+        viewport_height: int = 0,
+        is_laptop_screen: bool = False,
     ) -> PortfolioAgentResponse:
         """Handle a chat message with streaming response using atomic-agents."""
         import time
@@ -298,6 +300,11 @@ class PortfolioAgentService:
                 f"📱 [MOBILE] Mobile device detected - requesting concise response"
             )
             message_with_context += "\n\n[MOBILE CONTEXT: User is on mobile device - keep response extra concise (2-3 lines max for general questions or a SHORT list of concise bullet points)]"
+        elif is_laptop_screen:
+            print(
+                f"💻 [LAPTOP] Laptop/MacBook screen detected (height: {viewport_height}px) - requesting shorter response"
+            )
+            message_with_context += f"\n\n[LAPTOP CONTEXT: User is on a laptop/MacBook with limited screen height ({viewport_height}px). Keep responses moderately concise - aim for 4-6 lines max for general questions, or a SHORT list of concise bullet points. Avoid lengthy explanations.]"
         else:
             print(f"🖥️  [DESKTOP] Desktop device - normal response length")
 

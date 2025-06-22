@@ -132,11 +132,17 @@ const ChatManager: React.FC<ChatManagerProps> = ({
       try {
         // Detect if we're on mobile (width < 999px)
         const isMobile = window.innerWidth < 999;
+        
+        // Detect if we're on a laptop/MacBook with limited height
+        const viewportHeight = window.innerHeight;
+        const isLaptopScreen = !isMobile && viewportHeight <= 900;
 
         const messageData = {
           type: 'user_message',
           content: message,
           is_mobile: isMobile,
+          viewport_height: viewportHeight,
+          is_laptop_screen: isLaptopScreen,
         };
 
         wsRef.current.send(JSON.stringify(messageData));

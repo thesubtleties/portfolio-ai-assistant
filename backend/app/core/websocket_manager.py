@@ -351,6 +351,8 @@ class ConnectionManager:
 
         content = message_data.get("content", "").strip()
         is_mobile = message_data.get("is_mobile", False)  # Extract mobile flag
+        viewport_height = message_data.get("viewport_height", 0)  # Extract viewport height
+        is_laptop_screen = message_data.get("is_laptop_screen", False)  # Extract laptop screen flag
 
         if not content:
             await self.send_personal_message(
@@ -485,6 +487,8 @@ class ConnectionManager:
                 message=content,
                 chunk_callback=send_chunk,
                 is_mobile=is_mobile,
+                viewport_height=viewport_height,
+                is_laptop_screen=is_laptop_screen,
             )
 
             ai_response = agent_response.response

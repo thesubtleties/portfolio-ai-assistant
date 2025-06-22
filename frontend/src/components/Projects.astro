@@ -210,7 +210,8 @@ const projects = [
     /* Responsive scaling for laptop screens with limited height */
     @media (max-height: 900px) and (min-width: 768px) {
       .section-title {
-        font-size: clamp(2rem, 4vh, 3rem);
+        /* Keep original size for Projects title */
+        font-size: 3rem;
         margin-bottom: clamp(1.5rem, 3vh, 3rem);
       }
 

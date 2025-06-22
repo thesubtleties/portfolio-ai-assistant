@@ -32,7 +32,7 @@ section {
   /* For laptop screens with limited height */
   section {
     min-height: auto; /* Let content determine height */
-    padding-top: calc(var(--navbar-height) + 2rem); /* Account for fixed navbar */
+    padding-top: 2rem; /* Normal padding - scroll-padding-top handles navbar offset */
   }
   
   /* Remove vertical centering on short screens */
@@ -60,6 +60,7 @@ section {
 html {
   scroll-behavior: smooth;
   font-size: 16px;
+  scroll-padding-top: var(--navbar-height); /* Account for fixed navbar when scrolling */
 }
 
 body {

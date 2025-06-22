@@ -137,6 +137,12 @@ const LenisScroll: React.FC<LenisScrollProps> = ({ enableCarouselScroll = true }
         e.preventDefault();
         const href = anchor.getAttribute('href');
         if (href && href !== '#') {
+          // Exit carousel mode if we're in it
+          if (carouselLocked) {
+            carouselLocked = false;
+            lenis.start();
+          }
+          
           const targetElement = document.querySelector(href);
           if (targetElement) {
             lenis.scrollTo(targetElement as HTMLElement, { offset: 0 });

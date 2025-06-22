@@ -62,6 +62,15 @@ html {
   scroll-behavior: smooth;
   font-size: 16px;
   scroll-padding-top: var(--navbar-height); /* Account for fixed navbar when scrolling */
+  
+  /* Hide scrollbar for all browsers */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* Internet Explorer and Edge */
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+html::-webkit-scrollbar {
+  display: none;
 }
 
 body {

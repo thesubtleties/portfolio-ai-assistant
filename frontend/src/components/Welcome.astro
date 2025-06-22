@@ -1,17 +1,14 @@
 ---
-import SmoothScroll from "./react/SmoothScroll"
+import LenisScroll from "./react/LenisScroll"
 import TerminalInterface from "./terminal/TerminalInterface"
 
 ---
 
 <section id="home" class="min-h-screen flex items-center justify-center">
   <TerminalInterface client:load />
-  <SmoothScroll 
+  <LenisScroll 
     client:load
-    scrollSensitivity={15}    
-    debounceTime={30}         
-    scrollThreshold={40}      
-    animationDuration={800}  
+    enableCarouselScroll={true}
   />
 </section>
 <style is:global>

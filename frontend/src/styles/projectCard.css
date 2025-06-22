@@ -59,7 +59,7 @@
 }
 
 .tech-tag:hover {
-  margin: -1px 1px 1px -1px; 
+  margin: -1px 1px 1px -1px;
 }
 
 .project-links {
@@ -105,7 +105,7 @@
 .swiper-slide-active .spookyspot-theme {
   background: #1a1a1a;
   border: 1px solid rgb(212, 175, 55, 0.3);
-  box-shadow: 0 0px 24px 2px rgba(255, 130, 0, .7);
+  box-shadow: 0 0px 24px 2px rgba(255, 130, 0, 0.7);
 }
 
 .swiper-slide-active .spookyspot-theme .project-title {
@@ -155,7 +155,7 @@
   background-size: 400% 400%;
   animation: gradientFlow 15s ease infinite;
   border: none;
-  box-shadow: 0 8px 24px rgba(215, 131, 255, .7);
+  box-shadow: 0 8px 24px rgba(215, 131, 255, 0.7);
 }
 
 .swiper-slide-active .atria-theme .project-title {
@@ -196,7 +196,11 @@
 /* TaskFlow Theme */
 .taskflow-theme {
   transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-  background: linear-gradient(to right, rgba(255, 255, 255, 0.1), rgba(79, 71, 247, 0.02));
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0.1),
+    rgba(79, 71, 247, 0.02)
+  );
 }
 
 .swiper-slide-active .taskflow-theme {
@@ -266,7 +270,7 @@
 /* LED dot pattern overlay */
 .midnightAnalog-theme::before {
   inset: 0;
-  background-image: radial-gradient(circle, #F59E0B 0.5px, transparent 1px);
+  background-image: radial-gradient(circle, #f59e0b 0.5px, transparent 1px);
   background-size: 4px 4px;
   mix-blend-mode: screen;
   z-index: 2;
@@ -275,11 +279,10 @@
 /* Moving warm analog lights */
 .midnightAnalog-theme::after {
   inset: -50%;
-  background:
-    radial-gradient(circle at 20% 20%, #F59E0B 0%, transparent 40%),
-    radial-gradient(circle at 80% 80%, #FCD34D 0%, transparent 40%),
-    radial-gradient(circle at 80% 20%, #FF0033 0%, transparent 40%),
-    radial-gradient(circle at 20% 80%, #FFCC00 0%, transparent 40%);
+  background: radial-gradient(circle at 20% 20%, #f59e0b 0%, transparent 40%),
+    radial-gradient(circle at 80% 80%, #fcd34d 0%, transparent 40%),
+    radial-gradient(circle at 80% 20%, #ff0033 0%, transparent 40%),
+    radial-gradient(circle at 20% 80%, #ffcc00 0%, transparent 40%);
   background-size: 200% 200%;
   filter: blur(50px);
   mix-blend-mode: lighten;
@@ -310,7 +313,7 @@
 }
 
 .swiper-slide-active .midnightAnalog-theme .project-title {
-  color: #F59E0B;
+  color: #f59e0b;
   font-family: 'JetBrains Mono', 'Courier New', monospace;
   font-weight: 600;
   text-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
@@ -318,7 +321,7 @@
 }
 
 .swiper-slide-active .midnightAnalog-theme .project-description {
-  color: #F5F5F5;
+  color: #f5f5f5;
   font-family: 'JetBrains Mono', 'Courier New', monospace;
   opacity: 0.95;
 }
@@ -327,7 +330,7 @@
   background: rgba(0, 0, 0, 0.2);
   backdrop-filter: blur(8px);
   border: 1px solid rgba(245, 158, 11, 0.4);
-  color: #F59E0B;
+  color: #f59e0b;
   font-family: 'JetBrains Mono', 'Courier New', monospace;
   font-size: 0.75rem;
   letter-spacing: 0.5px;
@@ -342,7 +345,7 @@
   background: rgba(0, 0, 0, 0.2);
   backdrop-filter: blur(8px);
   border: 1px solid rgba(245, 158, 11, 0.5);
-  color: #F59E0B;
+  color: #f59e0b;
   font-family: 'JetBrains Mono', 'Courier New', monospace;
   text-transform: uppercase;
   font-size: 0.8rem;
@@ -351,7 +354,7 @@
 
 .swiper-slide-active .midnightAnalog-theme .project-link:hover {
   background: rgba(245, 158, 11, 0.1);
-  border-color: #F59E0B;
+  border-color: #f59e0b;
   box-shadow: 0 0 10px rgba(245, 158, 11, 0.3);
 }
 
@@ -370,7 +373,10 @@
   opacity: 0.6;
 }
 
-.swiper-slide:not(.swiper-slide-active):not(.swiper-slide-prev):not(.swiper-slide-next) .project-card {
+.swiper-slide:not(.swiper-slide-active):not(.swiper-slide-prev):not(
+    .swiper-slide-next
+  )
+  .project-card {
   transform: scale(0.8);
   opacity: 0.4;
 }
@@ -396,9 +402,15 @@
 }
 
 @keyframes gradientFlow {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 @keyframes analogSweep {
@@ -414,7 +426,8 @@
 }
 
 @keyframes analogPulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0.1;
   }
   50% {
@@ -433,9 +446,176 @@
   .project-card {
     height: 450px;
   }
-  
+
   /* Keep all cards same size on mobile */
   .swiper-slide .project-card {
     transform: scale(0.92) !important;
+    opacity: 1 !important; /* No fade effect on mobile */
+  }
+
+  /* Force active styles on all slides on mobile to prevent jumping */
+  /* Apply all theme styles regardless of active state */
+
+  /* SpookySpot - Apply active styles to all slides */
+  .swiper-slide .spookyspot-theme {
+    background: #1a1a1a !important;
+    border: 1px solid rgb(212, 175, 55, 0.3) !important;
+    box-shadow: 0 0px 24px 2px rgba(255, 130, 0, 0.7) !important;
+  }
+
+  .swiper-slide .spookyspot-theme .project-title {
+    color: rgb(212, 175, 55) !important;
+    font-family: 'Cormorant Garamond', serif !important;
+    font-weight: 500 !important;
+    letter-spacing: 0.5px !important;
+    font-size: 1.7rem !important;
+  }
+
+  .swiper-slide .spookyspot-theme .project-description {
+    color: rgb(169, 169, 169) !important;
+    font-family: 'Cormorant Garamond', serif !important;
+    font-size: 1.1rem !important;
+  }
+  
+  .swiper-slide .spookyspot-theme .tech-tag {
+    background: transparent !important;
+    border: 1px solid rgb(212, 175, 55) !important;
+    color: rgb(212, 175, 55) !important;
+    opacity: 0.8 !important;
+  }
+  
+  .swiper-slide .spookyspot-theme .project-link {
+    background: transparent !important;
+    border: 1px solid rgb(212, 175, 55) !important;
+    color: rgb(212, 175, 55) !important;
+  }
+
+  /* TaskFlow - Apply active styles to all slides */
+  .swiper-slide .taskflow-theme {
+    background: linear-gradient(135deg, #ffffff 0%, #f0f4f9 100%) !important;
+    border: 1px solid #dde5f0 !important;
+    box-shadow: 0 8px 24px rgba(58, 100, 145, 0.15) !important;
+  }
+
+  .swiper-slide .taskflow-theme .project-title {
+    background: linear-gradient(135deg, #3a6491, #4a7bb7) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    font-family: 'Times New Roman', serif !important;
+    font-weight: 800 !important;
+    line-height: 1.1 !important;
+    font-size: 1.9rem !important;
+  }
+
+  .swiper-slide .taskflow-theme .project-description {
+    color: #405165 !important;
+    font-family: 'Times New Roman', serif !important;
+    font-size: 1.1rem !important;
+  }
+  
+  .swiper-slide .taskflow-theme .tech-tag {
+    background: #f8f9fa !important;
+    color: #3a6491 !important;
+    border: 1px solid #e5e7eb !important;
+  }
+  
+  .swiper-slide .taskflow-theme .project-link.live {
+    background: linear-gradient(135deg, #3a6491, #4a7bb7) !important;
+    border: 1px solid #3a6491 !important;
+    color: white !important;
+  }
+  
+  .swiper-slide .taskflow-theme .project-link.github {
+    background: white !important;
+    color: #3a6491 !important;
+    border: 1px solid #3a6491 !important;
+  }
+
+  /* Atria - Apply active styles to all slides */
+  .swiper-slide .atria-theme {
+    background: linear-gradient(-45deg, #d698db, #563ab1, #8831c7, #d6d6d6);
+    background-size: 400% 400%;
+    animation: gradientFlow 15s ease infinite !important;
+    border: none !important;
+    box-shadow: 0 8px 24px rgba(215, 131, 255, 0.7) !important;
+  }
+
+  .swiper-slide .atria-theme .project-title {
+    color: #e4e4e4 !important;
+    font-family: 'M PLUS 2', sans-serif !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.02em !important;
+    filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.3)) !important;
+  }
+
+  .swiper-slide .atria-theme .project-description {
+    color: #d6d6d6 !important;
+    font-family: 'M PLUS 2', sans-serif !important;
+  }
+  
+  .swiper-slide .atria-theme .tech-tag {
+    background: rgba(255, 255, 255, 0.1) !important;
+    backdrop-filter: blur(8px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    color: #e4e4e4 !important;
+  }
+  
+  .swiper-slide .atria-theme .project-link {
+    background: rgba(255, 255, 255, 0.1) !important;
+    backdrop-filter: blur(8px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    color: #e4e4e4 !important;
+  }
+
+  /* MidnightAnalog - Apply active styles to all slides */
+  .swiper-slide .midnightAnalog-theme {
+    background: rgba(0, 0, 0, 0.95) !important;
+    border: 1px solid rgba(245, 158, 11, 0.3) !important;
+    box-shadow: 0 0 24px rgba(245, 158, 11, 0.6) !important;
+  }
+
+  .swiper-slide .midnightAnalog-theme::before {
+    opacity: 0.08 !important;
+    animation: analogPulse 4s ease-in-out infinite !important;
+  }
+
+  .swiper-slide .midnightAnalog-theme::after {
+    opacity: 0.25 !important;
+    animation: analogSweep 12s linear infinite !important;
+  }
+
+  .swiper-slide .midnightAnalog-theme .project-title {
+    color: #f59e0b !important;
+    font-family: 'JetBrains Mono', 'Courier New', monospace !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.5px !important;
+    text-shadow: 0 0 10px rgba(245, 158, 11, 0.6) !important;
+  }
+
+  .swiper-slide .midnightAnalog-theme .project-description {
+    color: #f5f5f5 !important;
+    font-family: 'JetBrains Mono', 'Courier New', monospace !important;
+    opacity: 0.9 !important;
+  }
+  
+  .swiper-slide .midnightAnalog-theme .tech-tag {
+    background: rgba(0, 0, 0, 0.2) !important;
+    backdrop-filter: blur(8px) !important;
+    border: 1px solid rgba(245, 158, 11, 0.4) !important;
+    color: #f59e0b !important;
+    font-family: 'JetBrains Mono', 'Courier New', monospace !important;
+    font-size: 0.75rem !important;
+    letter-spacing: 0.5px !important;
+  }
+  
+  .swiper-slide .midnightAnalog-theme .project-link {
+    background: rgba(0, 0, 0, 0.2) !important;
+    backdrop-filter: blur(8px) !important;
+    border: 1px solid rgba(245, 158, 11, 0.5) !important;
+    color: #f59e0b !important;
+    font-family: 'JetBrains Mono', 'Courier New', monospace !important;
+    text-transform: uppercase !important;
+    font-size: 0.8rem !important;
+    letter-spacing: 1px !important;
   }
 }

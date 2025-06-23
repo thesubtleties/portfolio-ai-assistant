@@ -16,8 +16,9 @@ const LenisScroll: React.FC<LenisScrollProps> = ({ enableCarouselScroll = true }
     // Detect Safari browser
     const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
     
-    // Detect laptop/desktop screens (including MacBook Pros)
-    const isLaptopOrDesktop = window.innerWidth >= 1000;
+    // Detect laptop screens (not large desktops)
+    // Laptops typically have width 1000-1600px and height <= 1080px
+    const isLaptop = window.innerWidth >= 1000 && window.innerWidth <= 1600 && window.innerHeight <= 1080;
     
     // Initialize Lenis only for desktop
     if (isMobile) {
@@ -129,8 +130,8 @@ const LenisScroll: React.FC<LenisScrollProps> = ({ enableCarouselScroll = true }
       }
     };
 
-    // Add wheel listener for carousel control (only on mobile/tablets)
-    if (enableCarouselScroll && !isLaptopOrDesktop) {
+    // Add wheel listener for carousel control (not on laptops due to trackpad issues)
+    if (enableCarouselScroll && !isLaptop) {
       window.addEventListener('wheel', handleWheel, { passive: false });
     }
 

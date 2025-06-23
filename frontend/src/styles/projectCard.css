@@ -619,3 +619,69 @@
     letter-spacing: 1px !important;
   }
 }
+
+/* Safari-specific fixes - static font sizes and families to prevent jumps */
+@supports (-webkit-appearance: none) and (not (-ms-ime-align: auto)) and (not (translate: none)) {
+  @media (min-width: 1000px) {
+  /* Keep font properties static for all cards - no transitions on these properties */
+  .project-title,
+  .project-description {
+    transition: color 0.5s cubic-bezier(0.16, 1, 0.3, 1), 
+                background 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+                filter 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+                text-shadow 0.5s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  }
+  
+  /* SpookySpot - static font properties */
+  .spookyspot-theme .project-title {
+    font-family: 'Cormorant Garamond', serif !important;
+    font-size: 1.7rem !important;
+    font-weight: 500 !important;
+    letter-spacing: 0.5px !important;
+  }
+  
+  .spookyspot-theme .project-description {
+    font-family: 'Cormorant Garamond', serif !important;
+    font-size: 1.1rem !important;
+  }
+  
+  /* Atria - static font properties */
+  .atria-theme .project-title {
+    font-family: 'M PLUS 2', sans-serif !important;
+    font-size: 1.5rem !important; /* Keep base size to prevent jump */
+    font-weight: 700 !important;
+    letter-spacing: -0.02em !important;
+  }
+  
+  .atria-theme .project-description {
+    font-family: 'M PLUS 2', sans-serif !important;
+    font-size: 0.95rem !important; /* Keep base size */
+  }
+  
+  /* TaskFlow - static font properties */
+  .taskflow-theme .project-title {
+    font-family: 'Times New Roman', serif !important;
+    font-size: 1.9rem !important;
+    font-weight: 800 !important;
+    line-height: 1.1 !important;
+  }
+  
+  .taskflow-theme .project-description {
+    font-family: 'Times New Roman', serif !important;
+    font-size: 1.1rem !important;
+  }
+  
+  /* MidnightAnalog - static font properties */
+  .midnightAnalog-theme .project-title {
+    font-family: 'JetBrains Mono', 'Courier New', monospace !important;
+    font-size: 1.5rem !important; /* Keep base size */
+    font-weight: 600 !important;
+    letter-spacing: 1px !important;
+  }
+  
+  .midnightAnalog-theme .project-description {
+    font-family: 'JetBrains Mono', 'Courier New', monospace !important;
+    font-size: 0.95rem !important; /* Keep base size */
+  }
+  }
+}

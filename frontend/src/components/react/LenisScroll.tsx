@@ -16,6 +16,9 @@ const LenisScroll: React.FC<LenisScrollProps> = ({ enableCarouselScroll = true }
     // Detect Safari browser
     const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
     
+    // Detect laptop/desktop screens (including MacBook Pros)
+    const isLaptopOrDesktop = window.innerWidth >= 1000;
+    
     // Initialize Lenis only for desktop
     if (isMobile) {
       // For mobile, just handle anchor links
@@ -106,7 +109,7 @@ const LenisScroll: React.FC<LenisScrollProps> = ({ enableCarouselScroll = true }
 
         // Throttle carousel navigation
         const now = Date.now();
-        if (now - lastScrollTime.current < 600) return; // 600ms throttle
+        if (now - lastScrollTime.current < 800) return; // 800ms throttle to prevent double slides
         
         if (scrollDirection === 'down') {
           swiper.slideNext();
@@ -126,8 +129,8 @@ const LenisScroll: React.FC<LenisScrollProps> = ({ enableCarouselScroll = true }
       }
     };
 
-    // Add wheel listener for carousel control (but not on Safari)
-    if (enableCarouselScroll && !isSafari) {
+    // Add wheel listener for carousel control (only on mobile/tablets)
+    if (enableCarouselScroll && !isLaptopOrDesktop) {
       window.addEventListener('wheel', handleWheel, { passive: false });
     }
 

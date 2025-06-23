@@ -13,6 +13,9 @@ const LenisScroll: React.FC<LenisScrollProps> = ({ enableCarouselScroll = true }
     // Check if we're on mobile
     const isMobile = window.innerWidth <= 999;
     
+    // Detect Safari browser
+    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+    
     // Initialize Lenis only for desktop
     if (isMobile) {
       // For mobile, just handle anchor links
@@ -123,8 +126,8 @@ const LenisScroll: React.FC<LenisScrollProps> = ({ enableCarouselScroll = true }
       }
     };
 
-    // Add wheel listener for carousel control
-    if (enableCarouselScroll) {
+    // Add wheel listener for carousel control (but not on Safari)
+    if (enableCarouselScroll && !isSafari) {
       window.addEventListener('wheel', handleWheel, { passive: false });
     }
 

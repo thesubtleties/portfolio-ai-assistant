@@ -5,28 +5,33 @@ interface LenisScrollProps {
   enableCarouselScroll?: boolean;
 }
 
-const LenisScroll: React.FC<LenisScrollProps> = ({ enableCarouselScroll = true }) => {
+const LenisScroll: React.FC<LenisScrollProps> = ({
+  enableCarouselScroll = true,
+}) => {
   const lenisRef = useRef<Lenis | null>(null);
   const lastScrollTime = useRef<number>(0);
 
   useEffect(() => {
     // Check if we're on mobile
     const isMobile = window.innerWidth <= 999;
-    
+
     // Detect Safari browser
     const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-    
+
     // Detect laptop screens (not large desktops)
     // Laptops typically have width 1000-1600px and height <= 1080px
-    const isLaptop = window.innerWidth >= 1000 && window.innerWidth <= 1600 && window.innerHeight <= 1080;
-    
+    const isLaptop =
+      window.innerWidth >= 1000 &&
+      window.innerWidth <= 1600 &&
+      window.innerHeight <= 1080;
+
     // Initialize Lenis only for desktop
     if (isMobile) {
       // For mobile, just handle anchor links
       const handleAnchorClick = (e: MouseEvent) => {
         const target = e.target as HTMLElement;
         const anchor = target.closest('a[href^="#"]');
-        
+
         if (anchor) {
           e.preventDefault();
           const href = anchor.getAttribute('href');
@@ -47,12 +52,13 @@ const LenisScroll: React.FC<LenisScrollProps> = ({ enableCarouselScroll = true }
 
     // Desktop Lenis setup
     const lenis = new Lenis({
-      duration: 1.2,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      duration: 0.6,
+      easing: (t) => 1 - Math.pow(1 - t, 3), // Cubic ease-out (iPhone-style)
+      lerp: 0.1,
       orientation: 'vertical',
       gestureOrientation: 'vertical',
       smoothWheel: true,
-      wheelMultiplier: 0.8,
+      wheelMultiplier: 1,
       touchMultiplier: 2,
       infinite: false,
     });
@@ -79,21 +85,24 @@ const LenisScroll: React.FC<LenisScrollProps> = ({ enableCarouselScroll = true }
 
       const rect = projectsSection.getBoundingClientRect();
       const navbarHeight = 60; // From CSS variable
-      const inProjectsView = rect.top <= navbarHeight && rect.bottom >= window.innerHeight - 100;
+      const inProjectsView =
+        rect.top <= navbarHeight && rect.bottom >= window.innerHeight - 100;
 
       if (inProjectsView) {
         // Find swiper instance
         const swiperElement = projectsSection.querySelector('.projects-swiper');
         if (!swiperElement) return;
-        
+
         const swiper = (swiperElement as any).swiper;
         if (!swiper) return;
 
         const scrollDirection = e.deltaY > 0 ? 'down' : 'up';
-        
+
         // Check if we should exit carousel mode
-        if ((scrollDirection === 'down' && swiper.isEnd) || 
-            (scrollDirection === 'up' && swiper.isBeginning)) {
+        if (
+          (scrollDirection === 'down' && swiper.isEnd) ||
+          (scrollDirection === 'up' && swiper.isBeginning)
+        ) {
           // We're at the edge, allow normal scrolling to continue
           if (carouselLocked) {
             carouselLocked = false;
@@ -101,7 +110,7 @@ const LenisScroll: React.FC<LenisScrollProps> = ({ enableCarouselScroll = true }
           }
           return;
         }
-        
+
         // We're in carousel mode
         if (!carouselLocked) {
           carouselLocked = true;
@@ -110,15 +119,15 @@ const LenisScroll: React.FC<LenisScrollProps> = ({ enableCarouselScroll = true }
 
         // Throttle carousel navigation
         const now = Date.now();
-        if (now - lastScrollTime.current < 800) return; // 800ms throttle to prevent double slides
-        
+        if (now - lastScrollTime.current < 200) return; // 200ms throttle to prevent double slides
+
         if (scrollDirection === 'down') {
           swiper.slideNext();
         } else {
           swiper.slidePrev();
         }
         lastScrollTime.current = now;
-        
+
         e.preventDefault();
         e.stopPropagation();
       } else {
@@ -139,7 +148,7 @@ const LenisScroll: React.FC<LenisScrollProps> = ({ enableCarouselScroll = true }
     const handleAnchorClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
       const anchor = target.closest('a[href^="#"]');
-      
+
       if (anchor) {
         e.preventDefault();
         const href = anchor.getAttribute('href');
@@ -149,7 +158,7 @@ const LenisScroll: React.FC<LenisScrollProps> = ({ enableCarouselScroll = true }
             carouselLocked = false;
             lenis.start();
           }
-          
+
           const targetElement = document.querySelector(href);
           if (targetElement) {
             lenis.scrollTo(targetElement as HTMLElement, { offset: 0 });

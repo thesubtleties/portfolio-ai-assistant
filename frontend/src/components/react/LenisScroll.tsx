@@ -161,7 +161,7 @@ const LenisScroll: React.FC<LenisScrollProps> = ({
 
           const targetElement = document.querySelector(href);
           if (targetElement) {
-            lenis.scrollTo(targetElement as HTMLElement, { offset: 0 });
+            lenis.scrollTo(targetElement as HTMLElement, { offset: -60 });
           }
         }
       }

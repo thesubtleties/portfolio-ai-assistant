@@ -200,7 +200,7 @@ class PortfolioAgentService:
                 f"conversation_quote:{conversation_id}"
             )
             if stored_quote:
-                quote_context = f'\n\nNote: The visitor saw this conversation starter quote when they arrived: "{stored_quote}"\nThey might be responding to it, or they might be starting a completely different conversation. Either approach is fine! Do not reference the quote in your response unless it is relevant to the visitor\'s message.\n\n'
+                quote_context = f'\n\nNote: The visitor saw this conversation starter quote when they arrived: "{stored_quote}"\nIf they ask about "the quote" or reference it directly, this is the quote they are referring to. You should explain or discuss this specific quote when asked. Otherwise, do not reference it unless relevant.\n\n'
                 message_with_context += quote_context
         except Exception as e:
             print(f"Error getting quote context: {e}")
@@ -314,7 +314,7 @@ class PortfolioAgentService:
                 f"conversation_quote:{conversation_id}"
             )
             if stored_quote:
-                quote_context = f'\n\nNote: The visitor saw this conversation starter quote when they arrived: "{stored_quote}"\nThey might be responding to it, or they might be starting a completely different conversation. Either approach is fine! Do not reference the quote in your response unless it is relevant to the visitor\'s message.\n\n'
+                quote_context = f'\n\nNote: The visitor saw this conversation starter quote when they arrived: "{stored_quote}"\nIf they ask about "the quote" or reference it directly, this is the quote they are referring to. You should explain or discuss this specific quote when asked. Otherwise, do not reference it unless relevant.\n\n'
                 message_with_context += quote_context
         except Exception as e:
             print(f"Error getting quote context: {e}")

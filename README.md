@@ -26,6 +26,36 @@ An interactive portfolio website featuring a sophisticated AI assistant that pro
 
 **Infrastructure**: Docker containerization with Gunicorn + Uvicorn workers, WebSocket real-time communication, automated database migrations with Alembic
 
+## Deployment
+
+This portfolio application is deployed on a self-hosted Kubernetes (K3s) cluster with the following architecture:
+
+### Infrastructure
+- **Container Orchestration**: Kubernetes (K3s)
+- **Database**: PostgreSQL with pgvector extension for semantic search
+- **Cache**: Redis for session management and caching
+- **VPN**: All AI API calls are routed through a VPN for privacy
+- **SSL/TLS**: Automated certificate management via Let's Encrypt
+
+### CI/CD Pipeline
+The application uses GitHub Actions for continuous deployment:
+1. Push to `main` branch triggers the workflow
+2. Docker images are built and pushed to Docker Hub
+3. The K3s cluster automatically pulls and deploys the new images
+4. Zero-downtime rolling deployments ensure the site stays available
+
+### Deployment Configuration
+Kubernetes manifests and deployment scripts are maintained in a separate private repository for security. The deployment includes:
+- Automated database migrations
+- Content ingestion for the AI assistant
+- Health checks and auto-healing
+- Horizontal scaling capabilities
+
+### Domains
+The application is accessible at [sbtl.dev](https://sbtl.dev) with automatic HTTPS redirection.
+
+*Note: Deployment configurations and infrastructure details are not included in this repository.*
+
 ## Key Features
 
 - **Intelligent Conversation**: RAG-powered context-aware responses using intelligent portfolio content retrieval

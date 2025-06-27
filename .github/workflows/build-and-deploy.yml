@@ -63,3 +63,10 @@ jobs:
             # Wait for rollout to complete
             sudo k3s kubectl rollout status deployment/backend -n portfolio
             sudo k3s kubectl rollout status deployment/frontend -n portfolio
+            
+            # Update DNS IPs for the new pods
+            sudo k3s kubectl delete job dns-ip-updater -n portfolio --ignore-not-found=true
+            sudo k3s kubectl apply -f /home/steven/k8s-projects/portfolio/manifests/12-dns-update-job.yaml
+            
+            # Wait for DNS update to complete
+            sudo k3s kubectl wait --for=condition=complete job/dns-ip-updater -n portfolio --timeout=120s || true

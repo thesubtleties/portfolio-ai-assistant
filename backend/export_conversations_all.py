@@ -29,7 +29,7 @@ async def get_conversations(limit: int, db):
         select(Conversation)
         .where(Conversation.status != "test")
         .options(selectinload(Conversation.messages), selectinload(Conversation.visitor))
-        .order_by(desc(Conversation.created_at))
+        .order_by(desc(Conversation.started_at))
         .limit(limit)
     )
     return result.scalars().all()
@@ -51,22 +51,22 @@ async def export_to_file(conversation, db):
         visitor_id = "visitor_unknown"
     
     # Create filename
-    timestamp = conversation.created_at.strftime("%Y%m%d_%H%M%S")
+    timestamp = conversation.started_at.strftime("%Y%m%d_%H%M%S")
     filename = f"conversation_{timestamp}_{visitor_id}.md"
     filepath = export_dir / filename
     
     # Build markdown content
     content = f"# Conversation Export\n\n"
-    content += f"**Date**: {conversation.created_at.strftime('%Y-%m-%d %H:%M:%S UTC')}\n"
+    content += f"**Date**: {conversation.started_at.strftime('%Y-%m-%d %H:%M:%S UTC')}\n"
     content += f"**Visitor**: {visitor_id}\n"
     content += f"**Status**: {conversation.status}\n"
     content += f"**Message Count**: {len(conversation.messages)}\n\n"
     content += "---\n\n"
     
     # Add messages
-    for message in sorted(conversation.messages, key=lambda m: m.created_at):
+    for message in sorted(conversation.messages, key=lambda m: m.timestamp):
         sender = "**User**" if message.sender_type == "user" else "**AI Assistant**"
-        timestamp = message.created_at.strftime("%H:%M:%S")
+        timestamp = message.timestamp.strftime("%H:%M:%S")
         content += f"### {sender} ({timestamp})\n\n"
         content += f"{message.content}\n\n"
     

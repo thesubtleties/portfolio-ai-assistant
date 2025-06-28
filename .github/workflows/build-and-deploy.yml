@@ -52,13 +52,13 @@ jobs:
           key: ${{ secrets.K3S_SSH_KEY }}
           port: ${{ secrets.K3S_PORT }}
           script: |
-            # Pull the new images
-            sudo k3s crictl pull ${{ secrets.DOCKERHUB_USERNAME }}/portfolio-backend:latest
-            sudo k3s crictl pull ${{ secrets.DOCKERHUB_USERNAME }}/portfolio-frontend:latest
+            # Remove old images to force fresh pull
+            sudo k3s crictl rmi ${{ secrets.DOCKERHUB_USERNAME }}/portfolio-backend:latest || true
+            sudo k3s crictl rmi ${{ secrets.DOCKERHUB_USERNAME }}/portfolio-frontend:latest || true
             
-            # Update the deployments
-            sudo k3s kubectl set image deployment/backend backend=${{ secrets.DOCKERHUB_USERNAME }}/portfolio-backend:latest -n portfolio
-            sudo k3s kubectl set image deployment/frontend frontend=${{ secrets.DOCKERHUB_USERNAME }}/portfolio-frontend:latest -n portfolio
+            # Force rollout restart which will pull fresh images due to imagePullPolicy: Always
+            sudo k3s kubectl rollout restart deployment/backend -n portfolio
+            sudo k3s kubectl rollout restart deployment/frontend -n portfolio
             
             # Wait for rollout to complete
             sudo k3s kubectl rollout status deployment/backend -n portfolio

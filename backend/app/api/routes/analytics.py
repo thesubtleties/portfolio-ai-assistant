@@ -6,7 +6,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/api/analytics", tags=["analytics"])
+router = APIRouter(prefix="/api/anonstats", tags=["analytics"])
 
 # Plausible configuration
 PLAUSIBLE_BASE_URL = "https://plausible.sbtl.dev"

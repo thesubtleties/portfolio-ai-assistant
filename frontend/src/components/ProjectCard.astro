@@ -133,6 +133,9 @@ const theme = themes[project.id] || {
     display: flex;
     flex-direction: column;
     height: 450px;
+    /* Force GPU acceleration */
+    transform: translateZ(0);
+    will-change: transform, box-shadow;
   }
 
   .project-card:hover {
@@ -226,6 +229,7 @@ const theme = themes[project.id] || {
   .spookyspot-theme {
     transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
     background: linear-gradient(to right, white, rgba(26, 26, 26, 0.02));
+    will-change: background, border, box-shadow;
   }
 
   .spookyspot-theme:hover {
@@ -274,6 +278,7 @@ const theme = themes[project.id] || {
   .atria-theme {
     transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
     background: linear-gradient(to right, white, rgba(214, 152, 219, 0.02));
+    will-change: background, border, box-shadow;
   }
 
   .atria-theme:hover {
@@ -323,6 +328,7 @@ const theme = themes[project.id] || {
   .taskflow-theme {
   transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
   background: linear-gradient(to right, rgba(255, 255, 255, 0.1), rgba(79, 71, 247, 0.02));
+  will-change: background, border, box-shadow;
 }
   .taskflow-theme:hover {
     background: var(--background);
@@ -372,9 +378,18 @@ const theme = themes[project.id] || {
   }
 
   @keyframes gradientFlow {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
+    0% { 
+      background-position: 0% 50%;
+      transform: translateZ(0);
+    }
+    50% { 
+      background-position: 100% 50%;
+      transform: translateZ(0);
+    }
+    100% { 
+      background-position: 0% 50%;
+      transform: translateZ(0);
+    }
   }
 
   /* MidnightAnalog Theme */
@@ -383,6 +398,7 @@ const theme = themes[project.id] || {
     transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
     background: linear-gradient(to right, white, rgba(200, 200, 200, 0.02));
     overflow: hidden;
+    will-change: background, border, box-shadow;
   }
 
   .midnightAnalog-theme::before,
@@ -488,13 +504,13 @@ const theme = themes[project.id] || {
 
   @keyframes analogSweep {
     0% {
-      transform: rotate(0deg) scale(1);
+      transform: rotate(0deg) scale(1) translateZ(0);
     }
     50% {
-      transform: rotate(180deg) scale(1.2);
+      transform: rotate(180deg) scale(1.2) translateZ(0);
     }
     100% {
-      transform: rotate(360deg) scale(1);
+      transform: rotate(360deg) scale(1) translateZ(0);
     }
   }
 

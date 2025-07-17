@@ -18,137 +18,75 @@ const CrumblingText: React.FC<CrumblingTextProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const [hasCrumbled, setHasCrumbled] = useState(false);
 
-  // Initialize the definition animation on mount - EXACTLY like the original
+  // Initialize the definition animation on mount - Simple fade-in instead of typing
   useEffect(() => {
     if (typeof window === 'undefined' || !containerRef.current) return;
 
     const ctx = gsap.context(() => {
-      // Keep container invisible but maintain layout space
-      gsap.set(containerRef.current, { opacity: 0 });
-
-      // Split with smartWrap to prevent mid-word breaks and use onSplit
-      const split1 = new SplitText(
-        containerRef.current.querySelector('.animate-text-1'),
-        {
-          type: 'chars',
-          smartWrap: true,
-          onSplit(self) {
-            // Hide characters first
-            gsap.set(self.chars, {
-              opacity: 0,
-              force3D: true,
-            });
-
-            // Now show container - characters are already hidden
-            gsap.set(containerRef.current, {
-              opacity: 1,
-            });
-          },
-        }
-      );
-      const split2 = new SplitText(
-        containerRef.current.querySelector('.animate-text-2'),
-        {
-          type: 'chars',
-          smartWrap: true,
-          onSplit(self) {
-            // Hide characters immediately
-            gsap.set(self.chars, {
-              opacity: 0,
-              force3D: true,
-            });
-          },
-        }
-      );
-
-      const allChars = [...split1.chars, ...split2.chars];
-      const totalTypingDuration = allChars.length * 0.03; // Slightly faster typing
+      // Set initial states with perspective for depth
+      gsap.set(containerRef.current, { 
+        opacity: 1,
+        perspective: 1000, // Add perspective for z-axis movement
+        transformStyle: 'preserve-3d'
+      });
+      
+      // Hide text elements with different initial states
+      // Number "1." and both parts of definition 1 animate together from depth
+      gsap.set(containerRef.current.querySelectorAll('.definition-item:first-child .number, .animate-text-1, .animate-text-2'), {
+        opacity: 0,
+        z: -100, // Start further back in z-space
+        scale: 0.95, // Slightly smaller to enhance depth effect
+        filter: 'blur(2px)', // Subtle blur for depth
+        force3D: true,
+      });
 
       gsap.set(containerRef.current.querySelectorAll('.delayed-fade'), {
         opacity: 0,
         scale: 0.98,
-        y: 20, // Smaller initial offset
+        y: 20,
         transformOrigin: 'center center',
-        force3D: true, // Force hardware acceleration
+        force3D: true,
       });
 
-      const tl = gsap.timeline();
+      const tl = gsap.timeline({ delay: 0.3 }); // Small initial pause for that premium feel
 
-      // Type the entire first definition with hardware acceleration
-      tl.to(allChars, {
+      // Number "1." and both definition parts fade from depth together - like lifting the first layer
+      tl.to(containerRef.current.querySelectorAll('.definition-item:first-child .number, .animate-text-1, .animate-text-2'), {
         opacity: 1,
-        duration: 0.04,
-        ease: 'none',
-        stagger: 0.03, // Faster stagger
-        force3D: true, // Force hardware acceleration
-      }).to(
+        z: 0,
+        scale: 1,
+        filter: 'blur(0px)',
+        duration: 1.4, // Slower, more deliberate
+        ease: 'power2.out',
+        force3D: true,
+      })
+      .to(
         containerRef.current.querySelectorAll('.delayed-fade'),
         {
           opacity: 1,
           scale: 1,
-          y: 0, // Combine the animations for smoother transition
-          duration: 0.6, // Shorter duration
-          ease: 'power2.out', // Smoother easing
+          y: 0,
+          duration: 0.6,
+          ease: 'power2.out',
           stagger: 0.08,
-          force3D: true, // Force hardware acceleration
+          force3D: true,
         },
-        totalTypingDuration * 0.8 // Start later for better overlap
+        "-=0.4" // Overlap with text fade-in
       );
-
-      return () => {
-        split1.revert();
-        split2.revert();
-      };
     }, containerRef);
 
     return () => ctx.revert();
   }, []);
 
-  // Word animation effect (sbtl) - EXACTLY like the original
+  // Word animation effect (sbtl) - REMOVED typing animation, just show immediately
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    const ctx = gsap.context(() => {
-      const wordElement = document.querySelector('.word');
-      let currentText = 's'; // Start with 's' already visible
-
-      // Start with 's'
-      wordElement.textContent = 's';
-
-      const tl = gsap.timeline({ delay: 0.8 }); // Reduced delay
-
-      // Type out "ubtl" (since 's' is already there)
-      ['u', 'b', 't', 'l'].forEach((letter) => {
-        tl.call(() => {
-          currentText += letter;
-          wordElement.textContent = currentText;
-        }).to({}, { duration: 0.12 }); // Faster typing
-      });
-
-      // Brief pause after typing "subtl"
-      tl.to({}, { duration: 0.6 }); // Shorter pause
-
-      // Backspace all the way back to just "s"
-      ['l', 't', 'b', 'u'].forEach(() => {
-        tl.call(() => {
-          currentText = currentText.slice(0, -1);
-          wordElement.textContent = currentText;
-        }).to({}, { duration: 0.1 }); // Faster backspace
-      });
-
-      // Brief pause - "now let me be more precise"
-      tl.to({}, { duration: 0.3 }); // Shorter pause
-
-      // Retype "btl"
-      ['b', 't', 'l'].forEach((letter) => {
-        tl.call(() => {
-          currentText += letter;
-          wordElement.textContent = currentText;
-        }).to({}, { duration: 0.12 }); // Consistent timing
-      });
-    });
-
-    return () => ctx.revert();
+    const wordElement = document.querySelector('.word');
+    if (wordElement) {
+      // Just set the text immediately
+      wordElement.textContent = 'sbtl';
+    }
   }, []);
 
   // Crumbling animation when triggered

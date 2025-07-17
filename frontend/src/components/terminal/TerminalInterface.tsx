@@ -1,5 +1,6 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import TerminalInput from './TerminalInput';
+import TerminalShimmer from './TerminalShimmer';
 import CrumblingText from '../animations/CrumblingText';
 import ResponseEmergence from '../animations/ResponseEmergence';
 import ChatManager from '../chat/ChatManager';
@@ -22,6 +23,7 @@ const TerminalInterface: React.FC<TerminalInterfaceProps> = ({
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const responseRef = useRef<HTMLDivElement>(null);
+  const terminalInputRef = useRef<HTMLDivElement>(null);
   const pendingResponseRef = useRef<string>('');
   const isDissolutionCompleteRef = useRef<boolean>(true);
 
@@ -35,6 +37,19 @@ const TerminalInterface: React.FC<TerminalInterfaceProps> = ({
   const [pendingResponse, setPendingResponse] = useState<string>('');
   const [quote, setQuote] = useState('');
   const [isQuoteLoaded, setIsQuoteLoaded] = useState(false);
+  const [shouldShowShimmer, setShouldShowShimmer] = useState(false); // Don't start immediately
+  const [hasBootedUp, setHasBootedUp] = useState(false); // Track if boot animation completed
+  const idleTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const hasStartedBootRef = useRef(false); // Prevent multiple boot animations
+
+  // Boot animation - trigger shimmer when quote loads
+  useEffect(() => {
+    if (isQuoteLoaded && !hasStartedBootRef.current) {
+      console.log('🚀 Starting boot animation');
+      hasStartedBootRef.current = true;
+      setShouldShowShimmer(true);
+    }
+  }, [isQuoteLoaded]);
 
   const handleMessageSend = async (message: string) => {
     console.log('Sending message, isFirstInteraction:', isFirstInteraction);
@@ -196,18 +211,31 @@ const TerminalInterface: React.FC<TerminalInterfaceProps> = ({
       </div>
 
       {/* Terminal Input Section - always rendered but invisible until quote loads */}
-      <TerminalInput
-        quote={quote}
-        onMessageSend={handleMessageSend}
-        disabled={
-          interactionState === 'sending' || interactionState === 'receiving'
-        }
-        className="terminal-input-section"
-        style={{
-          visibility: isQuoteLoaded ? 'visible' : 'hidden',
-          opacity: isQuoteLoaded ? 1 : 0,
-        }}
-      />
+      <div ref={terminalInputRef} className="terminal-input-wrapper" style={{ position: 'relative' }}>
+        <TerminalInput
+          quote={quote}
+          onMessageSend={handleMessageSend}
+          disabled={
+            interactionState === 'sending' || interactionState === 'receiving'
+          }
+          className="terminal-input-section"
+          style={{
+            visibility: hasBootedUp ? 'visible' : 'hidden',
+            opacity: hasBootedUp ? 1 : 0,
+            transition: 'opacity 0.5s ease-in',
+          }}
+        />
+        
+        {/* Shimmer effect for idle state - positioned relative to input */}
+        <TerminalShimmer
+          containerRef={terminalInputRef}
+          triggerAnimation={shouldShowShimmer}
+          onComplete={() => {
+            console.log('✅ Boot animation complete');
+            setHasBootedUp(true);
+          }}
+        />
+      </div>
 
       {/* Debug info - commented out for production */}
       {/* 

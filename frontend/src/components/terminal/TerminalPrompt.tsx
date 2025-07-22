@@ -10,7 +10,7 @@ const TerminalPrompt = forwardRef<HTMLSpanElement, TerminalPromptProps>(
       <span ref={ref} className={`terminal-prompt ${className}`}>
         <span className="terminal-path">~</span>
         <span className="terminal-separator"> </span>
-        <span className="terminal-directory">home</span>
+        <span className="terminal-directory">chat</span>
         <span className="terminal-separator"> </span>
         <span className="terminal-symbol">%</span>
         <span className="terminal-separator"> </span>

@@ -733,6 +733,71 @@
   }
 }
 
+/* Responsive scaling for laptop screens with limited height */
+@media (max-height: 900px) and (min-width: 768px) {
+  /* Reduce card heights */
+  .project-card {
+    height: clamp(350px, 50vh, 450px);
+  }
+  
+  /* Tighten up Atria purple tab on short screens */
+  .atria-theme .project-title {
+    padding: 12px 24px 12px 20px;
+    font-size: 1.5rem;
+    margin: -1.5rem -1.5rem 0.8rem -1.5rem;
+  }
+  
+  /* Smaller logo on short screens */
+  .atria-theme .project-title::before {
+    width: 24px;
+    height: 24px;
+    margin-right: 10px;
+  }
+  
+  /* Reduce description spacing */
+  .project-description {
+    margin-bottom: 0.75rem;
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+  
+  /* Tighter tech stack spacing */
+  .tech-stack {
+    gap: 0.4rem;
+    margin-bottom: 1rem;
+  }
+  
+  .tech-tag {
+    padding: 0.2rem 0.4rem;
+    font-size: 0.75rem;
+  }
+  
+  /* Smaller project links */
+  .project-link {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.85rem;
+  }
+}
+
+/* Even tighter for very short screens */
+@media (max-height: 700px) and (min-width: 768px) {
+  .project-card {
+    height: 350px;
+  }
+  
+  .atria-theme .project-title {
+    padding: 10px 20px;
+    font-size: 1.3rem;
+    margin: -1.5rem -1.5rem 0.6rem -1.5rem;
+  }
+  
+  .atria-theme .project-title::before {
+    width: 20px;
+    height: 20px;
+    margin-right: 8px;
+  }
+}
+
 /* Reduce motion preference */
 @media (prefers-reduced-motion: reduce) {
   * {

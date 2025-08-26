@@ -1,13 +1,18 @@
-/* Base Project Card Styles */
+/* Optimized Base Project Card Styles */
 .project-card {
   background: white;
   border-radius: 8px;
   overflow: hidden;
-  transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
   border: 1px solid var(--color-subtle);
   display: flex;
   flex-direction: column;
   height: 450px;
+  
+  /* Performance optimizations */
+  contain: layout style paint;
+  will-change: transform;
+  backface-visibility: hidden;
+  transform: translateZ(0);
 }
 
 .project-card:hover {
@@ -19,8 +24,8 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
   justify-content: space-between;
+  /* Remove transitions from content wrapper */
 }
 
 .project-title {
@@ -28,7 +33,6 @@
   color: var(--color-primary);
   margin-bottom: 0.5rem;
   font-weight: 600;
-  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .project-description {
@@ -37,7 +41,6 @@
   line-height: 1.6;
   margin-bottom: 1rem;
   flex: 1;
-  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .tech-stack {
@@ -54,12 +57,12 @@
   border-radius: 4px;
   border: 1px solid var(--color-subtle);
   font-size: 0.8rem;
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   margin: 0;
+  transition: transform 0.2s ease;
 }
 
 .tech-tag:hover {
-  margin: -1px 1px 1px -1px;
+  transform: translate(-1px, -1px);
 }
 
 .project-links {
@@ -75,8 +78,8 @@
   padding: 0.5rem 1rem;
   border-radius: 4px;
   font-size: 0.9rem;
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   text-decoration: none;
+  transition: transform 0.2s ease;
 }
 
 .project-link.live {
@@ -93,23 +96,36 @@
 
 .project-link:hover {
   transform: translateY(-2px);
-  border: 1px solid var(--color-subtle);
 }
 
-/* SpookySpot Theme */
+/* Theme Transition Base */
+.theme-transition {
+  transition: 
+    color 0.4s ease-out,
+    background-color 0.4s ease-out,
+    border-color 0.4s ease-out,
+    box-shadow 0.4s ease-out;
+}
+
+/* SpookySpot Theme - Optimized */
 .spookyspot-theme {
-  transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
   background: linear-gradient(to right, white, rgba(26, 26, 26, 0.02));
 }
 
 .swiper-slide-active .spookyspot-theme {
-  background: #1a1a1a;
-  border: 1px solid rgb(212, 175, 55, 0.3);
+  /* Use CSS custom properties for dynamic theming */
+  --theme-bg: #1a1a1a;
+  --theme-primary: rgb(212, 175, 55);
+  --theme-secondary: rgb(169, 169, 169);
+  --theme-border: rgb(212, 175, 55, 0.3);
+  
+  background: var(--theme-bg);
+  border-color: var(--theme-border);
   box-shadow: 0 0px 24px 2px rgba(255, 130, 0, 0.7);
 }
 
 .swiper-slide-active .spookyspot-theme .project-title {
-  color: rgb(212, 175, 55);
+  color: var(--theme-primary);
   font-family: 'Cormorant Garamond', serif;
   font-weight: 500;
   letter-spacing: 0.5px;
@@ -117,93 +133,154 @@
 }
 
 .swiper-slide-active .spookyspot-theme .project-description {
-  color: rgb(169, 169, 169);
+  color: var(--theme-secondary);
   font-family: 'Cormorant Garamond', serif;
   font-size: 1.1rem;
 }
 
 .swiper-slide-active .spookyspot-theme .tech-tag {
   background: transparent;
-  border: 1px solid rgb(212, 175, 55);
-  color: rgb(212, 175, 55);
+  border-color: var(--theme-primary);
+  color: var(--theme-primary);
   opacity: 0.8;
-}
-
-.swiper-slide-active .spookyspot-theme .tech-tag:hover {
-  opacity: 1;
 }
 
 .swiper-slide-active .spookyspot-theme .project-link {
   background: transparent;
-  border: 1px solid rgb(212, 175, 55);
-  color: rgb(212, 175, 55);
+  border-color: var(--theme-primary);
+  color: var(--theme-primary);
 }
 
-.swiper-slide-active .spookyspot-theme .project-link:hover {
-  background: rgb(212, 175, 55);
-  color: #1a1a1a;
-}
+/* Import Nunito font */
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700;800&display=swap');
 
-/* Atria Theme */
+/* Atria Theme - Glassmorphic Design System */
 .atria-theme {
-  transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-  background: linear-gradient(to right, white, rgba(214, 152, 219, 0.02));
+  background: linear-gradient(to right, white, rgba(251, 250, 255, 0.8));
+  position: relative;
+  overflow: visible; /* Ensure logo isn't clipped */
+}
+
+/* Add Atria logo next to title */
+.atria-theme .project-title::before {
+  content: '';
+  width: 30px;
+  height: 30px;
+  background-image: url('/images/atria-logo.svg');
+  background-size: contain;
+  background-repeat: no-repeat;
+  margin-right: 12px;
+  display: inline-block;
+  vertical-align: middle;
 }
 
 .swiper-slide-active .atria-theme {
-  background: linear-gradient(-45deg, #d698db, #563ab1, #8831c7, #d6d6d6);
-  background-size: 400% 400%;
-  animation: gradientFlow 15s ease infinite;
-  border: none;
-  box-shadow: 0 8px 24px rgba(215, 131, 255, 0.7);
+  --theme-primary: #8B5CF6;
+  --theme-accent: #FFD666;
+  --theme-text-primary: #1E293B;
+  --theme-text-secondary: #64748B;
+  --theme-background: #FBFAFF;
+  
+  /* Glassmorphism background */
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 
+    0 4px 20px rgba(139, 92, 246, 0.15),
+    0 8px 32px rgba(139, 92, 246, 0.1);
+  position: relative;
+  overflow: visible;
+}
+
+/* Floating background shape - using ::after since logo uses ::before */
+.swiper-slide-active .atria-theme::after {
+  content: '';
+  position: absolute;
+  width: 250px;
+  height: 250px;
+  background: linear-gradient(45deg, #8B5CF6, #A855F7);
+  border-radius: 63% 37% 54% 46% / 55% 48% 52% 45%;
+  top: -50px;
+  right: -80px;
+  opacity: 0.06;
+  animation: float 15s ease-in-out infinite;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.swiper-slide-active .atria-theme .project-content {
+  position: relative;
+  z-index: 2;
+}
+
+/* Purple tab with logo and title side by side */
+.atria-theme .project-title {
+  display: inline-flex;
+  align-items: center;
+  color: white;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 300;
+  letter-spacing: 0.5px;
+  font-size: 1.8rem;
+  text-transform: lowercase;
+  padding: 16px 28px 16px 24px;
+  margin: -1.5rem -1.5rem 1.2rem -1.5rem;
+  background: #8B5CF6; /* Solid purple, no gradient */
+  border-radius: 0 0 24px 0;
+  box-shadow: 0 4px 16px rgba(139, 92, 246, 0.3);
+  width: fit-content;
 }
 
 .swiper-slide-active .atria-theme .project-title {
-  color: #e4e4e4;
-  font-family: 'M PLUS 2', sans-serif;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.3));
+  color: white;
 }
 
 .swiper-slide-active .atria-theme .project-description {
-  color: #d6d6d6;
-  font-family: 'M PLUS 2', sans-serif;
+  color: var(--theme-text-secondary);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.6;
 }
 
 .swiper-slide-active .atria-theme .tech-tag {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: #e4e4e4;
+  background: rgba(139, 92, 246, 0.08);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(139, 92, 246, 0.15);
+  color: var(--theme-primary);
+  font-weight: 500;
+  font-size: 0.75rem;
 }
 
-.swiper-slide-active .atria-theme .tech-tag:hover {
-  background: rgba(255, 255, 255, 0.2);
+.swiper-slide-active .atria-theme .project-link.live {
+  background: var(--theme-primary);
+  border: 1px solid var(--theme-primary);
+  color: white;
+  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.2);
+  font-weight: 500;
 }
 
-.swiper-slide-active .atria-theme .project-link {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: #e4e4e4;
+.swiper-slide-active .atria-theme .project-link.github {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  color: var(--theme-primary);
+  backdrop-filter: blur(10px);
+  font-weight: 500;
 }
 
 .swiper-slide-active .atria-theme .project-link:hover {
-  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2);
 }
 
-/* TaskFlow Theme */
+/* TaskFlow Theme - Optimized */
 .taskflow-theme {
-  transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-  background: linear-gradient(
-    to right,
-    rgba(255, 255, 255, 0.1),
-    rgba(79, 71, 247, 0.02)
-  );
+  background: linear-gradient(to right, rgba(255, 255, 255, 0.1), rgba(79, 71, 247, 0.02));
 }
 
 .swiper-slide-active .taskflow-theme {
+  --theme-primary: #3a6491;
+  --theme-secondary: #405165;
+  
   background: linear-gradient(135deg, #ffffff 0%, #f0f4f9 100%);
   border: 1px solid #dde5f0;
   box-shadow: 0 8px 24px rgba(58, 100, 145, 0.15);
@@ -212,6 +289,7 @@
 .swiper-slide-active .taskflow-theme .project-title {
   background: linear-gradient(135deg, #3a6491, #4a7bb7);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   font-family: 'Times New Roman', serif;
   font-weight: 800;
@@ -220,81 +298,79 @@
 }
 
 .swiper-slide-active .taskflow-theme .project-description {
-  color: #405165;
+  color: var(--theme-secondary);
   font-family: 'Times New Roman', serif;
   font-size: 1.1rem;
 }
 
 .swiper-slide-active .taskflow-theme .tech-tag {
   background: #f8f9fa;
-  color: #3a6491;
+  color: var(--theme-primary);
   border: 1px solid #e5e7eb;
 }
 
 .swiper-slide-active .taskflow-theme .project-link.live {
   background: linear-gradient(135deg, #3a6491, #4a7bb7);
-  border: 1px solid #3a6491;
-  color: white;
   border: none;
+  color: white;
 }
 
 .swiper-slide-active .taskflow-theme .project-link.github {
   background: white;
-  color: #3a6491;
-  border: 1px solid #3a6491;
+  color: var(--theme-primary);
+  border: 1px solid var(--theme-primary);
 }
 
 .swiper-slide-active .taskflow-theme .project-link.github:hover {
-  background: #3a6491;
+  background: var(--theme-primary);
   color: white;
-  border: 1px solid #3a6491;
 }
 
-/* MidnightAnalog Theme */
+/* MidnightAnalog Theme - Optimized */
 .midnightAnalog-theme {
   position: relative;
-  transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
   background: linear-gradient(to right, white, rgba(200, 200, 200, 0.02));
   overflow: hidden;
+  isolation: isolate;
 }
 
-.midnightAnalog-theme::before,
-.midnightAnalog-theme::after {
+/* Simplified pseudo-element animation */
+.midnightAnalog-theme::before {
   content: '';
   position: absolute;
-  opacity: 0;
-  transition: opacity 0.6s ease;
-  pointer-events: none;
-}
-
-/* LED dot pattern overlay */
-.midnightAnalog-theme::before {
   inset: 0;
   background-image: radial-gradient(circle, #f59e0b 0.5px, transparent 1px);
   background-size: 4px 4px;
-  mix-blend-mode: screen;
-  z-index: 2;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+  z-index: 1;
 }
 
 /* Moving warm analog lights */
 .midnightAnalog-theme::after {
+  content: '';
+  position: absolute;
   inset: -50%;
-  background: radial-gradient(circle at 20% 20%, #f59e0b 0%, transparent 40%),
+  background:
+    radial-gradient(circle at 20% 20%, #f59e0b 0%, transparent 40%),
     radial-gradient(circle at 80% 80%, #fcd34d 0%, transparent 40%),
     radial-gradient(circle at 80% 20%, #ff0033 0%, transparent 40%),
     radial-gradient(circle at 20% 80%, #ffcc00 0%, transparent 40%);
   background-size: 200% 200%;
   filter: blur(50px);
   mix-blend-mode: lighten;
-  z-index: 1;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+  z-index: 0;
+  will-change: transform;
 }
 
 .swiper-slide-active .midnightAnalog-theme {
   background: rgba(0, 0, 0, 0.95);
   border: 1px solid rgba(245, 158, 11, 0.3);
   box-shadow: 0 0 24px rgba(245, 158, 11, 0.6);
-  position: relative;
-  isolation: isolate;
 }
 
 .swiper-slide-active .midnightAnalog-theme::before {
@@ -308,8 +384,8 @@
 }
 
 .swiper-slide-active .midnightAnalog-theme .project-content {
-  z-index: 3;
   position: relative;
+  z-index: 2;
 }
 
 .swiper-slide-active .midnightAnalog-theme .project-title {
@@ -358,40 +434,34 @@
   box-shadow: 0 0 10px rgba(245, 158, 11, 0.3);
 }
 
-/* Scale and perspective effect for slides */
+/* Swiper Slide Transforms - Optimized */
 .swiper-slide .project-card {
-  transition: all 0.5s ease;
+  transition: transform 0.3s ease, opacity 0.3s ease;
 }
 
 .swiper-slide-prev .project-card {
-  transform: perspective(1200px) rotateY(25deg) scale(0.85);
+  transform: perspective(1200px) rotateY(25deg) scale(0.85) translateZ(0);
   opacity: 0.6;
 }
 
 .swiper-slide-next .project-card {
-  transform: perspective(1200px) rotateY(-25deg) scale(0.85);
+  transform: perspective(1200px) rotateY(-25deg) scale(0.85) translateZ(0);
   opacity: 0.6;
 }
 
-.swiper-slide:not(.swiper-slide-active):not(.swiper-slide-prev):not(
-    .swiper-slide-next
-  )
-  .project-card {
-  transform: scale(0.8);
+.swiper-slide:not(.swiper-slide-active):not(.swiper-slide-prev):not(.swiper-slide-next) .project-card {
+  transform: scale(0.8) translateZ(0);
   opacity: 0.4;
 }
 
 .swiper-slide-active .project-card {
-  transform: scale(1);
+  transform: scale(1) translateZ(0);
   opacity: 1;
   z-index: 2;
-}
-
-/* Allow glow to extend slightly beyond card bounds */
-.swiper-slide-active .project-card {
   position: relative;
 }
 
+/* Allow glow to extend slightly beyond card bounds */
 .swiper-slide-active .project-card::before {
   content: '';
   position: absolute;
@@ -401,33 +471,44 @@
   z-index: -1;
 }
 
+/* Optimized Animations */
 @keyframes gradientFlow {
-  0% {
-    background-position: 0% 50%;
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg) scale(1);
   }
-  50% {
-    background-position: 100% 50%;
+  33% {
+    transform: translateY(-20px) rotate(2deg) scale(1.02);
   }
-  100% {
-    background-position: 0% 50%;
+  66% {
+    transform: translateY(15px) rotate(-1deg) scale(0.98);
   }
+}
+
+@keyframes lightSweep {
+  0% { transform: rotate(0deg) translateZ(0); }
+  100% { transform: rotate(360deg) translateZ(0); }
 }
 
 @keyframes analogSweep {
   0% {
-    transform: translate(-10%, -10%) scale(1);
+    transform: translate(-10%, -10%) scale(1) translateZ(0);
   }
   50% {
-    transform: translate(10%, 10%) scale(1.2);
+    transform: translate(10%, 10%) scale(1.2) translateZ(0);
   }
   100% {
-    transform: translate(-10%, -10%) scale(1);
+    transform: translate(-10%, -10%) scale(1) translateZ(0);
   }
 }
 
 @keyframes analogPulse {
-  0%,
-  100% {
+  0%, 100% {
     opacity: 0.1;
   }
   50% {
@@ -435,6 +516,7 @@
   }
 }
 
+/* Mobile Optimizations */
 @media (max-width: 768px) {
   .project-title {
     font-size: 1.5rem;
@@ -443,6 +525,7 @@
   .project-description {
     font-size: 1rem;
   }
+  
   .project-card {
     height: 450px;
   }
@@ -531,40 +614,70 @@
     border: 1px solid #3a6491 !important;
   }
 
-  /* Atria - Apply active styles to all slides */
+  /* Atria - Apply glassmorphic design system to all slides */
   .swiper-slide .atria-theme {
-    background: linear-gradient(-45deg, #d698db, #563ab1, #8831c7, #d6d6d6);
-    background-size: 400% 400%;
-    animation: gradientFlow 15s ease infinite !important;
-    border: none !important;
-    box-shadow: 0 8px 24px rgba(215, 131, 255, 0.7) !important;
+    background: rgba(255, 255, 255, 0.8) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.9) !important;
+    box-shadow: 
+      0 4px 20px rgba(139, 92, 246, 0.15),
+      0 8px 32px rgba(139, 92, 246, 0.1) !important;
+  }
+  
+  /* Logo is now in the title tab */
+  
+  .swiper-slide .atria-theme::after {
+    opacity: 0.06 !important;
+    animation: float 15s ease-in-out infinite !important;
   }
 
   .swiper-slide .atria-theme .project-title {
-    color: #e4e4e4 !important;
-    font-family: 'M PLUS 2', sans-serif !important;
-    font-weight: 700 !important;
-    letter-spacing: -0.02em !important;
-    filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.3)) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    color: white !important;
+    font-family: 'Nunito', sans-serif !important;
+    font-weight: 300 !important;
+    letter-spacing: 0.5px !important;
+    font-size: 1.8rem !important;
+    text-transform: lowercase !important;
+    padding: 16px 28px 16px 24px !important;
+    margin: -1.5rem -1.5rem 1.2rem -1.5rem !important;
+    background: #8B5CF6 !important;
+    border-radius: 0 0 24px 0 !important;
+    box-shadow: 0 4px 16px rgba(139, 92, 246, 0.3) !important;
+    width: fit-content !important;
   }
 
   .swiper-slide .atria-theme .project-description {
-    color: #d6d6d6 !important;
-    font-family: 'M PLUS 2', sans-serif !important;
+    color: #64748B !important;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+    line-height: 1.6 !important;
   }
   
   .swiper-slide .atria-theme .tech-tag {
-    background: rgba(255, 255, 255, 0.1) !important;
-    backdrop-filter: blur(8px) !important;
-    border: 1px solid rgba(255, 255, 255, 0.2) !important;
-    color: #e4e4e4 !important;
+    background: rgba(139, 92, 246, 0.08) !important;
+    backdrop-filter: blur(10px) !important;
+    border: 1px solid rgba(139, 92, 246, 0.15) !important;
+    color: #8B5CF6 !important;
+    font-weight: 500 !important;
+    font-size: 0.75rem !important;
   }
   
-  .swiper-slide .atria-theme .project-link {
-    background: rgba(255, 255, 255, 0.1) !important;
-    backdrop-filter: blur(8px) !important;
-    border: 1px solid rgba(255, 255, 255, 0.2) !important;
-    color: #e4e4e4 !important;
+  .swiper-slide .atria-theme .project-link.live {
+    background: #8B5CF6 !important;
+    border: 1px solid #8B5CF6 !important;
+    color: white !important;
+    box-shadow: 0 2px 8px rgba(139, 92, 246, 0.2) !important;
+    font-weight: 500 !important;
+  }
+  
+  .swiper-slide .atria-theme .project-link.github {
+    background: rgba(255, 255, 255, 0.9) !important;
+    border: 1px solid rgba(139, 92, 246, 0.2) !important;
+    color: #8B5CF6 !important;
+    backdrop-filter: blur(10px) !important;
+    font-weight: 500 !important;
   }
 
   /* MidnightAnalog - Apply active styles to all slides */
@@ -620,68 +733,11 @@
   }
 }
 
-/* Safari-specific fixes - static font sizes and families to prevent jumps */
-@supports (-webkit-appearance: none) and (not (-ms-ime-align: auto)) and (not (translate: none)) {
-  @media (min-width: 1000px) {
-  /* Keep font properties static for all cards - no transitions on these properties */
-  .project-title,
-  .project-description {
-    transition: color 0.5s cubic-bezier(0.16, 1, 0.3, 1), 
-                background 0.5s cubic-bezier(0.16, 1, 0.3, 1),
-                filter 0.5s cubic-bezier(0.16, 1, 0.3, 1),
-                text-shadow 0.5s cubic-bezier(0.16, 1, 0.3, 1) !important;
-  }
-  
-  /* SpookySpot - static font properties */
-  .spookyspot-theme .project-title {
-    font-family: 'Cormorant Garamond', serif !important;
-    font-size: 1.7rem !important;
-    font-weight: 500 !important;
-    letter-spacing: 0.5px !important;
-  }
-  
-  .spookyspot-theme .project-description {
-    font-family: 'Cormorant Garamond', serif !important;
-    font-size: 1.1rem !important;
-  }
-  
-  /* Atria - static font properties */
-  .atria-theme .project-title {
-    font-family: 'M PLUS 2', sans-serif !important;
-    font-size: 1.5rem !important; /* Keep base size to prevent jump */
-    font-weight: 700 !important;
-    letter-spacing: -0.02em !important;
-  }
-  
-  .atria-theme .project-description {
-    font-family: 'M PLUS 2', sans-serif !important;
-    font-size: 0.95rem !important; /* Keep base size */
-  }
-  
-  /* TaskFlow - static font properties */
-  .taskflow-theme .project-title {
-    font-family: 'Times New Roman', serif !important;
-    font-size: 1.9rem !important;
-    font-weight: 800 !important;
-    line-height: 1.1 !important;
-  }
-  
-  .taskflow-theme .project-description {
-    font-family: 'Times New Roman', serif !important;
-    font-size: 1.1rem !important;
-  }
-  
-  /* MidnightAnalog - static font properties */
-  .midnightAnalog-theme .project-title {
-    font-family: 'JetBrains Mono', 'Courier New', monospace !important;
-    font-size: 1.5rem !important; /* Keep base size */
-    font-weight: 600 !important;
-    letter-spacing: 1px !important;
-  }
-  
-  .midnightAnalog-theme .project-description {
-    font-family: 'JetBrains Mono', 'Courier New', monospace !important;
-    font-size: 0.95rem !important; /* Keep base size */
-  }
+/* Reduce motion preference */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }

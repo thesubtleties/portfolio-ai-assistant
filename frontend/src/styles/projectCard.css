@@ -7,12 +7,29 @@
   display: flex;
   flex-direction: column;
   height: 450px;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
   
   /* Performance optimizations */
   contain: layout style paint;
   will-change: transform;
   backface-visibility: hidden;
   transform: translateZ(0);
+  
+  /* Smooth fade-in on initial render */
+  animation: smoothFadeIn 0.3s ease-out;
+}
+
+@keyframes smoothFadeIn {
+  from {
+    opacity: 0;
+    transform: translateZ(0) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateZ(0) scale(1);
+  }
 }
 
 .project-card:hover {
@@ -437,6 +454,16 @@
 /* Swiper Slide Transforms - Optimized */
 .swiper-slide .project-card {
   transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+/* Prevent layout shift during initial load */
+.swiper-wrapper {
+  min-height: 450px;
+}
+
+.swiper-container-initialized .project-card {
+  animation: none;
+  opacity: 1;
 }
 
 .swiper-slide-prev .project-card {

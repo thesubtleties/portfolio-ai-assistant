@@ -1,17 +1,11 @@
 ---
-
 interface Theme {
-  font: string;
   primaryColor: string;
   secondaryColor: string;
   background: string;
   cardBorder: string;
   cardGlow: string;
-  accentGradient?: string;
-  light1Color?: string;
-  light2Color?: string;
-  light3Color?: string;
-  light4Color?: string;
+  font?: string;
 }
 
 interface ProjectProps {
@@ -26,74 +20,49 @@ interface ProjectProps {
 
 const { project } = Astro.props;
 
+// Simplified theme configuration
 const themes: Record<string, Theme> = {
   spookyspot: {
-    font: "'Cormorant Garamond', serif",
     primaryColor: "rgb(212, 175, 55)",
     secondaryColor: "rgb(169, 169, 169)",
     background: "#1a1a1a",
-    cardBorder: "1px solid rgb(212, 175, 55, 0.3)",
-    cardGlow: "0 0px 24px 2px rgba(255, 130, 0, .7)"
+    cardBorder: "1px solid rgba(212, 175, 55, 0.3)",
+    cardGlow: "0 0 24px 2px rgba(255, 130, 0, .7)",
+    font: "'Cormorant Garamond', serif"
   },
   atria: {
-    font: "'M PLUS 2', sans-serif",
     primaryColor: "#e4e4e4",
     secondaryColor: "#d6d6d6",
     background: "linear-gradient(-45deg, #d698db, #563ab1, #8831c7, #d6d6d6)",
     cardBorder: "none",
-    cardGlow: "0 8px 24px rgba(215, 131, 255, .7)"
+    cardGlow: "0 8px 24px rgba(215, 131, 255, .7)",
+    font: "'M PLUS 2', sans-serif"
   },
   taskflow: {
-    font: "'Times New Roman', serif",  
     primaryColor: "#3a6491",
     secondaryColor: "#405165",
     background: "linear-gradient(135deg, #ffffff 0%, #f0f4f9 100%)",
     cardBorder: "1px solid #dde5f0",
     cardGlow: "0 8px 24px rgba(58, 100, 145, 0.15)",
-    accentGradient: "linear-gradient(135deg, #3a6491, #4a7bb7)"
+    font: "'Times New Roman', serif"
   },
-midnightAnalog: {
-    font: "'JetBrains Mono', 'Courier New', monospace",
+  midnightAnalog: {
     primaryColor: "#F59E0B",
     secondaryColor: "#F5F5F5",
     background: "rgba(0, 0, 0, 0.95)",
     cardBorder: "1px solid rgba(245, 158, 11, 0.3)",
     cardGlow: "0 0 24px rgba(245, 158, 11, 0.6)",
-    accentGradient: "linear-gradient(135deg, #F59E0B, #B45309)",
-    light1Color: "#F59E0B",
-    light2Color: "#FCD34D",
-    light3Color: "#FF0033",
-    light4Color: "#FFCC00"
-  },
-  styleatc: {
-    font: "inherit",
-    primaryColor: "var(--color-primary)",
-    secondaryColor: "var(--color-text)",
-    background: "linear-gradient(to right, white, rgba(200, 200, 200, 0.02))",
-    cardBorder: "1px solid var(--color-subtle)",
-    cardGlow: "0 8px 24px rgba(0, 0, 0, 0.15)"
-  },
-  linkedinBatch: {
-    font: "inherit",
-    primaryColor: "var(--color-primary)",
-    secondaryColor: "var(--color-text)",
-    background: "linear-gradient(to right, white, rgba(200, 200, 200, 0.02))",
-    cardBorder: "1px solid var(--color-subtle)",
-    cardGlow: "0 8px 24px rgba(0, 0, 0, 0.15)"
+    font: "'JetBrains Mono', 'Courier New', monospace"
   }
 };
 
-const theme = themes[project.id] || {
-  font: "inherit",
-  primaryColor: "var(--color-primary)",
-  secondaryColor: "var(--color-text)",
-  background: "white",
-  cardBorder: "1px solid var(--color-subtle)",
-  cardGlow: "none"
-};
+const theme = themes[project.id] || themes.spookyspot;
 ---
 
-<article class={`project-card ${project.id}-theme`}>
+<article 
+  class={`project-card ${project.id}-theme`}
+  data-theme-id={project.id}
+>
   <div class="project-content">
     <h3 class="project-title">{project.title}</h3>
     <p class="project-description">{project.description}</p>
@@ -125,22 +94,34 @@ const theme = themes[project.id] || {
 
 <style define:vars={theme}>
   .project-card {
+    --transition-duration: 0.4s;
+    --transition-easing: cubic-bezier(0.4, 0, 0.2, 1);
+    
     background: white;
     border-radius: 8px;
     overflow: hidden;
-    transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
     border: 1px solid var(--color-subtle);
     display: flex;
     flex-direction: column;
     height: 450px;
-    /* Force GPU acceleration */
+    
+    /* Performance optimizations */
+    contain: layout style paint;
+    will-change: transform;
+    backface-visibility: hidden;
     transform: translateZ(0);
-    will-change: transform, box-shadow;
+    
+    /* Smooth base transition */
+    transition: 
+      background var(--transition-duration) var(--transition-easing),
+      border var(--transition-duration) var(--transition-easing),
+      box-shadow var(--transition-duration) var(--transition-easing);
   }
 
   .project-card:hover {
-    /* transform: translateY(-4px); */
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    background: var(--background);
+    border: var(--cardBorder);
+    box-shadow: var(--cardGlow);
   }
 
   .project-content {
@@ -148,8 +129,15 @@ const theme = themes[project.id] || {
     flex: 1;
     display: flex;
     flex-direction: column;
-    transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
     justify-content: space-between;
+  }
+
+  .project-title,
+  .project-description {
+    transition: 
+      color var(--transition-duration) var(--transition-easing),
+      font-size 0s,
+      font-family 0s;
   }
 
   .project-title {
@@ -157,7 +145,11 @@ const theme = themes[project.id] || {
     color: var(--color-primary);
     margin-bottom: 0.5rem;
     font-weight: 600;
-    transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .project-card:hover .project-title {
+    color: var(--primaryColor);
+    font-family: var(--font, inherit);
   }
 
   .project-description {
@@ -166,7 +158,11 @@ const theme = themes[project.id] || {
     line-height: 1.6;
     margin-bottom: 1rem;
     flex: 1;
-    transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .project-card:hover .project-description {
+    color: var(--secondaryColor);
+    font-family: var(--font, inherit);
   }
 
   .tech-stack {
@@ -183,12 +179,14 @@ const theme = themes[project.id] || {
     border-radius: 4px;
     border: 1px solid var(--color-subtle);
     font-size: 0.8rem;
-    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-    margin: 0;
+    transition: all 0.2s ease;
   }
-  .tech-tag:hover {
-    margin: -1px 1px 1px -1px; 
 
+  .project-card:hover .tech-tag {
+    background: transparent;
+    border-color: var(--primaryColor);
+    color: var(--primaryColor);
+    opacity: 0.9;
   }
 
   .project-links {
@@ -204,7 +202,7 @@ const theme = themes[project.id] || {
     padding: 0.5rem 1rem;
     border-radius: 4px;
     font-size: 0.9rem;
-    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: transform 0.2s ease;
     text-decoration: none;
   }
 
@@ -220,505 +218,90 @@ const theme = themes[project.id] || {
     color: var(--color-primary);
   }
 
+  .project-card:hover .project-link {
+    background: transparent;
+    border-color: var(--primaryColor);
+    color: var(--primaryColor);
+  }
+
   .project-link:hover {
     transform: translateY(-2px);
-    border: 1px solid var(--color-subtle);
   }
 
-  /* SpookySpot Theme */
-  .spookyspot-theme {
-    transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-    background: linear-gradient(to right, white, rgba(26, 26, 26, 0.02));
-    will-change: background, border, box-shadow;
-  }
-
-  .spookyspot-theme:hover {
-    background: var(--background);
-    border: var(--cardBorder);
-    box-shadow: var(--cardGlow);
-  }
-
-  .spookyspot-theme:hover .project-title {
-    color: var(--primaryColor);
-    font-family: var(--font);
-    font-weight: 500;
-    letter-spacing: 0.5px;
-    font-size: 1.7rem;
-  }
-
-  .spookyspot-theme:hover .project-description {
-    color: var(--secondaryColor);
-    font-family: var(--font);
-    font-size: 1.1rem;
-  }
-
-  .spookyspot-theme:hover .tech-tag {
-    background: transparent;
-    border: 1px solid var(--primaryColor);
-    color: var(--primaryColor);
-    opacity: 0.8;
-  }
-
-  .spookyspot-theme:hover .tech-tag:hover {
-    opacity: 1;
-  }
-
-  .spookyspot-theme:hover .project-link {
-    background: transparent;
-    border: 1px solid var(--primaryColor);
-    color: var(--primaryColor);
-  }
-
-  .spookyspot-theme:hover .project-link:hover {
-    background: var(--primaryColor);
-    color: var(--background);
-  }
-
-  /* Atria Theme */
-  .atria-theme {
-    transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-    background: linear-gradient(to right, white, rgba(214, 152, 219, 0.02));
-    will-change: background, border, box-shadow;
-  }
-
+  /* Special case for Atria gradient animation */
   .atria-theme:hover {
-    background: var(--background);
     background-size: 400% 400%;
     animation: gradientFlow 15s ease infinite;
-    border: var(--cardBorder);
-    box-shadow: var(--cardGlow);
   }
 
-  .atria-theme:hover .project-title {
-    color: var(--primaryColor);
-    font-family: var(--font);
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.3));
-  }
-
-  .atria-theme:hover .project-description {
-    color: var(--secondaryColor);
-    font-family: var(--font);
-  }
-
-  .atria-theme:hover .tech-tag {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(8px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    color: var(--primaryColor);
-  }
-
-  .atria-theme:hover .tech-tag:hover {
-    background: rgba(255, 255, 255, 0.2);
-  }
-
-  .atria-theme:hover .project-link {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(8px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    color: var(--primaryColor);
-  }
-
-  .atria-theme:hover .project-link:hover {
-    background: rgba(255, 255, 255, 0.2);
-  }
-
-  /* TaskFlow Theme */
-  .taskflow-theme {
-  transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-  background: linear-gradient(to right, rgba(255, 255, 255, 0.1), rgba(79, 71, 247, 0.02));
-  will-change: background, border, box-shadow;
-}
-  .taskflow-theme:hover {
-    background: var(--background);
-    border: var(--cardBorder);
-    box-shadow: var(--cardGlow);
-  }
-
-  .taskflow-theme:hover .project-title {
-    background: var(--accentGradient);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    font-family: var(--font);
-    font-weight: 800;
-    line-height: 1.1;
-    font-size: 1.9rem;
-  }
-
-  .taskflow-theme:hover .project-description {
-    color: var(--secondaryColor);
-    font-family: var(--font);
-    font-size: 1.1rem;
-  }
-
-  .taskflow-theme:hover .tech-tag {
-    background: #f8f9fa;
-    color: var(--primaryColor);
-    border: 1px solid #e5e7eb;
-  }
-
-  .taskflow-theme:hover .project-link.live {
-    background: var(--accentGradient);
-    border: 1px solid var(--primaryColor);
-    color: white;
-    border: none;
-  }
-
-  .taskflow-theme:hover .project-link.github {
-    background: white;
-    color: var(--primaryColor);
-    border: 1px solid var(--primaryColor);
-  }
-
-  .taskflow-theme:hover .project-link.github:hover {
-    background: var(--primaryColor);
-    color: white;
-    border: 1px solid var(--primaryColor);
-  }
-
+  /* Optimized gradient animation */
   @keyframes gradientFlow {
-    0% { 
-      background-position: 0% 50%;
-      transform: translateZ(0);
-    }
-    50% { 
-      background-position: 100% 50%;
-      transform: translateZ(0);
-    }
-    100% { 
-      background-position: 0% 50%;
-      transform: translateZ(0);
-    }
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
   }
 
-  /* MidnightAnalog Theme */
+  /* MidnightAnalog special effects - simplified */
   .midnightAnalog-theme {
-    position: relative;
-    transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-    background: linear-gradient(to right, white, rgba(200, 200, 200, 0.02));
-    overflow: hidden;
-    will-change: background, border, box-shadow;
-  }
-
-  .midnightAnalog-theme::before,
-  .midnightAnalog-theme::after {
-    content: '';
-    position: absolute;
-    opacity: 0;
-    transition: opacity 0.6s ease;
-    pointer-events: none;
-  }
-
-  /* LED dot pattern overlay */
-  .midnightAnalog-theme::before {
-    inset: 0;
-    background-image: radial-gradient(circle, var(--light1Color) 0.5px, transparent 1px);
-    background-size: 4px 4px;
-    mix-blend-mode: screen;
-    z-index: 2;
-  }
-
-  /* Moving warm analog lights */
-  .midnightAnalog-theme::after {
-    inset: -50%;
-    background:
-      radial-gradient(circle at 20% 20%, var(--light1Color) 0%, transparent 40%),
-      radial-gradient(circle at 80% 80%, var(--light2Color) 0%, transparent 40%),
-      radial-gradient(circle at 80% 20%, var(--light3Color) 0%, transparent 40%),
-      radial-gradient(circle at 20% 80%, var(--light4Color) 0%, transparent 40%);
-    background-size: 200% 200%;
-    filter: blur(50px);
-    mix-blend-mode: lighten;
-    z-index: 1;
-  }
-
-  .midnightAnalog-theme:hover {
-    background: var(--background);
-    border: var(--cardBorder);
-    box-shadow: var(--cardGlow);
     position: relative;
     isolation: isolate;
   }
 
+  .midnightAnalog-theme::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(circle, var(--primaryColor) 0.5px, transparent 1px);
+    background-size: 4px 4px;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+    z-index: 1;
+  }
+
   .midnightAnalog-theme:hover::before {
     opacity: 0.08;
-    animation: analogPulse 4s ease-in-out infinite;
   }
 
-  .midnightAnalog-theme:hover::after {
-    opacity: 0.25;
-    animation: analogSweep 20s linear infinite;
-  }
-
-  .midnightAnalog-theme:hover .project-content {
-    z-index: 3;
-    position: relative;
-  }
-
-  .midnightAnalog-theme:hover .project-title {
-    color: var(--primaryColor);
-    font-family: var(--font);
-    font-weight: 600;
-    text-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
-    letter-spacing: 1px;
-  }
-
-  .midnightAnalog-theme:hover .project-description {
-    color: var(--secondaryColor);
-    font-family: var(--font);
-    opacity: 0.95;
-  }
-
-  .midnightAnalog-theme:hover .tech-tag {
-    background: rgba(0, 0, 0, 0.2);
-    backdrop-filter: blur(8px);
-    border: 1px solid rgba(245, 158, 11, 0.4);
-    color: var(--primaryColor);
-    font-family: var(--font);
-    font-size: 0.75rem;
-    letter-spacing: 0.5px;
-  }
-
-  .midnightAnalog-theme:hover .tech-tag:hover {
-    background: rgba(0, 0, 0, 0.3);
-    box-shadow: 0 0 8px rgba(245, 158, 11, 0.2);
-  }
-
-  .midnightAnalog-theme:hover .project-link {
-    background: rgba(0, 0, 0, 0.2);
-    backdrop-filter: blur(8px);
-    border: 1px solid rgba(245, 158, 11, 0.5);
-    color: var(--primaryColor);
-    font-family: var(--font);
-    text-transform: uppercase;
-    font-size: 0.8rem;
-    letter-spacing: 1px;
-  }
-
-  .midnightAnalog-theme:hover .project-link:hover {
-    background: rgba(245, 158, 11, 0.1);
-    border-color: var(--primaryColor);
-    box-shadow: 0 0 10px rgba(245, 158, 11, 0.3);
-  }
-
-  @keyframes analogSweep {
-    0% {
-      transform: rotate(0deg) scale(1) translateZ(0);
-    }
-    50% {
-      transform: rotate(180deg) scale(1.2) translateZ(0);
-    }
-    100% {
-      transform: rotate(360deg) scale(1) translateZ(0);
-    }
-  }
-
-  @keyframes analogPulse {
-    0%, 100% {
-      opacity: 0.1;
-    }
-    50% {
-      opacity: 0.2;
-    }
-  }
-
+  /* Mobile optimizations */
   @media (max-width: 768px) {
-    .project-title {
-      font-size: 1.5rem;
-    }
-
-    .project-description {
-      font-size: 1rem;
-    }
     .project-card {
-      height: 450px;
+      /* Always show theme on mobile */
+      background: var(--background);
+      border: var(--cardBorder);
+      box-shadow: var(--cardGlow);
+    }
+    
+    .project-title {
+      color: var(--primaryColor);
+      font-family: var(--font, inherit);
+    }
+    
+    .project-description {
+      color: var(--secondaryColor);
+      font-family: var(--font, inherit);
+    }
+    
+    .tech-tag {
+      background: transparent;
+      border-color: var(--primaryColor);
+      color: var(--primaryColor);
+    }
+    
+    .project-link {
+      background: transparent;
+      border-color: var(--primaryColor);
+      color: var(--primaryColor);
     }
   }
 
-
-@media (pointer: coarse) {
-  /* MidnightAnalog Theme */
-  .midnightAnalog-theme {
-    background: var(--background);
-    border: var(--cardBorder);
-    box-shadow: var(--cardGlow);
+  /* Reduce motion preference */
+  @media (prefers-reduced-motion: reduce) {
+    .project-card {
+      transition: none;
+    }
+    
+    .atria-theme:hover {
+      animation: none;
+    }
   }
-
-  .midnightAnalog-theme::before {
-    opacity: 0.08;
-    animation: analogPulse 4s ease-in-out infinite;
-  }
-
-  .midnightAnalog-theme::after {
-    opacity: 0.25;
-    animation: analogSweep 20s linear infinite;
-  }
-
-  .midnightAnalog-theme .project-content {
-    z-index: 3;
-    position: relative;
-  }
-
-  .midnightAnalog-theme .project-title {
-    color: var(--primaryColor);
-    font-family: var(--font);
-    font-weight: 600;
-    text-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
-    letter-spacing: 1px;
-  }
-
-  .midnightAnalog-theme .project-description {
-    color: var(--secondaryColor);
-    font-family: var(--font);
-    opacity: 0.95;
-  }
-
-  .midnightAnalog-theme .tech-tag {
-    background: rgba(0, 0, 0, 0.2);
-    backdrop-filter: blur(8px);
-    border: 1px solid rgba(245, 158, 11, 0.4);
-    color: var(--primaryColor);
-    font-family: var(--font);
-    font-size: 0.75rem;
-    letter-spacing: 0.5px;
-  }
-
-  .midnightAnalog-theme .project-link {
-    background: rgba(0, 0, 0, 0.2);
-    backdrop-filter: blur(8px);
-    border: 1px solid rgba(245, 158, 11, 0.5);
-    color: var(--primaryColor);
-    font-family: var(--font);
-    text-transform: uppercase;
-    font-size: 0.8rem;
-    letter-spacing: 1px;
-  }
-
-  /* SpookySpot Theme */
-  .spookyspot-theme {
-    background: var(--background);
-    border: var(--cardBorder);
-    box-shadow: var(--cardGlow);
-  }
-
-  .spookyspot-theme .project-title {
-    color: var(--primaryColor);
-    font-family: var(--font);
-    font-weight: 500;
-    letter-spacing: 0.5px;
-    font-size: 1.7rem;
-  }
-
-  .spookyspot-theme .project-description {
-    color: var(--secondaryColor);
-    font-family: var(--font);
-    font-size: 1.1rem;
-  }
-
-  .spookyspot-theme .tech-tag {
-    background: transparent;
-    border: 1px solid var(--primaryColor);
-    color: var(--primaryColor);
-    opacity: 0.8;
-  }
-
-  /* Atria Theme */
-  .atria-theme {
-    background: var(--background);
-    background-size: 400% 400%;
-    animation: gradientFlow 15s ease infinite;
-    border: var(--cardBorder);
-    box-shadow: var(--cardGlow);
-  }
-
-  .atria-theme .project-title {
-    color: var(--primaryColor);
-    font-family: var(--font);
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.3));
-  }
-
-  .atria-theme .project-description {
-    color: var(--secondaryColor);
-    font-family: var(--font);
-  }
-
-  .atria-theme .tech-tag {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(8px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    color: var(--primaryColor);
-  }
-
-  /* TaskFlow Theme */
-  .taskflow-theme {
-    background: var(--background);
-    border: var(--cardBorder);
-    box-shadow: var(--cardGlow);
-  }
-
-  .taskflow-theme .project-title {
-    background: var(--accentGradient);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    font-family: var(--font);
-    font-weight: 800;
-    line-height: 1.1;
-    font-size: 1.9rem;
-  }
-
-  .taskflow-theme .project-description {
-    color: var(--secondaryColor);
-    font-family: var(--font);
-    font-size: 1.1rem;
-  }
-
-  .taskflow-theme .tech-tag {
-    background: #f8f9fa;
-    color: var(--primaryColor);
-    border: 1px solid #e5e7eb;
-  }
-
-  .taskflow-theme .project-link.live {
-    background: var(--accentGradient);
-    border: none;
-    color: white;
-  }
-
-  .taskflow-theme .project-link.github {
-    background: white;
-    color: var(--primaryColor);
-    border: 1px solid var(--primaryColor);
-  }
-
-    /* SpookySpot Theme Buttons */
-    .spookyspot-theme .project-link {
-    background: transparent;
-    border: 1px solid var(--primaryColor);
-    color: var(--primaryColor);
-  }
-
-  /* Atria Theme Buttons */
-  .atria-theme .project-link {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(8px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    color: var(--primaryColor);
-  }
-
-  /* TaskFlow Theme Buttons */
-  .taskflow-theme .project-link.live {
-    background: var(--accentGradient);
-    border: none;
-    color: white;
-  }
-
-  .taskflow-theme .project-link.github {
-    background: white;
-    color: var(--primaryColor);
-    border: 1px solid var(--primaryColor);
-  }
-}
 </style>

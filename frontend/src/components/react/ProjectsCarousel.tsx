@@ -1,6 +1,7 @@
-import React from 'react';
+import { useCallback } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination } from 'swiper/modules';
+import type { Swiper as SwiperType } from 'swiper';
 import ProjectCard from './ProjectCard';
 
 // Import Swiper styles
@@ -13,8 +14,8 @@ interface Project {
   title: string;
   description: string;
   tech: string[];
-  liveLink: string;
-  githubLink: string;
+  liveLink?: string;
+  githubLink?: string;
   image?: string;
 }
 
@@ -23,6 +24,14 @@ interface ProjectsCarouselProps {
 }
 
 export default function ProjectsCarousel({ projects }: ProjectsCarouselProps) {
+  // Optimize slide change handler with useCallback
+  const handleSlideChange = useCallback((swiper: SwiperType) => {
+    // Use requestAnimationFrame for smoother updates
+    requestAnimationFrame(() => {
+      swiper.update();
+    });
+  }, []);
+
   return (
     <Swiper
       modules={[Navigation, Pagination]}
@@ -48,10 +57,7 @@ export default function ProjectsCarousel({ projects }: ProjectsCarouselProps) {
       }}
       className="projects-swiper"
       slideActiveClass="swiper-slide-active"
-      onSlideChange={(swiper) => {
-        // Force re-render to update active styles
-        swiper.update();
-      }}
+      onSlideChange={handleSlideChange}
       style={{
         padding: '20px 0',
       }}

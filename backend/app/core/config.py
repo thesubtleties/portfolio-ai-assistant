@@ -64,7 +64,7 @@ class Settings(BaseSettings):
         "RESPONSE LENGTH: Keep focused and concise. General questions: 3-5 lines. Project details: use clean bullet points or short paragraphs. On DESKTOP use a MAX of 25 lines or 250 words - whichever comes first. On MOBILE use a MAX of 15 lines or 75 words - whichever comes first.",
         "SPACING RULES: Use double newlines (\\n\\n) to separate distinct ideas, paragraphs, and different projects. Use single newlines (\\n) for project headers followed immediately by their details/bullets, and within lists. Example format: 'Project Name\\n- Detail one\\n- Detail two\\n\\nNext Project Name\\n- Its details'",
         "MARKDOWN STYLING: Use formatting liberally - **bold** for project names and key terms, # for main headers, ## for subheaders. Add visual interest with headers, bold text, or centered elements to avoid plain chat-like responses.",
-        "PROJECT LINKS: Always link projects when mentioned. Format: **[Project Name](demo-url)** for live demos, **[Project Name](github-url)** for repos. Available links: **[Atria](https://atria.sbtl.dev/)** (demo), **[SpookySpot](https://spookyspot.sbtl.dev/)** (demo), **[TaskFlow](https://taskflow.sbtl.dev/)** (demo), **[Hills House](https://itshillshouse.sbtl.dev/)** (demo), **[GitHub Portfolio](https://github.com/thesubtleties)** (public repos), **[Resume](https://www.sbtl.dev/steven-glab-resume-2025.pdf)** (PDF). StyleATC and LinkedIn Analyzer are self-hosted only.",
+        "PROJECT LINKS: Always link projects when mentioned. Format: **[Project Name](demo-url)** for live demos, **[Project Name](github-url)** for repos. Available links: **[Atria](https://atria.gg)** (demo), **[SpookySpot](https://spookyspot.sbtl.dev/)** (demo), **[TaskFlow](https://taskflow.sbtl.dev/)** (demo), **[Hills House](https://itshillshouse.sbtl.dev/)** (demo), **[GitHub Portfolio](https://github.com/thesubtleties)** (public repos), **[Resume](https://www.sbtl.dev/steven-glab-resume-2025.pdf)** (PDF). StyleATC and LinkedIn Analyzer are self-hosted only.",
         "Atria is sometimes also called Atria Event Management Platform in the RAG content."
         "URL VALIDATION: NEVER create or guess URLs. Only use URLs from the provided list above or found in the retrieved portfolio content. If unsure about a URL, ask the user to check Steven's portfolio directly rather than providing an incorrect link.",
         "TONE: Conversational but polished. Refer to the portfolio owner as 'Steven'. Be helpful and specific about his work, honest when you don't have details.",
@@ -82,28 +82,25 @@ class Settings(BaseSettings):
     # Content safety filter patterns (to prevent API violations)
     content_safety_patterns: list[str] = [
         # Harmful/dangerous content
-        r'\b(?:how\s+to\s+make\s+a?\s+bomb|DIY\s+explosive|build\s+a?\s+grenade|weapon\s+manufacturing|construct\s+bomb|create\s+explosives)\b',
-        r'\b(?:bypass\s+API\s+security|evade\s+detection|circumvent\s+filters|hack\s+the\s+API|attack\s+the\s+service)\b',
-        
-        # Illegal activities  
-        r'\b(?:money\s+laundering|drug\s+trafficking|child\s+exploit(?:ation)?|cybercrime|illegal\s+arms|stolen\s+data|hitman|assassination)\b',
-        r'\b(?:how\s+to\s+rob|plan\s+a\s+heist|commit\s+fraud|smuggle)\b',
-        
+        r"\b(?:how\s+to\s+make\s+a?\s+bomb|DIY\s+explosive|build\s+a?\s+grenade|weapon\s+manufacturing|construct\s+bomb|create\s+explosives)\b",
+        r"\b(?:bypass\s+API\s+security|evade\s+detection|circumvent\s+filters|hack\s+the\s+API|attack\s+the\s+service)\b",
+        # Illegal activities
+        r"\b(?:money\s+laundering|drug\s+trafficking|child\s+exploit(?:ation)?|cybercrime|illegal\s+arms|stolen\s+data|hitman|assassination)\b",
+        r"\b(?:how\s+to\s+rob|plan\s+a\s+heist|commit\s+fraud|smuggle)\b",
         # Sexual content (minors/explicit)
-        r'\b(?:child\s+porno(?:graphy)?|bestiality|explicit\s+sex\s+with)\b',
-        
+        r"\b(?:child\s+porno(?:graphy)?|bestiality|explicit\s+sex\s+with)\b",
         # Violence/self-harm
-        r'\b(?:massacre|killing\s+spree|commit\s+violence|torture|genocide)\b',
-        r'\b(?:suicide\s+methods|self-harm\s+tips|encourage\s+self[- ]harm)\b',
-        
+        r"\b(?:massacre|killing\s+spree|commit\s+violence|torture|genocide)\b",
+        r"\b(?:suicide\s+methods|self-harm\s+tips|encourage\s+self[- ]harm)\b",
         # Misinformation requests
-        r'\b(?:fake\s+news\s+campaign|disinformation\s+campaign|manufacture\s+evidence)\b',
-        
+        r"\b(?:fake\s+news\s+campaign|disinformation\s+campaign|manufacture\s+evidence)\b",
         # Hate speech (basic patterns)
-        r'\b(?:go\s+kill\s+yourself|you\'?re\s+worthless\s+scum)\b'
+        r"\b(?:go\s+kill\s+yourself|you\'?re\s+worthless\s+scum)\b",
     ]
-    
-    content_safety_message: str = "I'm here to help with questions about Steven's portfolio, projects, and professional background. Let's keep our conversation focused on those topics."
+
+    content_safety_message: str = (
+        "I'm here to help with questions about Steven's portfolio, projects, and professional background. Let's keep our conversation focused on those topics."
+    )
 
     # Portfolio search keywords for RAG triggering
     portfolio_search_keywords: list[str] = [

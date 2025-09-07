@@ -21,6 +21,7 @@ redis[hiredis]  # hiredis for better performance
 pgvector
 
 # AI Agents
+instructor==1.10.0
 atomic-agents==1.1.11  # Lock to last v1.x version to avoid v2.0 breaking changes
 openai
 

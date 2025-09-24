@@ -81,12 +81,18 @@ async def proxy_analytics_event(request: Request) -> Response:
         
         # Prepare headers to forward to Plausible
         # We need to preserve certain headers for proper analytics tracking
+        # Get the real client IP (check X-Forwarded-For first, then fall back to client.host)
+        client_ip = request.headers.get("X-Forwarded-For", "").split(",")[0].strip()
+        if not client_ip:
+            client_ip = request.client.host if request.client else ""
+
         headers = {
             "Content-Type": request.headers.get("Content-Type", "application/json"),
             "User-Agent": request.headers.get("User-Agent", ""),
             "X-Forwarded-For": request.headers.get("X-Forwarded-For", request.client.host),
             "X-Forwarded-Proto": request.headers.get("X-Forwarded-Proto", "https"),
             "X-Forwarded-Host": "sbtl.dev",  # Use the actual site domain
+            "X-Plausible-IP": client_ip,  # This takes precedence in Plausible
         }
         
         # Forward the event to Plausible

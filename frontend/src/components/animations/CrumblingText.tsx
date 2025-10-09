@@ -22,13 +22,25 @@ const CrumblingText: React.FC<CrumblingTextProps> = ({
   useEffect(() => {
     if (typeof window === 'undefined' || !containerRef.current) return;
 
-    const ctx = gsap.context(() => {
-      // Set initial states with perspective for depth
-      gsap.set(containerRef.current, { 
-        opacity: 1,
-        perspective: 1000, // Add perspective for z-axis movement
-        transformStyle: 'preserve-3d'
-      });
+    // Wait for all fonts to load before starting animation
+    const startAnimation = async () => {
+      try {
+        // Wait for both Crimson Text (definition text) and Inter (pronunciation) to load
+        await Promise.all([
+          document.fonts.load('1rem "Crimson Text"'),
+          document.fonts.load('1rem "Inter"')
+        ]);
+      } catch (error) {
+        console.warn('Font loading timeout, proceeding with animation:', error);
+      }
+
+      const ctx = gsap.context(() => {
+        // Set initial states with perspective for depth
+        gsap.set(containerRef.current, {
+          opacity: 1,
+          perspective: 1000, // Add perspective for z-axis movement
+          transformStyle: 'preserve-3d'
+        });
       
       // Hide text elements with different initial states
       // Number "1." and both parts of definition 1 animate together from depth
@@ -73,9 +85,15 @@ const CrumblingText: React.FC<CrumblingTextProps> = ({
         },
         "-=0.4" // Overlap with text fade-in
       );
-    }, containerRef);
+      }, containerRef);
 
-    return () => ctx.revert();
+      return () => ctx.revert();
+    };
+
+    startAnimation();
+
+    // No cleanup needed for async function
+    return undefined;
   }, []);
 
   // Word animation effect (sbtl) - REMOVED typing animation, just show immediately

@@ -18,9 +18,21 @@ const AnimatedDefinition: React.FC<AnimatedDefinitionProps> = ({
   useEffect(() => {
     if (typeof window === 'undefined' || !containerRef.current) return;
 
-    const ctx = gsap.context(() => {
-      // Show the container first
-      gsap.set(containerRef.current, { visibility: 'visible' });
+    // Wait for all fonts to load before starting animation
+    const startAnimation = async () => {
+      try {
+        // Wait for both Crimson Text (definition text) and Inter (pronunciation) to load
+        await Promise.all([
+          document.fonts.load('1rem "Crimson Text"'),
+          document.fonts.load('1rem "Inter"')
+        ]);
+      } catch (error) {
+        console.warn('Font loading timeout, proceeding with animation:', error);
+      }
+
+      const ctx = gsap.context(() => {
+        // Show the container first
+        gsap.set(containerRef.current, { visibility: 'visible' });
 
       // Split with smartWrap to prevent mid-word breaks
       const split1 = new SplitText(
@@ -87,13 +99,19 @@ const AnimatedDefinition: React.FC<AnimatedDefinitionProps> = ({
           totalTypingDuration - 0.4
         );
 
-      return () => {
-        split1.revert();
-        split2.revert();
-      };
-    }, containerRef);
+        return () => {
+          split1.revert();
+          split2.revert();
+        };
+      }, containerRef);
 
-    return () => ctx.revert();
+      return () => ctx.revert();
+    };
+
+    startAnimation();
+
+    // No cleanup needed for async function
+    return undefined;
   }, []);
 
   useEffect(() => {

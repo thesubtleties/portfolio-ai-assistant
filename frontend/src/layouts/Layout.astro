@@ -28,21 +28,24 @@ const { title } = Astro.props;
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     
     <!-- Preload critical fonts -->
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=block" as="style">
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,700;1,400&display=block" as="style">
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=block" as="style">
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Mr+Dafoe&display=block" as="style">
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&display=block" as="style">
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=M+PLUS+2:wght@400;500;700&display=block" as="style">
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=block" as="style">
-    
+
     <!-- Critical fonts - load immediately with display=block to prevent FOUT -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=block" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,700;1,400&display=block" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=block" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Mr+Dafoe&display=block" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&display=block" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=M+PLUS+2:wght@400;500;700&display=block" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=block" rel="stylesheet">
-    
+
     <!-- Non-critical fonts - load with display=swap -->
-    <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Sacramento&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Square+Peg&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Cantarell:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
@@ -60,6 +63,7 @@ const { title } = Astro.props;
 <style is:global>
   :root {
     /* Theme Fonts */
+    --font-inter: 'Inter', sans-serif;
     --font-cormorant: 'Cormorant Garamond', serif;
     --font-mplus: 'M PLUS 2', sans-serif;
     --font-abeezee: 'ABeeZee', sans-serif;

@@ -9,6 +9,12 @@ import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 
+interface Badge {
+  image: string;
+  alt: string;
+  tooltip: string;
+}
+
 interface Project {
   id: string;
   title: string;
@@ -17,6 +23,7 @@ interface Project {
   liveLink?: string;
   githubLink?: string;
   image?: string;
+  badge?: Badge;
 }
 
 interface ProjectsCarouselProps {

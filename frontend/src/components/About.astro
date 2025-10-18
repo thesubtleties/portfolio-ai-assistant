@@ -9,9 +9,15 @@ import FadeIn from './react/FadeIn';
   <div class="about-container">
     <div class="about-header">
       <FadeIn client:visible>
+        <div class="headshot-container">
+          <img src="/images/headshotimage.avif" alt="Steven Glab" class="headshot" />
+        </div>
+      </FadeIn>
+
+      <FadeIn client:visible delay={0.1}>
         <h2 class="name">Steven Glab</h2>
       </FadeIn>
-      
+
       <FadeIn client:visible delay={0.2}>
         <div class="contact-links">
           <a href="mailto:steven@sbtl.dev" class="icon-link" aria-label="Email" target="_blank">
@@ -54,55 +60,57 @@ import FadeIn from './react/FadeIn';
 
             <div class="skills-container">
               <div class="skills-group">
-                <h3>Core Technologies</h3>
-                <div class="skills-list">
-                  <span class="skill-tag">JavaScript</span>
-                  <span class="skill-tag">TypeScript</span>
-                  <span class="skill-tag">Python</span>
-                </div>
-              </div>
-
-              <div class="skills-group">
                 <h3>Frontend</h3>
                 <div class="skills-list">
-                  <span class="skill-tag">React</span>
                   <span class="skill-tag">Next.js</span>
-                  <span class="skill-tag">Astro</span>
+                  <span class="skill-tag">React Router</span>
                   <span class="skill-tag">Redux Toolkit</span>
+                  <span class="skill-tag">RTK Query</span>
+                  <span class="skill-tag">Zod</span>
                   <span class="skill-tag">Tailwind CSS</span>
-                  <span class="skill-tag">CSS Modules</span>
-                  <span class="skill-tag">Framer Motion</span>
+                  <span class="skill-tag">Motion</span>
                   <span class="skill-tag">GSAP</span>
+                  <span class="skill-tag">Socket.io</span>
                 </div>
               </div>
 
               <div class="skills-group">
-                <h3>Backend & Database</h3>
+                <h3>Backend</h3>
                 <div class="skills-list">
-                  <span class="skill-tag">Node.js</span>
+                  <span class="skill-tag">Flask</span>
+                  <span class="skill-tag">SQLAlchemy</span>
                   <span class="skill-tag">Express</span>
                   <span class="skill-tag">FastAPI</span>
-                  <span class="skill-tag">Flask</span>
+                  <span class="skill-tag">Sequelize</span>
                   <span class="skill-tag">PostgreSQL</span>
-                  <span class="skill-tag">SQLAlchemy</span>
-                  <span class="skill-tag">Redis</span>
-                  <span class="skill-tag">pgvector</span>
-                  <span class="skill-tag">MCP Protocol</span>
+                  <span class="skill-tag">Marshmallow</span>
+                  <span class="skill-tag">Pydantic</span>
                   <span class="skill-tag">Atomic Agents</span>
                 </div>
               </div>
 
               <div class="skills-group">
-                <h3>DevOps & Tools</h3>
+                <h3>DevOps/Infrastructure</h3>
                 <div class="skills-list">
-                  <span class="skill-tag">Docker</span>
+                  <span class="skill-tag">Kubernetes (K3s)</span>
+                  <span class="skill-tag">Longhorn Storage</span>
+                  <span class="skill-tag">GitHub Actions CI/CD</span>
+                  <span class="skill-tag">Cloud Native PostgreSQL</span>
+                  <span class="skill-tag">Backblaze B2</span>
                   <span class="skill-tag">Docker Compose</span>
+                </div>
+              </div>
+
+              <div class="skills-group">
+                <h3>Tools</h3>
+                <div class="skills-list">
                   <span class="skill-tag">Git</span>
-                  <span class="skill-tag">GitHub Actions</span>
                   <span class="skill-tag">Nginx</span>
-                  <span class="skill-tag">Kubernetes</span>
-                  <span class="skill-tag">Vite</span>
-                  <span class="skill-tag">Pytest</span>
+                  <span class="skill-tag">Postman</span>
+                  <span class="skill-tag">MinIO</span>
+                  <span class="skill-tag">Docker</span>
+                  <span class="skill-tag">Payload CMS</span>
+                  <span class="skill-tag">Swagger/OpenAPI</span>
                 </div>
               </div>
             </div>
@@ -116,19 +124,19 @@ import FadeIn from './react/FadeIn';
           <div class="tab-panel" id="journey">
             <div class="journey-content">
               <p class="journey-text">
-                My path to software development began in the world of technical production, where I discovered that the difference between good and exceptional often lives in the subtleties.
+                I spent 12 years in technical production and operations leadership before writing my first line of code. When COVID hit in 2020, I led our company's pivot to virtual events - managing the technical side of productions for sitting presidents, Fortune 500 CEOs, and thousands of attendees where everything had to work the first time.
               </p>
-            
+
               <p class="journey-text">
-                When traditional events transformed in 2020, I led our company's evolution into virtual productions. While guiding our team through technical platform customizations, I found myself drawn deeper into development. Through The Odin Project, I discovered that the same attention to detail that made our events successful translated perfectly to coding.
+                While customizing virtual event platforms with JavaScript and CSS, something clicked. The problem-solving, the systems thinking, the need for things to just work - it was the same skillset I'd been using, just applied differently. I started The Odin Project that year and haven't really stopped coding since.
               </p>
-            
+
               <p class="journey-text">
-                Creating my first React application crystallized this connection. What began as a task list, inspired by the quiet elegance of Japanese alleyways, became a revelation: here was a craft where technical precision and creative vision were inseparable – the same balance I had always sought in production.
+                What I appreciate about development is the same thing I valued in production: building systems that work reliably under pressure. No debugging in front of 2,000 attendees. No "we'll fix it in post." Just solid architecture and attention to the details that actually matter.
               </p>
-            
+
               <p class="journey-text">
-                Just as in technical production, where the best events seamlessly combine functionality and aesthetics, I approach software development with the same principle: create solutions that work flawlessly while maintaining an elegant user experience. It's about building systems where every detail serves a purpose, whether it's immediately visible or working quietly in the background.
+                The transition from operations leadership to full-stack development isn't typical, but the fundamentals transfer: understand the system, anticipate failure points, build for reliability, and sweat the details that users will never see but will absolutely feel if you get them wrong.
               </p>
             </div>
           </div>
@@ -152,15 +160,32 @@ import FadeIn from './react/FadeIn';
   }
 
   .name {
-    font-family: 'Mr Dafoe', sans-serif; 
-    font-size: 3.5rem; 
-    font-weight: 400; 
+    font-family: 'Mr Dafoe', sans-serif;
+    font-size: 3.5rem;
+    font-weight: 400;
     color: var(--color-primary);
-    margin-bottom: 1.2rem;
-    letter-spacing: -0.02em; 
+    margin-bottom: 0.25rem;
+    margin-top: 0;
+    letter-spacing: -0.02em;
     text-shadow: 0 1px 1px rgba(0, 0, 0, 0.03);
   }
 
+  .headshot-container {
+    width: 120px;
+    height: 120px;
+    margin: 0 auto 0.25rem;
+    border-radius: 50%;
+    border: 3px solid var(--color-primary);
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  .headshot {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
 
   .contact-links {
     display: flex;

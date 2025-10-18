@@ -1,6 +1,12 @@
 import React from 'react';
 import '../../styles/projectCard.css';
 
+interface Badge {
+  image: string;
+  alt: string;
+  tooltip: string;
+}
+
 interface Project {
   id: string;
   title: string;
@@ -9,6 +15,7 @@ interface Project {
   liveLink?: string;
   githubLink?: string;
   image?: string;
+  badge?: Badge;
 }
 
 interface ProjectCardProps {
@@ -18,6 +25,12 @@ interface ProjectCardProps {
 export default function ProjectCard({ project }: ProjectCardProps) {
   return (
     <article className={`project-card ${project.id}-theme`}>
+      {project.badge && (
+        <div className="project-badge">
+          <img src={project.badge.image} alt={project.badge.alt} />
+          <span className="badge-tooltip">{project.badge.tooltip}</span>
+        </div>
+      )}
       <div className="project-content">
         <h3 className="project-title">{project.title}</h3>
         <p className="project-description">{project.description}</p>

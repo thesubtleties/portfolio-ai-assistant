@@ -10,15 +10,54 @@
   width: 100%;
   max-width: 600px;
   margin: 0 auto;
-  
+  position: relative;
+
   /* Performance optimizations */
   contain: layout style paint;
   will-change: transform;
   backface-visibility: hidden;
   transform: translateZ(0);
-  
+
   /* Smooth fade-in on initial render */
   animation: smoothFadeIn 0.3s ease-out;
+}
+
+/* Project Badge Styles */
+.project-badge {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  z-index: 10;
+  width: 40px;
+  height: 40px;
+  cursor: help;
+}
+
+.project-badge img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.badge-tooltip {
+  position: absolute;
+  top: 50%;
+  right: 50px;
+  transform: translateY(-50%);
+  background: rgba(0, 0, 0, 0.9);
+  color: white;
+  padding: 0.5rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.project-badge:hover .badge-tooltip {
+  opacity: 1;
 }
 
 @keyframes smoothFadeIn {

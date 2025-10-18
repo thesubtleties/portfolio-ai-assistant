@@ -8,6 +8,12 @@ interface Theme {
   font?: string;
 }
 
+interface Badge {
+  image: string;
+  alt: string;
+  tooltip: string;
+}
+
 interface ProjectProps {
   id: string;
   title: string;
@@ -16,6 +22,7 @@ interface ProjectProps {
   liveLink: string;
   githubLink: string;
   image?: string;
+  badge?: Badge;
 }
 
 const { project } = Astro.props;
@@ -59,10 +66,16 @@ const themes: Record<string, Theme> = {
 const theme = themes[project.id] || themes.spookyspot;
 ---
 
-<article 
+<article
   class={`project-card ${project.id}-theme`}
   data-theme-id={project.id}
 >
+  {project.badge && (
+    <div class="project-badge">
+      <img src={project.badge.image} alt={project.badge.alt} />
+      <span class="badge-tooltip">{project.badge.tooltip}</span>
+    </div>
+  )}
   <div class="project-content">
     <h3 class="project-title">{project.title}</h3>
     <p class="project-description">{project.description}</p>
@@ -96,7 +109,7 @@ const theme = themes[project.id] || themes.spookyspot;
   .project-card {
     --transition-duration: 0.4s;
     --transition-easing: cubic-bezier(0.4, 0, 0.2, 1);
-    
+
     background: white;
     border-radius: 8px;
     overflow: hidden;
@@ -104,18 +117,67 @@ const theme = themes[project.id] || themes.spookyspot;
     display: flex;
     flex-direction: column;
     height: 450px;
-    
+    position: relative;
+
     /* Performance optimizations */
     contain: layout style paint;
     will-change: transform;
     backface-visibility: hidden;
     transform: translateZ(0);
-    
+
     /* Smooth base transition */
-    transition: 
+    transition:
       background var(--transition-duration) var(--transition-easing),
       border var(--transition-duration) var(--transition-easing),
       box-shadow var(--transition-duration) var(--transition-easing);
+  }
+
+  .project-badge {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    z-index: 10;
+    width: 40px;
+    height: 40px;
+    cursor: help;
+  }
+
+  .project-badge img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+  }
+
+  .badge-tooltip {
+    position: absolute;
+    bottom: -35px;
+    right: 0;
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 0.5rem 0.75rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+  }
+
+  .badge-tooltip::before {
+    content: '';
+    position: absolute;
+    top: -6px;
+    right: 10px;
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-bottom: 6px solid rgba(0, 0, 0, 0.9);
+  }
+
+  .project-badge:hover .badge-tooltip {
+    opacity: 1;
   }
 
   .project-card:hover {

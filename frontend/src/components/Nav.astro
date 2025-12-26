@@ -7,6 +7,7 @@
       <a href="#about">About</a>
       <a href="#projects">Projects</a>
       <a href="#contact">Contact</a>
+      <a href="/steven-glab-resume-2025.pdf" class="resume-btn" target="_blank" rel="noopener noreferrer">Resume</a>
     </div>
   </div>
 </nav>
@@ -67,6 +68,23 @@
 
   .nav-links a:hover::after {
     width: 100%;
+  }
+
+  .nav-links a.resume-btn {
+    background-color: var(--color-primary);
+    color: white;
+    padding: 0.4rem 0.8rem;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+  }
+
+  .nav-links a.resume-btn::after {
+    display: none;
+  }
+
+  .nav-links a.resume-btn:hover {
+    background-color: var(--color-accent);
+    transform: translateY(-1px);
   }
 
   @media (max-width: 768px) {

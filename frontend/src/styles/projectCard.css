@@ -328,6 +328,132 @@
   box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2);
 }
 
+/* sbtlTV Theme - Dark Media Player */
+.sbtltv-theme {
+  position: relative;
+  background: linear-gradient(to right, white, rgba(0, 212, 255, 0.02));
+  overflow: hidden;
+  isolation: isolate;
+}
+
+/* Subtle horizontal scanline pattern (EPG grid feel) */
+.sbtltv-theme::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 3px,
+    rgba(0, 212, 255, 0.03) 3px,
+    rgba(0, 212, 255, 0.03) 4px
+  );
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Noir theatre backdrop image */
+.sbtltv-theme::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.7)),
+    url('/images/sbtltv-bg.webp');
+  background-size: cover;
+  background-position: center;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.swiper-slide-active .sbtltv-theme {
+  background: rgba(10, 10, 10, 0.95);
+  border: 1px solid rgba(0, 212, 255, 0.25);
+  box-shadow: 0 0 20px rgba(0, 212, 255, 0.35);
+}
+
+.swiper-slide-active .sbtltv-theme::before {
+  opacity: 0.6;
+}
+
+.swiper-slide-active .sbtltv-theme::after {
+  opacity: 1;
+}
+
+.swiper-slide-active .sbtltv-theme .project-content {
+  position: relative;
+  z-index: 2;
+}
+
+/* sbtlTV logo next to title */
+.sbtltv-theme .project-title {
+  display: inline-flex;
+  align-items: center;
+}
+
+.sbtltv-theme .project-title::before {
+  content: '';
+  width: 36px;
+  height: 36px;
+  -webkit-mask-image: url('/images/sbtltv-logo.svg');
+  mask-image: url('/images/sbtltv-logo.svg');
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  background-color: var(--color-primary);
+  margin-right: 10px;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.swiper-slide-active .sbtltv-theme .project-title::before {
+  background-color: white;
+}
+
+.swiper-slide-active .sbtltv-theme .project-title {
+  color: white;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.swiper-slide-active .sbtltv-theme .project-description {
+  color: rgba(255, 255, 255, 0.85);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.swiper-slide-active .sbtltv-theme .tech-tag {
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(0, 212, 255, 0.3);
+  color: #00d4ff;
+  font-size: 0.75rem;
+}
+
+.swiper-slide-active .sbtltv-theme .tech-tag:hover {
+  background: rgba(0, 212, 255, 0.08);
+  box-shadow: 0 0 8px rgba(0, 212, 255, 0.2);
+}
+
+.swiper-slide-active .sbtltv-theme .project-link {
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(0, 212, 255, 0.4);
+  color: #00d4ff;
+  font-size: 0.85rem;
+}
+
+.swiper-slide-active .sbtltv-theme .project-link:hover {
+  background: rgba(0, 212, 255, 0.1);
+  border-color: #00d4ff;
+  box-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
+}
+
 /* TaskFlow Theme - Optimized */
 .taskflow-theme {
   background: linear-gradient(to right, rgba(255, 255, 255, 0.1), rgba(79, 71, 247, 0.02));
@@ -604,6 +730,52 @@
 
   /* Force active styles on all slides on mobile to prevent jumping */
   /* Apply all theme styles regardless of active state */
+
+  /* sbtlTV - Apply active styles to all slides */
+  .swiper-slide .sbtltv-theme {
+    background: rgba(10, 10, 10, 0.95) !important;
+    border: 1px solid rgba(0, 212, 255, 0.25) !important;
+    box-shadow: 0 0 20px rgba(0, 212, 255, 0.35) !important;
+  }
+
+  .swiper-slide .sbtltv-theme::before {
+    opacity: 0.6 !important;
+  }
+
+  .swiper-slide .sbtltv-theme::after {
+    opacity: 1 !important;
+  }
+
+  .swiper-slide .sbtltv-theme .project-title {
+    color: white !important;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.5px !important;
+  }
+
+  .swiper-slide .sbtltv-theme .project-title::before {
+    background-color: white !important;
+  }
+
+  .swiper-slide .sbtltv-theme .project-description {
+    color: rgba(255, 255, 255, 0.85) !important;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  }
+
+  .swiper-slide .sbtltv-theme .tech-tag {
+    background: rgba(0, 0, 0, 0.3) !important;
+    backdrop-filter: blur(8px) !important;
+    border: 1px solid rgba(0, 212, 255, 0.3) !important;
+    color: #00d4ff !important;
+    font-size: 0.75rem !important;
+  }
+
+  .swiper-slide .sbtltv-theme .project-link {
+    background: rgba(0, 0, 0, 0.3) !important;
+    backdrop-filter: blur(8px) !important;
+    border: 1px solid rgba(0, 212, 255, 0.4) !important;
+    color: #00d4ff !important;
+  }
 
   /* SpookySpot - Apply active styles to all slides */
   .swiper-slide .spookyspot-theme {
